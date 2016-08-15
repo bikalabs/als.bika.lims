@@ -48,9 +48,8 @@ class Parser(InstrumentResultsFileParser):
             # Service Keyword
             service = parsed.group(3)
 
-            rawdict['Result'] = resid
             rawdict['Service'] = service
-            rawdict['DefaultResult'] = 'Result'
+            rawdict['DefaultResult'] = 'Column_4'
 
             self._addRawResult(resid, values={service: rawdict}, override=False)
 
