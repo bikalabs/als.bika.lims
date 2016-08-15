@@ -42,7 +42,12 @@ class VistaPROICPParser(InstrumentResultsFileParser):
             # Service Keyword
             element = row.get("Element", "").replace(" ", "").replace(".", "")
 
+            # Date and Time parsing
+            date_string = "{Date} {Time}".format(**row)
+            date_time = DateTime(date_string)
+
             rawdict = row
+            rawdict['DateTime'] = date_time
             rawdict['DefaultResult'] = 'Soln Conc'
 
             self._addRawResult(resid, values={element: rawdict}, override=False)
