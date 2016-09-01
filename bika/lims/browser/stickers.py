@@ -5,9 +5,12 @@ from bika.lims.browser import BrowserView
 from bika.lims.vocabularies import getStickerTemplates
 from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from bika.lims.utils import createPdf
+from Products.CMFPlone.utils import safe_unicode
 import glob, os, os.path, sys, traceback
+import App
+import tempfile
 
-import os
 
 class Sticker(BrowserView):
     """ Invoked via URL on an object or list of objects from the types
@@ -18,10 +21,8 @@ class Sticker(BrowserView):
     template = ViewPageTemplateFile("templates/stickers_preview.pt")
     item_index = 0
     current_item = None
-    rendered_items = []
 
     def __call__(self):
-        self.rendered_items = []
         bc = getToolByName(self.context, 'bika_catalog')
         items = self.request.get('items', '')
         if items:
@@ -40,7 +41,15 @@ class Sticker(BrowserView):
             self.request.response.redirect(self.context.absolute_url())
             return
 
-        return self.template()
+        # Do print?
+        if self.request.form.get('pdf', '0') == '1':
+            response = self.request.response
+            response.setHeader("Content-type", "application/pdf")
+            response.setHeader("Content-Disposition", "inline")
+            response.setHeader("filename", "temp.pdf")
+            return self.pdfFromPOST()
+        else:
+            return self.template()
 
     def _populateItems(self, item):
         """ Creates an wel-defined array for this item to make the sticker
@@ -164,10 +173,8 @@ class Sticker(BrowserView):
             first item of the list.
         """
         if self.item_index == len(self.items):
-            self.item_index = 0
-            self.rendered_items = []
+            self.item_index = 0;
         self.current_item = self.items[self.item_index]
-        self.rendered_items.append(self.current_item[2].getId())
         self.item_index += 1
         return self.current_item
 
@@ -193,10 +200,36 @@ class Sticker(BrowserView):
             tbex = traceback.format_exc()
             stickerid = curritem[2].id if curritem[2] else curritem[1].id
             return "<div class='error'>%s - %s '%s':<pre>%s</pre></div>" % \
-                    (stickerid, _("Unable to load the template"), embedt, tbex)
+                   (stickerid, _("Unable to load the template"), embedt, tbex)
 
     def getItemsURL(self):
         req_items = self.request.get('items', '')
         req_items = req_items if req_items else self.context.getId()
         req = '%s?items=%s' % (self.request.URL, req_items)
         return req
+
+    def pdfFromPOST(self):
+        """
+        It returns the pdf with the stickers
+        """
+        html = self.request.form.get('html', '')
+        style = self.request.form.get('style', '') + "<style>.sticker {background-color: #fff; border: 1px dotted #cdcdcd; box-shadow: 1px 2px 5px #cdcdcd;}</style>"
+        reporthtml = "<html><head>%s</head><body><div id='report'>%s</body></html>" % (style, html)
+        return self.printFromHTML(safe_unicode(reporthtml).encode('utf-8'))
+
+    def printFromHTML(self, s_html):
+        """
+        Tis function generates a pdf file from the html
+        :s_html: the html to use to generate the pdf
+        """
+        # HTML written to debug file
+        debug_mode = App.config.getConfiguration().debug_mode
+        if debug_mode:
+            tmp_fn = tempfile.mktemp(suffix=".html")
+            open(tmp_fn, "wb").write(s_html)
+
+        # Creates the pdf
+        # we must supply the file ourself so that createPdf leaves it alone.
+        pdf_fn = tempfile.mktemp(suffix=".pdf")
+        pdf_file = createPdf(htmlreport=s_html, outfile=pdf_fn)
+        return pdf_file
