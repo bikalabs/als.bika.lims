@@ -28,6 +28,7 @@ from myself import myinstrument
 from nuclisens import easyq
 from lachat import quickchem
 from varian.vistapro import icp as vistapro_icp
+from metler.toledo import dl55
 
 __all__ = ['abaxis.vetscan.vs2',
            'agilent.masshunter.quantitative',
@@ -58,6 +59,7 @@ __all__ = ['abaxis.vetscan.vs2',
            'nuclisens.easyq',
            'lachat.quickchem'
            'varian.vistapro.icp',
+           'metler.toledo.dl55',
            ]
 
 
