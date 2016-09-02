@@ -57,7 +57,7 @@ __all__ = ['abaxis.vetscan.vs2',
            'thermoscientific.multiskan.go',
            'myself.myinstrument',
            'nuclisens.easyq',
-           'lachat.quickchem'
+           'lachat.quickchem',
            'varian.vistapro.icp',
            'metler.toledo.dl55',
            ]
