@@ -21,10 +21,8 @@ class Sticker(BrowserView):
     template = ViewPageTemplateFile("templates/stickers_preview.pt")
     item_index = 0
     current_item = None
-    rendered_items = []
 
     def __call__(self):
-        self.rendered_items = []
         bc = getToolByName(self.context, 'bika_catalog')
         items = self.request.get('items', '')
         if items:
@@ -175,10 +173,8 @@ class Sticker(BrowserView):
             first item of the list.
         """
         if self.item_index == len(self.items):
-            self.item_index = 0
-            self.rendered_items = []
+            self.item_index = 0;
         self.current_item = self.items[self.item_index]
-        self.rendered_items.append(self.current_item[2].getId())
         self.item_index += 1
         return self.current_item
 
@@ -204,7 +200,7 @@ class Sticker(BrowserView):
             tbex = traceback.format_exc()
             stickerid = curritem[2].id if curritem[2] else curritem[1].id
             return "<div class='error'>%s - %s '%s':<pre>%s</pre></div>" % \
-                    (stickerid, _("Unable to load the template"), embedt, tbex)
+                   (stickerid, _("Unable to load the template"), embedt, tbex)
 
     def getItemsURL(self):
         req_items = self.request.get('items', '')
