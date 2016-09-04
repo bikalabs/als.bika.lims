@@ -92,7 +92,7 @@ class ClientWorkflowAction(AnalysisRequestWorkflowAction):
 
                 # transition the object if both values are present
                 if Sampler and DateSampled:
-                    workflow.doActionFor(sample, action)
+                    doActionFor(sample, action)
                     new_state = workflow.getInfoFor(sample, 'review_state')
                     doActionFor(ar, action)
                     transitioned[new_state].append(sample.Title())
