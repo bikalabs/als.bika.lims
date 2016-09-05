@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
 """ Lachat QuickChem FIA
 """
-import re
 import csv
 import json
 import logging
+import re
 import traceback
 
+from DateTime import DateTime
+from Products.CMFCore.utils import getToolByName
 from bika.lims import bikaMessageFactory as _
+from bika.lims.browser import BrowserView
 from bika.lims.exportimport.instruments.resultsimport import \
     AnalysisResultsImporter, InstrumentResultsFileParser
 from bika.lims.utils import t
+from cStringIO import StringIO
+from plone.i18n.normalizer.interfaces import IIDNormalizer
+from zope.component import getUtility
 
 logger = logging.getLogger(__name__)
 
@@ -143,3 +149,43 @@ def Import(context, request):
     results = {'errors': errors, 'log': logs, 'warns': warns}
 
     return json.dumps(results)
+
+
+class Export(BrowserView):
+    """ Writes worksheet analyses to a CSV file for LaChat QuickChem FIA.
+        Sends the CSV file to the response for download by the browser.
+    """
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+
+    def __call__(self, analyses):
+        uc = getToolByName(self.context, 'uid_catalog')
+        instrument = self.context.getInstrument()
+        norm = getUtility(IIDNormalizer).normalize
+        filename = '{}-{}.csv'.format((self.context.getId(),
+                                       norm(instrument.getDataInterface())))
+
+        # write rows, one per Sample.
+        # Include Blanks and Controls.
+        rows = []
+        tmprows = []
+        for x in range(len(self.context.getLayout())):
+            import pdb;pdb.set_trace()
+            rows.append({})
+        rows += tmprows
+
+        ramdisk = StringIO()
+        writer = csv.writer(ramdisk, delimiter=';')
+        assert (writer)
+        writer.writerows(rows)
+        result = ramdisk.getvalue()
+        ramdisk.close()
+
+        # stream file to browser
+        setheader = self.request.RESPONSE.setHeader
+        setheader('Content-Length', len(result))
+        setheader('Content-Type', 'text/comma-separated-values')
+        setheader('Content-Disposition', 'inline; filename=%s' % filename)
+        self.request.RESPONSE.write(result)
