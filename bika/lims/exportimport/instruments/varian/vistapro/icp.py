@@ -175,7 +175,7 @@ class Export(BrowserView):
         for n, an in enumerate(analyses):
             row = [n]
             ar = an.aq_parent
-            sid = ar.getClientSampleID()
+            sid = ar.getSample().getClientSampleID()
 
             for nn, p in enumerate(sid.split("*")):
                 if nn == 0:
