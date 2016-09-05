@@ -33,7 +33,7 @@
         <td style='vertical-align:top;padding-right:30px;'><label for="lachat_quickchem_fia_instrument">Instrument</label></td>
         <td>
             <p i18n:translate="" style='color: #3F3F3F;font-size: 0.87em;'>
-               relevant text for the instrument to be added soon. 
+                Instrument selector. For calibration tests.
             </p>
             <select name="lachat_quickchem_fia_instrument" id="lachat_quickchem_fia_instrument"
                     tal:define="instrlist view/getInstruments">

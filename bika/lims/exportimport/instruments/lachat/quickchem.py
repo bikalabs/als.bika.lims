@@ -3,14 +3,14 @@
 """
 import re
 import csv
+import json
 import logging
+import traceback
 
+from bika.lims import bikaMessageFactory as _
 from bika.lims.exportimport.instruments.resultsimport import \
     AnalysisResultsImporter, InstrumentResultsFileParser
-from bika.lims import bikaMessageFactory as _
 from bika.lims.utils import t
-import json
-import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +20,7 @@ title = "Lachat QuickChem FIA"
 class Parser(InstrumentResultsFileParser):
     """ Instrument Parser
     """
+
     def __init__(self, rsf):
         InstrumentResultsFileParser.__init__(self, rsf, 'CSV')
 
@@ -27,31 +28,22 @@ class Parser(InstrumentResultsFileParser):
         """ CSV Parser
         """
 
-        reader = csv.reader(self.getInputFile(), dialect='excel')
+        reader = csv.DictReader(self.getInputFile(), delimiter='\t')
 
-        for n, row in enumerate(reader):
+        for row in reader:
+            # in Sample ID column, we may find format: '[SampleID] samplepoint'
+            sampleid = row['Sample ID']
+            if sampleid.startswith('['):
+                # the part between brackets is the sample id:
+                row['Sample ID'] = sampleid[1:].split(']')[0]
 
-            # prepare the rawdict
-            rawdict = {}
-            for n, value in enumerate(row):
-                rawdict["Column_%d" % n] = value
+            # Strip all special chars from the service name (Analyte Name col)
+            row['Analyte Name'] = re.sub(r"\W", "", row['Analyte Name'])
 
-            # parse the second value for the result id, e.g. '[A00035640001] K04'
-            parsed = re.search('(\[(.*)\])\ (.*)', row[1])
-
-            if parsed is None:
-                self.err("Result identification not found.", numline=n)
-                continue
-
-            resid = parsed.group(2)
-
-            # Service Keyword
-            service = parsed.group(3)
-
-            rawdict['Service'] = service
-            rawdict['DefaultResult'] = 'Column_4'
-
-            self._addRawResult(resid, values={service: rawdict}, override=False)
+            row['DefaultResult'] = 'Peak Concentration'
+            self._addRawResult(row['Sample ID'],
+                               values={row['Analyte Name']: row},
+                               override=False)
 
         self.log(
             "End of file reached successfully: ${total_objects} objects, "
@@ -71,7 +63,6 @@ class Importer(AnalysisResultsImporter):
     def __init__(self, parser, context, idsearchcriteria, override,
                  allowed_ar_states=None, allowed_analysis_states=None,
                  instrument_uid=None):
-
         AnalysisResultsImporter.__init__(self,
                                          parser,
                                          context,

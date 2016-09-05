@@ -239,6 +239,10 @@ class RemoteKeywords(Keywords, RemoteLibrary):
     def create_ar(self, path, analyses=[], **kwargs):
         portal = api.portal.get()
         container = portal.restrictedTraverse(path.strip('/').split('/'))
+
+        if isinstance(analyses, basestring):
+            analyses = analyses.split(',')
+
         # create object
         obj = create_analysisrequest(container, container.REQUEST,
                                      kwargs, analyses)
