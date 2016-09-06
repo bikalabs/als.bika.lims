@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" Lachat QuickChem FIA
+""" LaChat QuickChem FIA
 """
 import csv
 import json
@@ -20,7 +20,7 @@ from zope.component import getUtility
 
 logger = logging.getLogger(__name__)
 
-title = "Lachat QuickChem FIA"
+title = "LaChat QuickChem FIA"
 
 
 class Parser(InstrumentResultsFileParser):
@@ -164,26 +164,57 @@ class Export(BrowserView):
         uc = getToolByName(self.context, 'uid_catalog')
         instrument = self.context.getInstrument()
         norm = getUtility(IIDNormalizer).normalize
-        filename = '{}-{}.csv'.format((self.context.getId(),
-                                       norm(instrument.getDataInterface())))
+        filename = '{}-{}.csv'.format(self.context.getId(),
+                                       norm(instrument.getDataInterface()))
 
-        # write rows, one per Sample.
-        # Include Blanks and Controls.
+        # write rows, one per Sample, including including refs and duplicates.
+        #Start Column A at 1 or 9? (the examples given used 9, no clues.)
+        #If routine analysis, Column B is the AR ID + sample type.
+        #If Reference analysis, Column B is the Ref Sample.
+        #If Duplicate analysis, column B is the Worksheet.
+        #Column C is the well number
+        #Column D empty
+        #Column E should always be 1 (2 indicates a duplicate from the same cup)
+        layout = self.context.getLayout()
         rows = []
         tmprows = []
-        for x in range(len(self.context.getLayout())):
-            import pdb;pdb.set_trace()
-            rows.append({})
-        rows += tmprows
+        col_a = 1
+        result = ''
+        # We don't want to include every single slot!  Just one entry
+        # per AR, Duplicate, or Control.
+        used_ids = []
+        for x, row in enumerate(layout):
+            a_uid = row['analysis_uid']
+            c_uid = row['container_uid']
+            analysis = uc(UID=a_uid)[0].getObject() if a_uid else None
+            container = uc(UID=c_uid)[0].getObject() if c_uid else None
+            if row['type'] == 'a':
+                if 'a{}'.format(container.id) in used_ids:
+                    continue
+                used_ids = 'a{}'.format(container.id)
+                # col_a (sample id) has a weird format, but it matches
+                # the examples we are given, so it is true:
+                sample = container.getSample()
+                samplepoint = sample.getSamplePoint()
+                sp_title = samplepoint.Title() if samplepoint else ''
+                col_b = '[{}] {}'.format(container.id, sp_title)
+                col_c = str(row['position'])
+                col_d = ''
+                col_e = '1'
+            elif row['type'] in 'bcd':
+                refgid = analysis.getReferenceAnalysesGroupID()
+                if 'bcd{}'.format(refgid) in used_ids:
+                    continue
+                used_ids = 'bcd{}'.format(refgid)
+                col_b = refgid
+                col_c = str(row['position'])
+                col_d = ''
+                col_e = '1'
+            rows.append(','.join([str(col_a), col_b, col_c, col_d, col_e]))
+            col_a += 1
+        result += '\r\n'.join(rows)
 
-        ramdisk = StringIO()
-        writer = csv.writer(ramdisk, delimiter=';')
-        assert (writer)
-        writer.writerows(rows)
-        result = ramdisk.getvalue()
-        ramdisk.close()
-
-        # stream file to browser
+        # stream to browser
         setheader = self.request.RESPONSE.setHeader
         setheader('Content-Length', len(result))
         setheader('Content-Type', 'text/comma-separated-values')
