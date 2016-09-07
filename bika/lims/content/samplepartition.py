@@ -150,16 +150,7 @@ class SamplePartition(BaseContent, HistoryAwareMixin):
         # if all our siblings are now up to date, promote sample and ARs.
         parts = sample.objectValues("SamplePartition")
         if parts:
-            lower_states = ['to_be_sampled', ]
-            escalate = True
-            for part in parts:
-                pstate = workflow.getInfoFor(part, 'review_state')
-                if pstate in lower_states:
-                    escalate = False
-            if escalate:
-                doActionFor(sample, "sample")
-                for ar in sample.getAnalysisRequests():
-                    doActionFor(ar, "sample")
+            doActionFor(sample, "sample")
 
     def workflow_script_to_be_preserved(self):
         if skip(self, "to_be_preserved"):
