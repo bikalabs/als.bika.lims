@@ -419,7 +419,6 @@ class AnalysesView(BikaListingView):
                 getSecurityManager().checkPermission(ViewResults, obj)
 
             # permission to edit this item's results
-            # Editing Field Results is possible while in Sample Due.
             poc = self.contentFilter.get("getPointOfCapture", 'lab')
             can_edit_analysis = self.allow_edit and context_active and \
                 ( (poc == 'field' and getSecurityManager().checkPermission(EditFieldResults, obj))
