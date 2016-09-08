@@ -165,17 +165,19 @@ class Export(BrowserView):
         instrument = self.context.getInstrument()
         norm = getUtility(IIDNormalizer).normalize
         filename = '{}-{}.csv'.format(self.context.getId(),
-                                       norm(instrument.getDataInterface()))
+                                      norm(instrument.getDataInterface()))
 
         # write rows, one per Sample, including including refs and duplicates.
-        #Start Column A at 1 or 9? (the examples given used 9, no clues.)
-        #If routine analysis, Column B is the AR ID + sample type.
-        #If Reference analysis, Column B is the Ref Sample.
-        #If Duplicate analysis, column B is the Worksheet.
-        #Column C is the well number
-        #Column D empty
-        #Column E should always be 1 (2 indicates a duplicate from the same cup)
-        layout = self.context.getLayout()
+        # Start Column A at 1 or 9? (the examples given used 9, no clues.)
+        # If routine analysis, Column B is the AR ID + sample type.
+        # If Reference analysis, Column B is the Ref Sample.
+        # If Duplicate analysis, column B is the Worksheet.
+        # Column C is the well number
+        # Column D empty
+        # Column E should always be 1 (2 indicates a duplicate from the same
+        # cup)
+        lyt = self.context.getLayout()
+        lyt.sort(cmp=lambda x, y: cmp(int(x['position']), int(y['position'])))
         rows = []
         tmprows = []
         col_a = 1
@@ -183,7 +185,7 @@ class Export(BrowserView):
         # We don't want to include every single slot!  Just one entry
         # per AR, Duplicate, or Control.
         used_ids = []
-        for x, row in enumerate(layout):
+        for x, row in enumerate(lyt):
             a_uid = row['analysis_uid']
             c_uid = row['container_uid']
             analysis = uc(UID=a_uid)[0].getObject() if a_uid else None
