@@ -484,8 +484,8 @@ class BikaListingView(BrowserView):
         self.rows_only = self.request.get('rows_only','') == form_id
         self.limit_from = int(self.request.get(form_id + '_limit_from',0))
 
-        # contentFilter is expected in every self.review_state.
-        for k, v in self.review_state['contentFilter'].items():
+        # contentFilter is allowed in every self.review_state.
+        for k, v in self.review_state.get('contentFilter', {}).items():
             self.contentFilter[k] = v
 
         # sort on
