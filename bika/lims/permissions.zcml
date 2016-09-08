@@ -91,7 +91,7 @@
 # ------
 <permission id="bika.lims.ViewResults" title="BIKA: View Results"/>
 <permission id="bika.lims.EditResults" title="BIKA: Edit Results"/>
-# Sampling workflow - allows editing field results while in sample_due state
+# Sampling workflow - allows editing field results
 <permission id="bika.lims.EditFieldResults" title="BIKA: Edit Field Results"/>
 # permission to prevent Client Contact from seeing Retracted analyses
 <permission id="bika.lims.ViewRetractedAnalyses" title="BIKA: View Retracted Analyses"/>
