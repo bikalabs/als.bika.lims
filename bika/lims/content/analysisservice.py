@@ -196,7 +196,7 @@ registerField(PartitionSetupField, title="", description="")
 @indexer(IAnalysisService)
 def sortable_title_with_sort_key(instance):
     sort_key = instance.getSortKey()
-    stitle = sortable_title(instance.Title())
+    stitle = sortable_title(instance, instance.Title())
     if sort_key:
         return "{:010.3f}{}".format(sort_key, stitle)
     return stitle
