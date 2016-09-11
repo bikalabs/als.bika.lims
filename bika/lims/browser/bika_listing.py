@@ -962,12 +962,12 @@ class BikaListingView(BrowserView):
                 results.append(item)
                 idx+=1
 
-            # Need manual_sort?
-            # Note that the order has already been set in contentFilter, so
-            # there is no need to reverse
-            if self.manual_sort_on:
-                results.sort(lambda x,y:cmp(x.get(self.manual_sort_on, ''),
-                                         y.get(self.manual_sort_on, '')))
+        # Need manual_sort?
+        # Note that the order has already been set in contentFilter, so
+        # there is no need to reverse
+        if self.manual_sort_on:
+            results.sort(lambda x,y:cmp(x.get(self.manual_sort_on, ''),
+                                     y.get(self.manual_sort_on, '')))
 
         return results
 
