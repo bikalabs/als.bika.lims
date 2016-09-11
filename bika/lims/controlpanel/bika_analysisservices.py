@@ -258,8 +258,9 @@ class AnalysisServicesView(BikaListingView):
         items = BikaListingView.folderitems(self)
 
         bsc = getToolByName(self.context, "bika_setup_catalog")
-        analysis_categories = bsc(portal_type="AnalysisCategory", sort_on="sortable_title")
-        analysis_categories_order = dict([(b.Title, "{:04}".format(a)) for a, b in enumerate(analysis_categories)])
+        brains = bsc(portal_type="AnalysisCategory", sort_on="sortable_title")
+        sortable_cat_titles = dict([(cat.Title, cat.sortable_title)
+                                     for i, cat in enumerate(brains)])
 
         for x in range(len(items)):
             if 'obj' not in items[x]:
@@ -274,15 +275,15 @@ class AnalysisServicesView(BikaListingView):
             items[x]['ProtocolID'] = obj.getProtocolID()
             items[x]['SortKey'] = obj.getSortKey()
 
-            cat = obj.getCategoryTitle()
-            cat_order = analysis_categories_order.get(cat)
+            cat_title = obj.getCategoryTitle()
+            cat_order = sortable_cat_titles.get(cat_title)
             # Category (upper C) is for display column value
-            items[x]['Category'] = cat
+            items[x]['Category'] = cat_title
             if self.do_cats:
                 # category is for bika_listing to groups entries
-                items[x]['category'] = cat
-                if (cat, cat_order) not in self.categories:
-                    self.categories.append((cat, cat_order))
+                items[x]['category'] = cat_title
+                if (cat_title, cat_order) not in self.categories:
+                    self.categories.append((cat_title, cat_order))
 
             items[x]['replace']['Title'] = "<a href='%s'>%s</a>" % (
                 items[x]['url'], items[x]['Title'])
