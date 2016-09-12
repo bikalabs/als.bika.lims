@@ -206,7 +206,7 @@ class WorkflowAction:
         # automatic label printing
         if transitioned and action == 'receive' \
             and 'receive' in self.portal.bika_setup.getAutoPrintStickers():
-            q = "/sticker?autoprint=1&template=%s&items=" % (self.portal.bika_setup.getAutoStickerTemplate())
+            q = "/sticker?template=%s&items=" % (self.portal.bika_setup.getAutoStickerTemplate())
             # selected_items is a list of UIDs (stickers for AR_add use IDs)
             q += ",".join(transitioned)
             dest = self.context.absolute_url() + q
