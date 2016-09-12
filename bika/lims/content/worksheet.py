@@ -883,7 +883,7 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
                 continue
             if analysis.getPriority():
                 priorities.append(analysis.getPriority())
-        priorities = sorted(priorities, key = itemgetter('sortable_title'))
+        priorities = sorted(priorities, key = itemgetter('SortKey'))
         if priorities:
             return priorities[-1]
 
