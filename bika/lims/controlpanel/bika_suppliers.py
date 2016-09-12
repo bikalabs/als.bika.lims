@@ -32,11 +32,13 @@ class SuppliersView(BikaListingView):
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_column = True
+        self.sort_on = 'getName'
+        self.sort_order = 'ascending'
         self.pagesize = 25
 
         self.columns = {
-            'Name': {'title': _('Name'),
-                     'index': 'getName'},
+            'getName': {'title': _('getName'),
+                        'index': 'getName'},
             'Email': {'title': _('Email'),
                       'toggle': True},
             'Phone': {'title': _('Phone'),
@@ -49,16 +51,16 @@ class SuppliersView(BikaListingView):
              'title': _('Active'),
              'contentFilter': {'inactive_state': 'active'},
              'transitions': [{'id':'deactivate'}, ],
-             'columns': ['Name', 'Email', 'Phone', 'Fax']},
+             'columns': ['getName', 'Email', 'Phone', 'Fax']},
             {'id':'inactive',
              'title': _('Dormant'),
              'contentFilter': {'inactive_state': 'inactive'},
              'transitions': [{'id':'activate'}, ],
-             'columns': ['Name', 'Email', 'Phone', 'Fax']},
+             'columns': ['getName', 'Email', 'Phone', 'Fax']},
             {'id':'all',
              'title': _('All'),
              'contentFilter':{},
-             'columns': ['Name', 'Email', 'Phone', 'Fax']},
+             'columns': ['getName', 'Email', 'Phone', 'Fax']},
         ]
 
     def folderitems(self):
@@ -66,12 +68,12 @@ class SuppliersView(BikaListingView):
         for x in range(len(items)):
             if not items[x].has_key('obj'): continue
             obj = items[x]['obj']
-            items[x]['Name'] = obj.getName()
+            items[x]['getName'] = obj.getName()
             items[x]['Email'] = obj.getEmailAddress()
             items[x]['Phone'] = obj.getPhone()
             items[x]['Fax'] = obj.getFax()
-            items[x]['replace']['Name'] = "<a href='%s'>%s</a>" % \
-                 (items[x]['url'], items[x]['Name'])
+            items[x]['replace']['getName'] = "<a href='%s'>%s</a>" % \
+                 (items[x]['url'], items[x]['getName'])
 
         return items
 

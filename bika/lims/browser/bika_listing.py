@@ -489,7 +489,10 @@ class BikaListingView(BrowserView):
             self.contentFilter[k] = v
 
         # sort on
-        self.sort_on = self.request.get(form_id + '_sort_on', None)
+        self.sort_on = self.sort_on \
+            if hasattr(self, 'sort_on') and self.sort_on \
+            else None
+        self.sort_on = self.request.get(form_id + '_sort_on', self.sort_on)
         self.sort_order = self.request.get(form_id + '_sort_order', 'ascending')
         self.manual_sort_on = self.request.get(form_id + '_manual_sort_on', None)
 
@@ -507,6 +510,9 @@ class BikaListingView(BrowserView):
                    self.manual_sort_on = self.sort_on
             else:
                 # We cannot sort for a column that doesn't exist!
+                msg = "{}: sort_on is '{}', not a valid column".format(
+                    self, self.sort_on)
+                logger.error(msg)
                 self.sort_on = None
 
         if self.manual_sort_on:
@@ -515,9 +521,10 @@ class BikaListingView(BrowserView):
                                 else self.manual_sort_on
             if self.manual_sort_on not in self.columns.keys():
                 # We cannot sort for a column that doesn't exist!
+                msg = "{}: manual_sort_on is '{}', not a valid column".format(
+                    self, self.manual_sort_on)
+                logger.error(msg)
                 self.manual_sort_on = None
-        else:
-            self.request.set(form_id+'_manual_sort_on', self.sort_on)
 
         if self.sort_on or self.manual_sort_on:
             # By default, if sort_on is set, sort the items ASC
@@ -531,7 +538,7 @@ class BikaListingView(BrowserView):
             self.sort_on = 'created'
 
         self.contentFilter['sort_order'] = self.sort_order
-        if not self.manual_sort_on:
+        if self.sort_on:
             self.contentFilter['sort_on'] = self.sort_on
 
         # pagesize
@@ -962,12 +969,12 @@ class BikaListingView(BrowserView):
                 results.append(item)
                 idx+=1
 
-            # Need manual_sort?
-            # Note that the order has already been set in contentFilter, so
-            # there is no need to reverse
-            if self.manual_sort_on:
-                results.sort(lambda x,y:cmp(x.get(self.manual_sort_on, ''),
-                                         y.get(self.manual_sort_on, '')))
+        # Need manual_sort?
+        # Note that the order has already been set in contentFilter, so
+        # there is no need to reverse
+        if self.manual_sort_on:
+            results.sort(lambda x,y:cmp(x.get(self.manual_sort_on, ''),
+                                     y.get(self.manual_sort_on, '')))
 
         return results
 

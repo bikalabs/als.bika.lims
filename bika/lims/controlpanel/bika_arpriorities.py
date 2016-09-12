@@ -22,7 +22,7 @@ class ARPrioritiesView(BikaListingView):
         self.contentFilter = {
                 'portal_type': 'ARPriority',
                 'path': {'query': '/'.join(context.getPhysicalPath())},
-                'sort_on': 'sortKey',
+                'sort_on': 'sortable_title',
                 }
         self.context_actions[_('Add')] = \
                 {'url': 'createObject?type_name=ARPriority',

@@ -23,7 +23,7 @@ from Products.validation import validation
 from Products.validation.validators.RegexValidator import RegexValidator
 from Products.CMFCore.WorkflowCore import WorkflowException
 from bika.lims import PMF, bikaMessageFactory as _
-from bika.lims.utils import to_utf8 as _c
+from bika.lims.utils import to_utf8 as _c, sortable_title
 from bika.lims.utils import to_unicode as _u
 from bika.lims.utils.analysis import get_significant_digits
 from bika.lims.browser.widgets.durationwidget import DurationWidget
@@ -196,9 +196,10 @@ registerField(PartitionSetupField, title="", description="")
 @indexer(IAnalysisService)
 def sortable_title_with_sort_key(instance):
     sort_key = instance.getSortKey()
+    stitle = sortable_title(instance, instance.Title())
     if sort_key:
-        return "{:010.3f}{}".format(sort_key, instance.Title())
-    return instance.Title()
+        return "{:010.3f}{}".format(sort_key, stitle)
+    return stitle
 
 schema = BikaSchema.copy() + Schema((
     StringField('ShortTitle',
