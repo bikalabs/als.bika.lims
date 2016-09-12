@@ -141,6 +141,10 @@ class AnalysesView(BikaListingView):
                                            expand_all_categories=True)
 
     def get_analysis_spec(self, analysis):
+        if analysis.portal_type == 'DuplicateAnalysis':
+            # No specs for duplicates, ever. This should not be necessary,
+            # but during rendering worksheets, duplicates are passed in here.
+            return None
         if hasattr(analysis, 'getResultsRange'):
             return analysis.getResultsRange()
         if hasattr(analysis.aq_parent, 'getResultsRange'):
