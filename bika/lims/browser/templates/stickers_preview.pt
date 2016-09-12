@@ -134,8 +134,7 @@
     // -->
     </script>
 </head>
-<body tal:attributes="onload        python:'$(\'#print-button\').click()' if view.request.get('autoprint', False) else '';
-                      data-itemsurl python:view.getItemsURL();">
+<body tal:attributes="data-itemsurl python:view.getItemsURL();">
 <div id='sticker-preview-wrapper'>
     <!-- Header of the preview. This will never be printed.
          Container with preview options and buttons --->
