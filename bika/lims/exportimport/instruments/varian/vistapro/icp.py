@@ -37,7 +37,7 @@ class VistaPROICPParser(InstrumentResultsFileParser):
 
         for n, row in enumerate(reader):
 
-            resid = row.get("Solution Label", "").strip()
+            resid = row['Solution Label'].split('*')[0].strip()
 
             # Service Keyword
             element = row.get("Element", "").replace(" ", "").replace(".", "")
@@ -154,44 +154,71 @@ def Import(context, request):
 
 
 class Export(BrowserView):
-    """ Writes workseet analyses to a CSV file that Vista-PRO can read.
-        Sends the CSV file to the response.
+    """ Writes worksheet analyses to a CSV file for Varian Vista Pro ICP.
+        Sends the CSV file to the response for download by the browser.
     """
 
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+
     def __call__(self, analyses):
-
-        norm = getUtility(IIDNormalizer).normalize
+        uc = getToolByName(self.context, 'uid_catalog')
         instrument = self.context.getInstrument()
-        filename = '%s-%s.csv' % (self.context.getId(),
-                                  norm(instrument.getDataInterface()))
+        norm = getUtility(IIDNormalizer).normalize
+        filename = '{}-{}.csv'.format(self.context.getId(),
+                                      norm(instrument.getDataInterface()))
 
-        # create ram file
-        ramdisk = StringIO()
-        writer = csv.writer(ramdisk, delimiter=',')
-        assert(writer)
-
+        # write rows, one per Sample, including including refs and duplicates.
+        # COL A:  "sample-id*sampletype-title"  (yes that's a '*').
+        # COL B:  "                    ",
+        # COL C:  "                    ",
+        # COL D:  "                    ",
+        # COL E:  1.000000000,
+        # COL F:  1.000000,
+        # COL G:  1.0000000
+        # If routine analysis, COL B is the AR ID + sample type.
+        # If Reference analysis, COL B is the Ref Sample.
+        # If Duplicate analysis, COL B is the Worksheet.
+        lyt = self.context.getLayout()
+        lyt.sort(cmp=lambda x, y: cmp(int(x['position']), int(y['position'])))
         rows = []
 
-        for n, an in enumerate(analyses):
-            row = [n]
-            ar = an.aq_parent
-            sid = ar.getSample().getClientSampleID()
+        # These are always the same on each row
+        b = '"                    "'
+        c = '"                    "'
+        d = '"                    "'
+        e = '1.000000000'
+        f = '1.000000'
+        g = '1.0000000'
 
-            for nn, p in enumerate(sid.split("*")):
-                if nn == 0:
-                    row.append([p])
-                else:
-                    row.append(p)
+        result = ''
+        # We don't want to include every single slot!  Just one entry
+        # per AR, Duplicate, or Control.
+        used_ids = []
+        for x, row in enumerate(lyt):
+            a_uid = row['analysis_uid']
+            c_uid = row['container_uid']
+            analysis = uc(UID=a_uid)[0].getObject() if a_uid else None
+            container = uc(UID=c_uid)[0].getObject() if c_uid else None
+            if row['type'] == 'a':
+                if 'a{}'.format(container.id) in used_ids:
+                    continue
+                used_ids.append('a{}'.format(container.id))
+                sample = container.getSample()
+                samplepoint = sample.getSamplePoint()
+                sp_title = samplepoint.Title() if samplepoint else ''
+                a = '"{}*{}"'.format(container.id, sp_title)
+            elif row['type'] in 'bcd':
+                refgid = analysis.getReferenceAnalysesGroupID()
+                if 'bcd{}'.format(refgid) in used_ids:
+                    continue
+                used_ids.append('bcd{}'.format(refgid))
+                a = refgid
+            rows.append(','.join([a, b, c, d, e, f, g]))
+        result += '\r\n'.join(rows)
 
-            rows.append(row)
-
-        writer.writerows(rows)
-
-        # write to ram file
-        result = ramdisk.getvalue()
-        ramdisk.close()
-
-        # stream ram file to browser
+        # stream to browser
         setheader = self.request.RESPONSE.setHeader
         setheader('Content-Length', len(result))
         setheader('Content-Type', 'text/comma-separated-values')
