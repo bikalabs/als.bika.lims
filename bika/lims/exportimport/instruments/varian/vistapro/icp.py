@@ -166,7 +166,8 @@ class Export(BrowserView):
         uc = getToolByName(self.context, 'uid_catalog')
         instrument = self.context.getInstrument()
         norm = getUtility(IIDNormalizer).normalize
-        filename = '{}-{}.csv'.format(self.context.getId(),
+        # We use ".sin" extension, but really it's just a little CSV inside.
+        filename = '{}-{}.sin'.format(self.context.getId(),
                                       norm(instrument.getDataInterface()))
 
         # write rows, one per Sample, including including refs and duplicates.
