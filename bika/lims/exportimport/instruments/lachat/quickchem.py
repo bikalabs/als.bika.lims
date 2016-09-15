@@ -186,7 +186,7 @@ class Export(BrowserView):
         lyt.sort(cmp=lambda x, y: cmp(int(x['position']), int(y['position'])))
         rows = []
         tmprows = []
-        col_a = 1
+        col_a = 11
         result = ''
         # We don't want to include every single slot!  Just one entry
         # per AR, Duplicate, or Control.
