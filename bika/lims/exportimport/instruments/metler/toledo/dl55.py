@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 """ Metler Toledo DL55
 """
-import csv
-import types
-from cStringIO import StringIO
-from openpyxl import load_workbook
+import json
+import re
+import traceback
 
+from bika.lims import bikaMessageFactory as _
 from bika.lims.exportimport.instruments.resultsimport import \
     AnalysisResultsImporter, InstrumentResultsFileParser
-from bika.lims import bikaMessageFactory as _
 from bika.lims.utils import t
-import json
-import traceback
+from openpyxl import load_workbook
 
 title = "Metler Toledo DL55"
 
@@ -20,56 +18,44 @@ class Parser(InstrumentResultsFileParser):
     def __init__(self, rsf):
         InstrumentResultsFileParser.__init__(self, rsf, 'XLSX')
 
-    def xlsx_to_csv(self, infile, worksheet=0, delimiter=","):
-        """ Convert xlsx to easier format first, since we want to use the
-        convenience of the CSV library
-        """
-        wb = load_workbook(self.getInputFile())
-        sheet = wb.worksheets[worksheet]
-        buffer = StringIO()
-
-        # extract all rows
-        for n, row in enumerate(sheet.rows):
-            line = []
-            for cell in row:
-                value = cell.value
-                if type(value) in types.StringTypes:
-                    value = value.encode("utf8")
-                if value is None:
-                    value = ""
-                line.append(str(value))
-            print >>buffer, delimiter.join(line)
-        buffer.seek(0)
-        return buffer
-
     def parse(self):
         """ parse the data
         """
 
-        # convert the xlsx file to csv first
-        delimiter = "|"
-        csv_file = self.xlsx_to_csv(self.getInputFile(), delimiter=delimiter)
-        reader = csv.DictReader(csv_file, delimiter=delimiter)
+        wb = load_workbook(self.getInputFile())
+        sheet = wb.worksheets[0]
 
-        for n, row in enumerate(reader):
-            resid = row.get("BOTTLE NUMBER", None)
+        sample_id = None
+        for row in sheet.rows:
 
-            # no resid
-            if resid is None:
-                self.err("Result identification not found.", numline=n)
+            # sampleid is only present in first row of each sample.
+            # any rows above the first sample id are ignored.
+            if row[1].value():
+                sample_id = row[1].value()
+            if not sample_id:
                 continue
 
-            rawdict = row
-            rawdict['DefaultResult'] = reader.fieldnames[1]
-            # transform all keys to lower case
-            # rawdict = dict((k.lower(), v) for k, v in row.iteritems())
-            # rawdict['DefaultResult'] = 'bottle number'
+            # keyword is stripped of non-word characters
+            keyword = re.sub(r"\W", "", row[6].value())
 
-            # we take the second column title (lower case) as the service keyword
-            # service_keyword = reader.fieldnames[1].lower()
-            service_keyword = reader.fieldnames[1]
+            # result is floatable or error
+            result = row[4].value()
+            try:
+                float(result)
+            except ValueError:
+                self.log("Error in sample '" + sample_id + "': " +
+                         "Result for '" + keyword + "' is not a number.")
+                continue
 
-            self._addRawResult(resid, values={service_keyword: rawdict}, override=False)
+            # Compose dict for importer.  No interim values, just a result.
+            rawdict = {
+                'DefaultResult': 'Result',
+                'Result': result,
+            }
+            self._addRawResult(sample_id,
+                               values={keyword: rawdict},
+                               override=False)
+        return True
 
 
 class Importer(AnalysisResultsImporter):
@@ -79,7 +65,6 @@ class Importer(AnalysisResultsImporter):
     def __init__(self, parser, context, idsearchcriteria, override,
                  allowed_ar_states=None, allowed_analysis_states=None,
                  instrument_uid=None):
-
         AnalysisResultsImporter.__init__(self,
                                          parser,
                                          context,
