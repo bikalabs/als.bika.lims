@@ -43,8 +43,9 @@ class Parser(InstrumentResultsFileParser):
             try:
                 float(result)
             except ValueError:
-                self.log("Error in sample '" + sample_id + "': " +
-                         "Result for '" + keyword + "' is not a number.")
+                self.log(
+                    "Error in sample '" + sample_id + "': " + "Result for '" +
+                    keyword + "' is not a number " + "(" + result + ").")
                 continue
 
             # Compose dict for importer.  No interim values, just a result.
