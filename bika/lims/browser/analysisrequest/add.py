@@ -445,7 +445,9 @@ class ajaxAnalysisRequestSubmit():
 
         # Now, we will create the specified ARs.
         ARs = []
-        for arnum, state in valid_states.items():
+        # Be sure the columns are processed in the left-to-right order
+        for arnum in sorted(valid_states.keys()):
+            state = valid_states[arnum]
             # Create the Analysis Request
             ar = crar(
                 portal_catalog(UID=state['Client'])[0].getObject(),
