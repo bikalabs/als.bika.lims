@@ -24,12 +24,6 @@ function AnalysisRequestPublishView() {
      */
     that.load = function() {
 
-        // The report will be loaded dynamically by reloadReport()
-        $('#report').html('').hide();
-
-        // Load the report
-        reloadReport();
-
         // Store referrer in cookie in case it is lost due to a page reload
         var cookiename = "ar.publish.view.referrer";
         var backurl = document.referrer;
@@ -42,6 +36,14 @@ function AnalysisRequestPublishView() {
                 backurl = portal_url;
             }
         }
+
+        // Some JS may be required to run for the initial report rendering
+        load_barcodes();
+        load_layout();
+        if (window.bika.lims.RangeGraph){
+            window.bika.lims.RangeGraph.load();
+        }
+        convert_svgs();
 
         // Smooth scroll to content
         $('#ar_publish_container #ar_publish_summary a[href^="#"]').click(function(e) {
@@ -284,7 +286,7 @@ function AnalysisRequestPublishView() {
                 if (footer_height > mmTopx(dim.marginBottom)) {
                     // Footer too tall
                     footer_html = "<div class='page-footer footer-invalid'>Footer height is above page's bottom margin height</div>";
-                    footer_height = parseFloat($(footer_html));
+                    footer_height = parseFloat($(footer_html).outerHeight(true));
                 } else {
                     footer_html   = '<div class="page-footer">'+$(pgf).html()+'</div>';
                 }
