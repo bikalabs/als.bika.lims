@@ -146,7 +146,6 @@ class AnalysisServicesView(BikaListingView):
         self.show_select_row = False
         self.show_select_column = True
         self.show_select_all_checkbox = False
-        self.sort_on = 'Title'
         self.pagesize = 25
 
         self.categories = []
