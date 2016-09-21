@@ -228,37 +228,39 @@
         </style>
 
         <div id='report'>
+        <span tal:omit-tag tal:condition="python:request.form.get('template',False)">
 
-        <tal:singlearreport condition="python:view.isSingleARTemplate()">
-        <!-- Single-AR template.
-          The templates from this type will render one AR at a time, so one
-          report per AR will be generated.
-        -->
-        <tal:ar tal:repeat="i python:range(view.getAnalysisRequestsCount())">
-        <div tal:attributes="id python:view.getAnalysisRequestObj().id;
-                            uid python:view.getAnalysisRequestObj().UID();
-                            class python:('ar_publish_body singlear %s' % ('ar-invalid' if view.getAnalysisRequestObj().isInvalid() else ('ar-provisional' if view.getAnalysisRequest()['prepublish']==True else '')))"
-            tal:content='structure python:view.getReportTemplate()'></div>
-        </tal:ar>
-        </tal:singlearreport>
+            <tal:singlearreport condition="python:view.isSingleARTemplate()">
+            <!-- Single-AR template.
+              The templates from this type will render one AR at a time, so one
+              report per AR will be generated.
+            -->
+            <tal:ar tal:repeat="i python:range(view.getAnalysisRequestsCount())">
+            <div tal:attributes="id python:view.getAnalysisRequestObj().id;
+                                uid python:view.getAnalysisRequestObj().UID();
+                                class python:('ar_publish_body singlear %s' % ('ar-invalid' if view.getAnalysisRequestObj().isInvalid() else ('ar-provisional' if view.getAnalysisRequest()['prepublish']==True else '')))"
+                tal:content='structure python:view.getReportTemplate()'></div>
+            </tal:ar>
+            </tal:singlearreport>
 
-        <tal:multiarreport condition="python:not view.isSingleARTemplate()">
-        <!--
-          Multi-AR template. ARs grouped by client.
-          The templates from this type must be able to render multiples ARs, so
-          each report will contain a bunch of ARs from the same client
-        -->
-        <tal:argroup repeat="i python:range(view.getGroupedAnalysisRequestsCount())">
-        <tal:multiar define="ids python:':'.join([ar.id for ar in view.getAnalysisRequestGroup()]);
-                            uids python:':'.join([ar.UID() for ar in view.getAnalysisRequestGroup()]);
-                            inv  python:len([ar.isInvalid() for ar in view.getAnalysisRequestGroup() if ar.isInvalid()]) > 0;">
-        <div tal:content="structure python:view.getGroupedReportTemplate()"
-             tal:attributes="id ids;
-                            uid uids;
-                            class python:'ar_publish_body multiar %s' % ('ar-invalid' if inv else '');"></div>
-        </tal:multiar>
-        </tal:argroup>
-        </tal:multiarreport>
+            <tal:multiarreport condition="python:not view.isSingleARTemplate()">
+            <!--
+              Multi-AR template. ARs grouped by client.
+              The templates from this type must be able to render multiples ARs, so
+              each report will contain a bunch of ARs from the same client
+            -->
+            <tal:argroup repeat="i python:range(view.getGroupedAnalysisRequestsCount())">
+            <tal:multiar define="ids python:':'.join([ar.id for ar in view.getAnalysisRequestGroup()]);
+                                uids python:':'.join([ar.UID() for ar in view.getAnalysisRequestGroup()]);
+                                inv  python:len([ar.isInvalid() for ar in view.getAnalysisRequestGroup() if ar.isInvalid()]) > 0;">
+            <div tal:content="structure python:view.getGroupedReportTemplate()"
+                 tal:attributes="id ids;
+                                uid uids;
+                                class python:'ar_publish_body multiar %s' % ('ar-invalid' if inv else '');"></div>
+            </tal:multiar>
+            </tal:argroup>
+            </tal:multiarreport>
+        </span>
         </div>
     </div>
     <div id="my_mm" style="height:1mm;display:none"></div>
