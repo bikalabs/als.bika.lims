@@ -30,16 +30,16 @@ class Parser(InstrumentResultsFileParser):
 
             # sampleid is only present in first row of each sample.
             # any rows above the first sample id are ignored.
-            if row[1].value():
-                sample_id = row[1].value()
+            if row[1].value:
+                sample_id = row[1].value
             if not sample_id:
                 continue
 
             # keyword is stripped of non-word characters
-            keyword = re.sub(r"\W", "", row[6].value())
+            keyword = re.sub(r"\W", "", row[6].value)
 
             # result is floatable or error
-            result = row[4].value()
+            result = row[4].value
             try:
                 float(result)
             except ValueError:
