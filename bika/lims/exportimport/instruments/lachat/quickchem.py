@@ -40,7 +40,7 @@ class Parser(InstrumentResultsFileParser):
         """ CSV Parser
         """
 
-        reader = csv.DictReader(self.getInputFile(), delimiter='\t')
+        reader = csv.DictReader(self.getInputFile())
 
         for row in reader:
             # in Sample ID column, we may find format: '[SampleID] samplepoint'
