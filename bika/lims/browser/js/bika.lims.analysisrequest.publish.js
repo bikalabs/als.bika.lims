@@ -40,7 +40,9 @@ function AnalysisRequestPublishView() {
         // Some JS may be required to run for the initial report rendering
         load_barcodes();
         load_layout();
-        window.bika.lims.RangeGraph.load();
+        if (window.bika.lims.RangeGraph){
+            window.bika.lims.RangeGraph.load();
+        }
         convert_svgs();
 
         // Smooth scroll to content
