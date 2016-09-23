@@ -750,7 +750,7 @@ class AnalysisRequestsView(BikaListingView):
             item['ClientContact'] = ""
 
         SamplingWorkflowEnabled = sample.getSamplingWorkflowEnabled()
-        if SamplingWorkflowEnabled and sd and not sd > DateTime():
+        if SamplingWorkflowEnabled and (not sd or not sd > DateTime()):
             datesampled = self.ulocalized_time(
                 sample.getDateSampled(), long_format=True)
             if not datesampled:
