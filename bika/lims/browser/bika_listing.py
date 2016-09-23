@@ -81,8 +81,6 @@ class WorkflowAction:
         form = self.request.form
         came_from = "workflow_action"
         action = form.get(came_from, '')
-        if type(action) in (list, tuple):
-            action = action[0]
         if not action:
             came_from = "workflow_action_button"
             action = form.get('workflow_action_id', '')
@@ -92,6 +90,9 @@ class WorkflowAction:
                                            self.context.absolute_url())
                 self.request.response.redirect(self.destination_url)
                 return None, None
+        # A condition in the form causes Plone to sometimes send two actions
+        if type(action) in (list, tuple):
+            action = action[0]
         return (action, came_from)
 
     def _get_selected_items(self, full_objects = True):
