@@ -37,6 +37,7 @@ import re
 import tempfile
 import urllib2
 
+
 class AnalysisRequestPublishView(BrowserView):
     template = ViewPageTemplateFile("templates/analysisrequest_publish.pt")
     _ars = []
@@ -55,6 +56,19 @@ class AnalysisRequestPublishView(BrowserView):
         registry = getUtility(IRegistry)
         return registry.get(
             'bika.lims.analysisrequest.default_arreport_template', 'default.pt')
+
+    def next_certificate_number(self):
+        """Get a new certificate id.  These are throwaway IDs, until the
+        publication is actually done.  So each preview gives us a new ID.
+        """
+        key = 'bika.lims.current_coa_number'
+        registry = getUtility(IRegistry)
+        if key not in registry:
+            registry.records[key] = \
+                Record(field.Int(title=u"Current COA number"), 0)
+        val = api.portal.get_registry_record(key) + 1
+        api.portal.set_registry_record(key, val)
+        return "%05d"%int(val)
 
     def __call__(self):
         if self.context.portal_type == 'AnalysisRequest':
@@ -78,6 +92,9 @@ class AnalysisRequestPublishView(BrowserView):
             else:
                 groups[idclient].append(ar)
         self._arsbyclient = [group for group in groups.values()]
+
+        # Report may want to print current date
+        self.current_date = self.ulocalized_time(DateTime(), long_format=True)
 
         # Do publish?
         if self.request.form.get('publish', '0') == '1':
@@ -450,24 +467,28 @@ class AnalysisRequestPublishView(BrowserView):
                     'url': samplepoint.absolute_url()}
         return data
 
+    def format_address(self, address):
+        if address:
+            _keys = ['address', 'city', 'district', 'state', 'zip', 'country']
+            _list = ["<div>%s</div>" % address.get(v) for v in _keys
+                     if address.get(v)]
+            return ''.join(_list)
+        return ''
+
+    def _lab_address(self, lab):
+        lab_address = lab.getPostalAddress() \
+                      or lab.getBillingAddress() \
+                      or lab.getPhysicalAddress()
+        return self.format_address(lab_address)
+
     def _lab_data(self):
         portal = self.context.portal_url.getPortalObject()
         lab = self.context.bika_setup.laboratory
-        lab_address = lab.getPostalAddress() \
-                        or lab.getBillingAddress() \
-                        or lab.getPhysicalAddress()
-        if lab_address:
-            _keys = ['address', 'city', 'state', 'zip', 'country']
-            _list = ["<div>%s</div>" % lab_address.get(v) for v in _keys
-                     if lab_address.get(v)]
-            lab_address = "".join(_list)
-        else:
-            lab_address = ''
 
         return {'obj': lab,
                 'title': to_utf8(lab.Title()),
                 'url': to_utf8(lab.getLabURL()),
-                'address': to_utf8(lab_address),
+                'address': to_utf8(self._lab_address(lab)),
                 'confidence': lab.getConfidence(),
                 'accredited': lab.getLaboratoryAccredited(),
                 'accreditation_body': to_utf8(lab.getAccreditationBody()),
@@ -484,6 +505,17 @@ class AnalysisRequestPublishView(BrowserView):
                     'pubpref': contact.getPublicationPreference()}
         return data
 
+    def _client_address(self, client):
+        client_address = client.getPostalAddress()
+        if not client_address:
+            # Data from the first contact
+            contact = self.getAnalysisRequest().getContact()
+            if contact and contact.getBillingAddress():
+                client_address = contact.getBillingAddress()
+            elif contact and contact.getPhysicalAddress():
+                client_address = contact.getPhysicalAddress()
+        return self.format_address(client_address)
+
     def _client_data(self, ar):
         data = {}
         client = ar.aq_parent
@@ -495,23 +527,7 @@ class AnalysisRequestPublishView(BrowserView):
             data['phone'] = to_utf8(client.getPhone())
             data['fax'] = to_utf8(client.getFax())
 
-            client_address = client.getPostalAddress()
-            if not client_address:
-                # Data from the first contact
-                contact = self.getAnalysisRequest().getContact()
-                if contact and contact.getBillingAddress():
-                    client_address = contact.getBillingAddress()
-                elif contact and contact.getPhysicalAddress():
-                    client_address = contact.getPhysicalAddress()
-
-            if client_address:
-                _keys = ['address', 'city', 'state', 'zip', 'country']
-                _list = ["<div>%s</div>" % client_address.get(v) for v in _keys
-                         if client_address.get(v)]
-                client_address = "".join(_list)
-            else:
-                client_address = ''
-            data['address'] = to_utf8(client_address)
+            data['address'] = to_utf8(self._client_address(client))
         return data
 
     def _specs_data(self, ar):
@@ -791,6 +807,11 @@ class AnalysisRequestPublishView(BrowserView):
         # PDF written to debug file
         if debug_mode:
             logger.debug("Writing PDF for %s to %s" % (ar.Title(), pdf_fn))
+            import sys
+            import pdb
+            for attr in ('stdin', 'stdout', 'stderr'):
+                setattr(sys, attr, getattr(sys, '__%s__' % attr))
+            pdb.set_trace()
         else:
             os.remove(pdf_fn)
 
