@@ -29,6 +29,10 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from smtplib import SMTPServerDisconnected, SMTPRecipientsRefused
 from zope.component import getAdapters, getUtility
 
+from plone.registry import Record
+from plone.registry import field
+from plone import api
+
 import App
 import cgi
 import glob, os, sys, traceback
