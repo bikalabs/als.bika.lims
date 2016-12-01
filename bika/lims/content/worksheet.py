@@ -3,33 +3,33 @@
 # Copyright 2011-2016 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
-import re
-from operator import itemgetter
-
+from plone import api
 from AccessControl import ClassSecurityInfo
+from bika.lims import bikaMessageFactory as _, logger
+from bika.lims.config import *
+from bika.lims.idserver import renameAfterCreation
+from bika.lims.utils import t, tmpID, changeWorkflowState
+from bika.lims.utils import to_utf8 as _c
+from bika.lims.browser.fields import HistoryAwareReferenceField
+from bika.lims.config import PROJECTNAME
+from bika.lims.content.bikaschema import BikaSchema
+from bika.lims.interfaces import IWorksheet
+from bika.lims.permissions import EditWorksheet, ManageWorksheets
+from bika.lims.permissions import Verify as VerifyPermission
+from bika.lims.workflow import doActionFor
+from bika.lims.workflow import skip
 from DateTime import DateTime
-from Products.ATContentTypes.lib.historyaware import HistoryAwareMixin
-from Products.ATExtensions.ateapi import RecordsField
+from operator import itemgetter
+from plone.indexer import indexer
 from Products.Archetypes.config import REFERENCE_CATALOG
 from Products.Archetypes.public import *
 from Products.Archetypes.references import HoldingReference
+from Products.ATContentTypes.lib.historyaware import HistoryAwareMixin
+from Products.ATExtensions.ateapi import RecordsField
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import safe_unicode, _createObjectByType
-from bika.lims import bikaMessageFactory as _
-from bika.lims.browser.fields import HistoryAwareReferenceField
-from bika.lims.config import *
-from bika.lims.config import PROJECTNAME
-from bika.lims.content.bikaschema import BikaSchema
-from bika.lims.idserver import renameAfterCreation
-from bika.lims.interfaces import IWorksheet
-from bika.lims.permissions import EditWorksheet, ManageWorksheets
-from bika.lims.utils import tmpID, changeWorkflowState
-from bika.lims.utils import to_utf8 as _c
-from bika.lims.workflow import doActionFor
-from bika.lims.workflow import skip
-from plone.indexer import indexer
 from zope.interface import implements
-
+import re
 
 @indexer(IWorksheet)
 def Priority(instance):
@@ -234,6 +234,10 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
             ref_uid = reference.addReferenceAnalysis(service_uid, ref_type)
             ref_analysis = rc.lookupObject(ref_uid)
 
+            # Set the required number of verifications
+            reqvers = service.getNumberOfRequiredVerifications()
+            ref_analysis.setNumberOfRequiredVerifications(reqvers)
+
             # Set ReferenceAnalysesGroupID (same id for the analyses from
             # the same Reference Sample and same Worksheet)
             ref_analysis.setReferenceAnalysesGroupID(refgid)
@@ -328,6 +332,10 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
             duplicate = _createObjectByType("DuplicateAnalysis", self, _id)
             duplicate.setAnalysis(analysis)
 
+            # Set the required number of verifications
+            reqvers = analysis.getNumberOfRequiredVerifications()
+            duplicate.setNumberOfRequiredVerifications(reqvers)
+
             # Set ReferenceAnalysesGroupID (same id for the analyses from
             # the same Reference Sample and same Worksheet)
             if not refgid and not analysis.portal_type == 'ReferenceAnalysis':
@@ -414,7 +422,9 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
             ws_slots = [row['position'] for row in layout if row['type'] == t]
             for row in [r for r in wstlayout if
                         r['type'] == t and r['pos'] not in ws_slots]:
-                reference_definition_uid = row[form_key]
+                reference_definition_uid = row.get(form_key, None)
+                if (not reference_definition_uid):
+                    continue
                 samples = bc(portal_type='ReferenceSample',
                              review_state='current',
                              inactive_state='active',
@@ -657,6 +667,88 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
         else:
             return analyst
 
+    def isVerifiable(self):
+        """
+        Checks it the current Worksheet can be verified. This is, its
+        not a cancelled Worksheet and all the analyses that contains
+        are verifiable too. Note that verifying a Worksheet is in fact,
+        the same as verifying all the analyses that contains. Therefore, the
+        'verified' state of a Worksheet shouldn't be a 'real' state,
+        rather a kind-of computed state, based on the statuses of the analyses
+        it contains. This is why this function checks if the analyses
+        contained are verifiable, cause otherwise, the Worksheet will
+        never be able to reach a 'verified' state.
+        :return: True or False
+        """
+        # Check if the worksheet is active
+        workflow = getToolByName(self, "portal_workflow")
+        objstate = workflow.getInfoFor(self, 'cancellation_state', 'active')
+        if objstate == "cancelled":
+            return False
+
+        # Check if the worksheet state is to_be_verified
+        review_state = workflow.getInfoFor(self, "review_state")
+        if review_state == 'to_be_verified':
+            # This means that all the analyses from this worksheet have
+            # already been transitioned to a 'verified' state, and so the
+            # woksheet itself
+            return True
+        else:
+            # Check if the analyses contained in this worksheet are
+            # verifiable. Only check those analyses not cancelled and that
+            # are not in a kind-of already verified state
+            canbeverified = True
+            omit = ['published', 'retracted', 'rejected', 'verified']
+            for a in self.getAnalyses():
+                st = workflow.getInfoFor(a, 'cancellation_state', 'active')
+                if st == 'cancelled':
+                    continue
+                st = workflow.getInfoFor(a, 'review_state')
+                if st in omit:
+                    continue
+                # Can the analysis be verified?
+                if not a.isVerifiable(self):
+                    canbeverified = False
+                    break
+            return canbeverified
+
+    def isUserAllowedToVerify(self, member):
+        """
+        Checks if the specified user has enough privileges to verify the
+        current WS. Apart from the roles, this function also checks if the
+        current user has enough privileges to verify all the analyses contained
+        in this Worksheet. Note that this function only returns if the
+        user can verify the worksheet according to his/her privileges
+        and the analyses contained (see isVerifiable function)
+        :member: user to be tested
+        :return: true or false
+        """
+        # Check if the user has "Bika: Verify" privileges
+        username = member.getUserName()
+        allowed = api.user.has_permission(VerifyPermission, username=username)
+        if not allowed:
+            return False
+        # Check if the user is allowed to verify all the contained analyses
+        notallowed = [a for a in self.getAnalyses()
+                      if not a.isUserAllowedToVerify(member)]
+        return not notallowed
+
+    def guard_verify_transition(self):
+        """
+        Checks if the verify transition can be performed to the current
+        Worksheet by the current user depending on the user roles, as
+        well as the statuses of the analyses assigned to this Worksheet
+        :return: true or false
+        """
+        mtool = getToolByName(self, "portal_membership")
+        checkPermission = mtool.checkPermission
+        # Check if the Analysis Request is in a "verifiable" state
+        if self.isVerifiable():
+            # Check if the user can verify the Analysis Request
+            member = mtool.getAuthenticatedMember()
+            return self.isUserAllowedToVerify(member)
+        return False
+
     def workflow_script_submit(self):
         # Don't cascade. Shouldn't be submitting WSs directly for now,
         # except edge cases where all analyses are already submitted,
@@ -709,7 +801,23 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
                 state = workflow.getInfoFor(analysis, 'review_state', '')
                 if state != 'to_be_verified':
                     continue
-                doActionFor(analysis, "verify")
+                if (hasattr(analysis, 'getNumberOfVerifications') and
+                    hasattr(analysis, 'getNumberOfRequiredVerifications')):
+                    # For the 'verify' transition to (effectively) take place,
+                    # we need to check if the required number of verifications
+                    # for the analysis is, at least, the number of verifications
+                    # performed previously +1
+                    success = True
+                    revers = analysis.getNumberOfRequiredVerifications()
+                    nmvers = analysis.getNumberOfVerifications()
+                    analysis.setNumberOfVerifications(nmvers+1)
+                    if revers-nmvers <= 1:
+                        success, message = doActionFor(analysis, 'verify')
+                        if not success:
+                            # If failed, restore to the previous number
+                            analysis.setNumberOfVerifications(numvers)
+                else:
+                    doActionFor(analysis, 'verify')
 
     def workflow_script_reject(self):
         """Copy real analyses to RejectAnalysis, with link to real

@@ -1305,11 +1305,11 @@ class Calculations(WorksheetImporter):
 
     def get_interim_fields(self):
         # preload Calculation Interim Fields sheet
-        self.interim_fields = {}
         sheetname = 'Calculation Interim Fields'
         worksheet = self.workbook.get_sheet_by_name(sheetname)
         if not worksheet:
             return
+        self.interim_fields = {}
         rows = self.get_rows(3, worksheet=worksheet)
         for row in rows:
             calc_title = row['Calculation_title']
@@ -1358,16 +1358,15 @@ class Calculations(WorksheetImporter):
         # Now we have the calculations registered, try to assign default calcs
         # to methods
         sheet = self.workbook.get_sheet_by_name("Methods")
-        if sheet:
-            bsc = getToolByName(self.context, 'bika_setup_catalog')
-            for row in self.get_rows(3, sheet):
-                if row['title'] and row['Calculation_title']:
-                    meth = self.get_object(bsc, "Method", row.get('title'))
-                    if meth and not meth.getCalculation():
-                        calctit = safe_unicode(row['Calculation_title']).encode('utf-8')
-                        calc = self.get_object(bsc, "Calculation", calctit)
-                        if calc:
-                            meth.setCalculation(calc.UID())
+        bsc = getToolByName(self.context, 'bika_setup_catalog')
+        for row in self.get_rows(3, sheet):
+            if row.get('title', '') and row.get('Calculation_title', ''):
+                meth = self.get_object(bsc, "Method", row.get('title'))
+                if meth and not meth.getCalculation():
+                    calctit = safe_unicode(row['Calculation_title']).encode('utf-8')
+                    calc = self.get_object(bsc, "Calculation", calctit)
+                    if calc:
+                        meth.setCalculation(calc.UID())
 
 
 class Analysis_Services(WorksheetImporter):
@@ -1933,11 +1932,13 @@ class Setup(WorksheetImporter):
             AutoLogOff=int(values['AutoLogOff']),
             ShowPricing=values.get('ShowPricing', True),
             Currency=values['Currency'],
+            DefaultCountry=values.get('DefaultCountry', ''),
             MemberDiscount=str(Float(values['MemberDiscount'])),
             VAT=str(Float(values['VAT'])),
             MinimumResults=int(values['MinimumResults']),
             BatchEmail=int(values['BatchEmail']),
             SamplingWorkflowEnabled=values['SamplingWorkflowEnabled'],
+            ScheduleSamplingEnabled=values.get('ScheduleSamplingEnabled', 0),
             CategoriseAnalysisServices=self.to_bool(
                 values['CategoriseAnalysisServices']),
             EnableAnalysisRemarks=self.to_bool(

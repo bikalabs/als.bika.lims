@@ -931,8 +931,6 @@ class AnalysisRequestPublishView(BrowserView):
             except SMTPRecipientsRefused as msg:
                 raise WorkflowException(str(msg))
 
-        ar.setDatePublished(DateTime())
-
         return [ar]
 
     def publish(self):

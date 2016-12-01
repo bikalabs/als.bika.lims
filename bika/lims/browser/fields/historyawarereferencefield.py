@@ -20,7 +20,6 @@ from bika.lims import bikaMessageFactory as _
 from bika.lims.utils import t
 from bika.lims import logger
 from bika.lims.utils import to_utf8
-from zope.component.hooks import getSite
 
 
 class HistoryAwareReferenceField(ReferenceField):
@@ -129,15 +128,18 @@ class HistoryAwareReferenceField(ReferenceField):
     def get(self, instance, aslist=False, **kwargs):
         """get() returns the list of objects referenced under the relationship.
         """
-        site = getSite()
-        uc = getToolByName(site, "uid_catalog")
+        try:
+            uc = getToolByName(instance, "uid_catalog")
+        except AttributeError as err:
+            logger.error("AttributeError: {0}".format(err))
+            return []
 
         try:
             res = instance.getRefs(relationship=self.relationship)
         except:
-            return None
+            pass
 
-        pr = getToolByName(site, 'portal_repository')
+        pr = getToolByName(instance, 'portal_repository')
 
         rd = {}
         for r in res:
