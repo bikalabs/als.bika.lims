@@ -42,10 +42,16 @@
 
 #discreeter div{
   margin-top:3px;
+  line-height: 125% !important;
 }
 
 #discreeter-info {
     color:#555;
+}
+
+.accredited-ico {
+    height:1.1em;
+    vertical-align:middle;
 }
 
 #report .label {
@@ -106,6 +112,19 @@
     font-weight:normal;
     font-style:italic;
     font-size:7pt;
+}
+
+div.resultsinterpretation {
+    border: 1px solid #cdcdcd;
+}
+
+div.resultsinterpretation_heading {
+    font-weight:bold;
+    background: #dddddd;
+    color: #444444;
+    margin-top:7px;
+    padding:2px 0px 2px 0px;
+    font-size:1.2em;
 }
 
 

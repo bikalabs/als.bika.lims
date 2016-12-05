@@ -19,7 +19,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.Utils import formataddr
 from operator import itemgetter
-from os.path import join
 from plone.registry.interfaces import IRegistry
 from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
 from Products.CMFCore.utils import getToolByName
@@ -34,12 +33,9 @@ from plone.registry import field
 from plone import api
 
 import App
-import cgi
-import glob, os, sys, traceback
-import Globals
+import os, traceback
 import re
 import tempfile
-import urllib2
 
 
 class AnalysisRequestPublishView(BrowserView):
@@ -54,6 +50,15 @@ class AnalysisRequestPublishView(BrowserView):
         super(AnalysisRequestPublishView, self).__init__(context, request)
         self._publish = publish
         self._ars = [self.context]
+        # Simple caching hack.  Various templates can allow these functions
+        # to be called many thousands of times for relatively simple reports.
+        # To prevent bad code from causing this, we cache all analysis data
+        # here.
+        self._cache = {
+            '_analysis_data': {},
+            '_qcanalyses_data': {},
+            '_ar_data': {}
+        }
 
     @property
     def _DEFAULT_TEMPLATE(self):
@@ -266,6 +271,8 @@ class AnalysisRequestPublishView(BrowserView):
         """ Creates an ar dict, accessible from the view and from each
             specific template.
         """
+        if ar.UID() in self._cache['_ar_data']:
+            return self._cache['_ar_data'][ar.UID()]
         data = {'obj': ar,
                 'id': ar.getRequestID(),
                 'client_order_num': ar.getClientOrderNumber(),
@@ -276,7 +283,6 @@ class AnalysisRequestPublishView(BrowserView):
                 'report_drymatter': ar.getReportDryMatter(),
                 'invoice_exclude': ar.getInvoiceExclude(),
                 'date_received': self.ulocalized_time(ar.getDateReceived(), long_format=1),
-                'remarks': ar.getRemarks(),
                 'member_discount': ar.getMemberDiscount(),
                 'date_sampled': self.ulocalized_time(
                     ar.getDateSampled(), long_format=1),
@@ -378,6 +384,7 @@ class AnalysisRequestPublishView(BrowserView):
             ri[dept.Title()] = ar.getResultsInterpretationByDepartment(dept)
         data['resultsinterpretationdepts'] = ri
 
+        self._cache['_ar_data'][ar.UID()] = data
         return data
 
     def _batch_data(self, ar):
@@ -591,6 +598,9 @@ class AnalysisRequestPublishView(BrowserView):
         return analyses
 
     def _analysis_data(self, analysis, decimalmark=None):
+        if analysis.UID() in self._cache['_analysis_data']:
+            return self._cache['_analysis_data'][analysis.UID()]
+
         keyword = analysis.getKeyword()
         service = analysis.getService()
         andict = {'obj': analysis,
@@ -676,9 +686,12 @@ class AnalysisRequestPublishView(BrowserView):
                 if ret and ret['out_of_range']:
                     andict['outofrange'] = True
                     break
+        self._cache['_analysis_data'][analysis.UID()]  = andict
         return andict
 
     def _qcanalyses_data(self, ar, analysis_states=['verified', 'published']):
+        if ar.UID() in self._cache['_qcanalyses_data']:
+            return self._cache['_qcanalyses_data'][ar.UID()]
         analyses = []
         batch = ar.getBatch()
         workflow = getToolByName(self.context, 'portal_workflow')
@@ -693,6 +706,7 @@ class AnalysisRequestPublishView(BrowserView):
 
             analyses.append(andict)
         analyses.sort(lambda x, y: cmp(x.get('title').lower(), y.get('title').lower()))
+        self._cache['_qcanalyses_data'][ar.UID()] = analyses
         return analyses
 
     def _reporter_data(self, ar):
@@ -738,7 +752,6 @@ class AnalysisRequestPublishView(BrowserView):
             managers['dict'][mngr]['departments'] = final_depts
 
         return managers
-
 
     def localise_images(self, htmlreport):
         """WeasyPrint will attempt to retrieve attachments directly from the URL
@@ -951,7 +964,6 @@ class AnalysisRequestPublishView(BrowserView):
         results_html = safe_unicode(self.template()).encode('utf-8')
         return self.publishFromHTML(results_html)
 
-
     def get_recipients(self, ar):
         """ Returns a list with the recipients and all its publication prefs
         """
@@ -1081,12 +1093,14 @@ class AnalysisRequestPublishView(BrowserView):
                     analyses[cat] = {
                         service.title: {
                             'service': service,
+                            'accredited': service.getAccredited(),
                             'ars': {ar.id: an.getFormattedResult()}
                         }
                     }
                 elif service.title not in analyses[cat]:
                     analyses[cat][service.title] = {
                         'service': service,
+                        'accredited': service.getAccredited(),
                         'ars': {ar.id: an.getFormattedResult()}
                     }
                 else:
