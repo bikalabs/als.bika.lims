@@ -4,6 +4,7 @@
 #
 # Copyright 2011-2016 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
+from operator import methodcaller
 
 from AccessControl import getSecurityManager
 from bika.lims import bikaMessageFactory as _
@@ -84,10 +85,10 @@ class WorksheetWorkflowAction(WorkflowAction):
         This function is called to do the worflow actions
         that apply to analyses in worksheets
     """
+
     def __call__(self):
         form = self.request.form
         plone.protect.CheckAuthenticator(form)
-        workflow = getToolByName(self.context, 'portal_workflow')
         rc = getToolByName(self.context, REFERENCE_CATALOG)
         bsc = getToolByName(self.context, 'bika_setup_catalog')
         bac = getToolByName(self.context, 'bika_analysis_catalog')
@@ -105,16 +106,12 @@ class WorksheetWorkflowAction(WorkflowAction):
                 self.request.response.redirect(self.context.absolute_url())
                 return
 
-            selected_analyses = WorkflowAction._get_selected_items(self)
-            selected_analysis_uids = selected_analyses.keys()
+            analyses = WorkflowAction._get_selected_items(self).values()
 
-            if selected_analyses:
-                for uid in selected_analysis_uids:
-                    analysis = rc.lookupObject(uid)
-                    # Double-check the state first
-                    if (workflow.getInfoFor(analysis, 'worksheetanalysis_review_state') == 'unassigned'
-                    and workflow.getInfoFor(analysis, 'review_state') == 'sample_received'
-                    and workflow.getInfoFor(analysis, 'cancellation_state') == 'active'):
+            if analyses:
+                analyses = sorted(analyses, key=methodcaller('getRequestID'))
+                for analysis in analyses:
+                    if self.isAddable(analysis):
                         self.context.addAnalysis(analysis)
 
             self.destination_url = self.context.absolute_url()
@@ -152,6 +149,17 @@ class WorksheetWorkflowAction(WorkflowAction):
         else:
             # default bika_listing.py/WorkflowAction for other transitions
             WorkflowAction.__call__(self)
+
+    def isAddable(self, analysis):
+        """Analysis can only be added to worksheet if it's state is valid
+        across all workflows.
+        """
+        wf = getToolByName(analysis, 'portal_workflow')
+        required_states = [{'review_state': ['sample_received']},
+                           {'worksheetanalysis_review_state': ['unassigned']},
+                           {'cancellation_state': ['active']}]
+        return all([wf.getInfoFor(analysis, st[0]) in st[1]
+                   for st in required_states])
 
     def submit(self):
         """ Saves the form

@@ -176,6 +176,7 @@
             </div>
 
             <!-- Analysis Requests table -->
+            <p>break 1111111</p>
             <div class='manual-page-break'></div>
             <tal:def tal:define="transposed python:view.getAnaysisBasedTransposedMatrix(ars);
                      cat_titles python:sorted(transposed.keys());
@@ -291,6 +292,7 @@
                 Restart page count ("restart-page-count" css class)
                 We want the number of pages to restart after the current page
             -->
+            <p>break 2222222</p>
             <div class='manual-page-break'></div>
         </tal:page>
     </tal:page_iter>
