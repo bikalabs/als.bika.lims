@@ -99,7 +99,7 @@
             </tr>
             <tr>
                 <th i18n:translate="" class="label">Number of samples</th>
-                <td tal:content="structure python:len(ars)"/>
+                <td tal:content="structure python:len(argroup)"/>
             </tr>
             <tr>
                 <th i18n:translate="" class="label">Certificate Number
@@ -109,6 +109,7 @@
         </table>
 
         <hr size="1"/>
+
 
         <!-- Discreeter section -->
         <div class="discreeter" id="discreeter-info">
@@ -251,7 +252,7 @@
                                 <tal:ar repeat="ar ars">
                                     <span class="td result"
                                           tal:attributes="style string:width:${arcol_width}%"
-                                          tal:content="python:transposed[cat_title][service_title]['ars'].get(ar.id,'')"/>
+                                          tal:content="structure python:transposed[cat_title][service_title]['ars'].get(ar.id,'')"/>
                                 </tal:ar>
                             </div>
                         </tal:cat_analyses>

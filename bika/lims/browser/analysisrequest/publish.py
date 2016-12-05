@@ -807,19 +807,10 @@ class AnalysisRequestPublishView(BrowserView):
         # we must supply the file ourself so that createPdf leaves it alone.
         pdf_fn = tempfile.mktemp(suffix=".pdf")
         pdf_report = createPdf(htmlreport=results_html, outfile=pdf_fn)
-        print(pdf_fn)
-        import os
-        os.system("/usr/bin/evince {}".format(pdf_fn))
-        import pdb;pdb.set_trace();pass
 
         # PDF written to debug file
         if debug_mode:
             logger.debug("Writing PDF for %s to %s" % (ar.Title(), pdf_fn))
-            import sys
-            import pdb
-            for attr in ('stdin', 'stdout', 'stderr'):
-                setattr(sys, attr, getattr(sys, '__%s__' % attr))
-            pdb.set_trace()
         else:
             os.remove(pdf_fn)
 

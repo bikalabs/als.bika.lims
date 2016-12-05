@@ -11,7 +11,7 @@ function AnalysisRequestPublishView() {
     var default_margins = [20, 20, 30, 20];
     var papersize = {
         'A4': {
-                dimensions: [210, 150], // XXX testing pagination... revert XXX
+                dimensions: [210, 297],
                 margins:    [20, 20, 30, 20] },
 
         'letter': {
