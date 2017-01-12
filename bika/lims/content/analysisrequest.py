@@ -73,8 +73,6 @@ def BatchUID(instance):
 
 @indexer(IAnalysisRequest)
 def getDatePublished(instance):
-    print('indexer for getDatePublished: %s = "%s"' %
-          (instance, getTransitionDate(instance, 'publish')))
     return getTransitionDate(instance, 'publish')
 
 
@@ -199,6 +197,8 @@ schema = BikaSchema.copy() + Schema((
         mode="rw",
         read_permission=permissions.View,
         write_permission=EditARContact,
+        acquire=True,
+        acquire_fieldname="CCEmails",
         widget=StringWidget(
             label=_("CC Emails"),
             visible={
@@ -1871,6 +1871,7 @@ class AnalysisRequest(BaseFolder):
         """ return True if any analyses are late """
         workflow = getToolByName(self, 'portal_workflow')
         review_state = workflow.getInfoFor(self, 'review_state', '')
+        resultdate = 0
         if review_state in ['to_be_sampled', 'to_be_preserved',
                             'sample_due', 'published']:
             return False
