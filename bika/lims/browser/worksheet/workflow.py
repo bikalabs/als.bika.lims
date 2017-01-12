@@ -155,11 +155,12 @@ class WorksheetWorkflowAction(WorkflowAction):
         across all workflows.
         """
         wf = getToolByName(analysis, 'portal_workflow')
-        required_states = [{'review_state': ['sample_received']},
-                           {'worksheetanalysis_review_state': ['unassigned']},
-                           {'cancellation_state': ['active']}]
+        required_states = [
+            ('review_state', ['sample_received']),
+            ('worksheetanalysis_review_state', ['unassigned']),
+            ('cancellation_state', ['active'])]
         return all([wf.getInfoFor(analysis, st[0]) in st[1]
-                   for st in required_states])
+                    for st in required_states])
 
     def submit(self):
         """ Saves the form
