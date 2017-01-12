@@ -80,59 +80,6 @@
             }
         }
     </style>
-    <script type="text/javascript">
-    // <!--
-        $(function(){
-            $('#print-button').click(function(e) {
-                e.preventDefault();
-                var url = window.location.href;
-                $('#sticker-wrapper').animate({opacity:0.4}, 'slow');
-                $('#stickers-wrapper').each(function(){
-                    var shtml = $(this).clone().wrap('<div>').parent().html();
-                    // Style inside the sticker-wraper, so no need to be imported again
-                    //var repstyle = $('#stickers-style').clone().wrap('<div>').parent().html();
-                    //repstyle += $('#layout-style').clone().wrap('<div>').parent().html();
-                    var form='<form action="'+url+'" name="form" method="post" style="display:none;">' +
-                        '<textarea name="html">' + shtml + '</textarea/>' +
-                        '<input type="hidden" name="pdf" value="1" />' +
-                        //'<textarea name="style">' +repstyle+ '</textarea>' +
-                        '</form>';
-                    $('body').html(form);
-                    document.forms.form.submit();
-                });
-            });
-            $('#cancel-button').click(function(e) {
-                e.preventDefault();
-                window.location = $(this).attr('data-url');
-            });
-            $('select#template').change(function(e) {
-                reload($('select#template').val());
-            });
-
-            /**
-             * Re-loads the stickers preview by using the template specified
-             */
-            function reload(template) {
-                var baseurl = $('body').attr('data-itemsurl');
-                $('#stickers-wrapper').fadeTo('fast', 0.4);
-                $.ajax({
-                    url: baseurl,
-                    type: 'POST',
-                    async: true,
-                    data: {"template": template}
-                })
-                .always(function(data) {
-                    var htmldata = data;
-                    htmldata = $(htmldata).find('#stickers-wrapper').html();
-                    $('#stickers-wrapper').html(htmldata);
-                    $('#stickers-wrapper').fadeTo('fast', 1);
-                    // reload barcoding
-                    bika.lims.BarcodeUtils.load();
-                });
-            }
-        });
-    // -->
-    </script>
 </head>
 <body tal:attributes="data-itemsurl python:view.getItemsURL();">
 <div id='sticker-preview-wrapper'>
