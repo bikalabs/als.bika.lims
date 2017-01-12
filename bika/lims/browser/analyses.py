@@ -785,12 +785,13 @@ class AnalysesView(BikaListingView):
                         (t(_("Can verify, but submitted by current user")))
                         )
             #If analysis Submitted and Verified by the same person, then warning icon will appear.
-            submitter=obj.getSubmittedBy()
-            if submitter and obj.wasVerifiedByUser(submitter):
-                after_icons.append(
-                    "<img src='++resource++bika.lims.images/warning.png' title='%s'/>" %
-                    (t(_("Submited and verified by the same user- "+ submitter)))
-                    )
+            if hasattr(obj, 'getSubmittedBy'):
+                submitter=obj.getSubmittedBy()
+                if submitter and obj.wasVerifiedByUser(submitter):
+                    after_icons.append(
+                        "<img src='++resource++bika.lims.images/warning.png' title='%s'/>" %
+                        (t(_("Submited and verified by the same user- "+ submitter)))
+                        )
 
             # add icon for assigned analyses in AR views
             if self.context.portal_type == 'AnalysisRequest':
