@@ -779,7 +779,7 @@ class AnalysesView(BikaListingView):
                         (t(_("Cannot verify, submitted or verified by current user before")))
                         )
                 elif allowed:
-                    if obj.getSubmittedBy() == member.getUser().getId():
+                    if hasattr(obj, 'getSubmittedBy') and obj.getSubmittedBy() == member.getUser().getId():
                         after_icons.append(
                         "<img src='++resource++bika.lims.images/warning.png' title='%s'/>" %
                         (t(_("Can verify, but submitted by current user")))
