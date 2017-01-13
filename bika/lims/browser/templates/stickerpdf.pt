@@ -1,0 +1,7 @@
+<head>
+    <style type="text/css" tal:content="view/css"/>
+</head>
+
+<div tal:repeat=" html view/htmls" style="page-break-after:always;">
+    <span tal:replace="structure html"/>
+</div>
