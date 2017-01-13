@@ -40,12 +40,15 @@ class BatchFolderContentsView(BikaListingView):
         self.pagesize = 25
 
         self.columns = {
-            'Title': {'title': _('Title')},
-            'BatchID': {'title': _('Batch ID')},
+            'Title': {'title': _('Title'),
+                      'index': 'sortable_title'},
+            'BatchID': {'title': _('Batch ID'), 'index': 'BatchID'},
             'Description': {'title': _('Description')},
-            'BatchDate': {'title': _('Date')},
-            'Client': {'title': _('Client')},
-            'state_title': {'title': _('State'), 'sortable': False},
+            'BatchDate': {'title': _('Date'), 'index': 'BatchDate'},
+            'Client': {'title': _('Client'), 'index': 'getClientTitle'},
+            'state_title': {'title': _('State'),
+                            'index': 'review_state',
+                            'sortable': False},
         }
 
         self.review_states = [  # leave these titles and ids alone
