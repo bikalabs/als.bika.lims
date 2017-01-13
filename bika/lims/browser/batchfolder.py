@@ -25,8 +25,6 @@ class BatchFolderContentsView(BikaListingView):
         self.catalog = 'bika_catalog'
         self.contentFilter = {
             'portal_type': 'Batch',
-            'sort_on': 'created',
-            'sort_order': 'reverse',
             'cancellation_state': 'active'
         }
         self.context_actions = {}
@@ -39,13 +37,17 @@ class BatchFolderContentsView(BikaListingView):
         self.show_select_column = True
         self.pagesize = 25
 
+
         self.columns = {
-            'Title': {'title': _('Title')},
-            'BatchID': {'title': _('Batch ID')},
+            'Title': {'title': _('Title'),
+                      'index': 'sortable_title'},
+            'BatchID': {'title': _('Batch ID'), 'index': 'BatchID'},
             'Description': {'title': _('Description')},
-            'BatchDate': {'title': _('Date')},
-            'Client': {'title': _('Client')},
-            'state_title': {'title': _('State'), 'sortable': False},
+            'BatchDate': {'title': _('Date'), 'index': 'BatchDate'},
+            'Client': {'title': _('Client'), 'index': 'getClientTitle'},
+            'state_title': {'title': _('State'),
+                            'index': 'review_state',
+                            'sortable': False},
         }
 
         self.review_states = [  # leave these titles and ids alone
