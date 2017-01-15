@@ -1,110 +1,215 @@
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+# This file is part of Bika LIMS
+#
+# Copyright 2011-2016 by it's authors.
+# Some rights reserved. See LICENSE.txt, AUTHORS.txt.
+
 from Products.CMFCore.utils import getToolByName
-
-from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
-from plone.resource.utils import queryResourceDirectory
-
 from bika.lims import bikaMessageFactory as _, t
 from bika.lims import logger
 from bika.lims.browser import BrowserView
 from bika.lims.vocabularies import getStickerTemplates
-from bika.lims.browser import BrowserView
-from bika.lims.utils import createPdf
+from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+import glob, os, os.path, sys, traceback
 
 import os
-import traceback
-
 
 class Sticker(BrowserView):
-    template = ViewPageTemplateFile("templates/stickerpdf.pt")
+    """ Invoked via URL on an object or list of objects from the types
+        AnalysisRequest, Sample, SamplePartition or ReferenceSample.
+        Renders a preview for the objects, a control to allow the user to
+        select the stcker template to be invoked and print.
+    """
+    template = ViewPageTemplateFile("templates/stickers_preview.pt")
+    item_index = 0
+    current_item = None
+    rendered_items = []
+    
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
 
     def __call__(self):
-        """Render PDF stickers using the template and items passed to us in the
-        request.  The PDF is returned directly on the response.  The template
-        will be rendered once for each item.  The sticker template can refer to
-        view.current_item, to get the object for which it is currently rendered
+        self.rendered_items = []
+        bc = getToolByName(self.context, 'bika_catalog')
+        items = self.request.get('items', '')
+        if items:
+            self.items = [o.getObject() for o in bc(id=items.split(","))]
+        else:
+            self.items = [self.context,]
+
+        new_items = []
+        for i in self.items:
+            outitems = self._populateItems(i)
+            new_items.extend(outitems)
+
+        self.items = new_items
+        if not self.items:
+            logger.warning("Cannot print stickers: no items specified in request")
+            self.request.response.redirect(self.context.absolute_url())
+            return
+
+        return self.template()
+
+    def _populateItems(self, item):
+        """ Creates an wel-defined array for this item to make the sticker
+            template easy to render. Each position of the array has a secondary
+            array, one per partition.
+
+            If the item is an object from an AnalysisRequest type, returns an
+            array with the following structure:
+                [
+                 [ar_object, ar_sample, ar_sample_partition-1],
+                 [ar_object, ar_sample, ar_sample_partition-2],
+                 ...
+                 [ar_object, ar_sample, ara_sample_partition-n]
+                ]
+
+            If the item is an object from Sample type, returns an arary with the
+            following structure:
+                [
+                 [None, sample, sample_partition-1],
+                 [None, sample, sample_partition-2],
+                 ...
+                ]
+
+            If the item is an object from ReferenceSample type, returns an
+            array with the following structure:
+                [[None, refsample, None]]
+            Note that in this case, the array always have a length=1
         """
-        # each individual sticker's rendered html gets appended to this list.
-        self.htmls = []
-        self.template_fn = self.get_template_filename()
-        instances = self.get_items()
-        for instance in instances:
-            self.current_item = instance
-            self.htmls.append(ViewPageTemplateFile(self.template_fn)(self))
+        ar = None
+        sample = None
+        parts = []
+        if item.portal_type == 'AnalysisRequest':
+            ar = item
+            sample = item.getSample()
+            parts = sample.objectValues('SamplePartition')
+        elif item.portal_type == 'Sample':
+            sample = item
+            parts = sample.objectValues('SamplePartition')
+        elif item.portal_type == 'SamplePartition':
+            sample = item.aq_parent
+            parts = [item,]
+        elif item.portal_type == 'ReferenceSample':
+            sample = item
 
-        # Render the HTML which will be used to create the PDF.
-        html = self.template()
+        items = []
+        for p in parts:
+            items.append([ar, sample, p])
+        return items
 
-        # createPdf returns PDF data, but also writes it to the provided
-        # outfile, so I'm going to ignore the returned data.
-        data = createPdf(html)
+    def getAvailableTemplates(self):
+        """ Returns an array with the templates of stickers available. Each
+            array item is a dictionary with the following structure:
+                {'id': <template_id>,
+                 'title': <teamplate_title>,
+                 'selected: True/False'}
+        """
+        seltemplate = self.getSelectedTemplate()
+        templates = []
+        for temp in getStickerTemplates():
+            out = temp
+            out['selected'] = temp.get('id', '') == seltemplate
+            templates.append(out)
+        return templates
 
-        setheader = self.request.RESPONSE.setHeader
-        setheader('Content-Type', 'application/pdf')
-        self.request.RESPONSE.write(data)
+    def getSelectedTemplate(self):
+        """ Returns the id of the sticker template selected. If no specific
+            template found in the request (parameter template), returns the
+            default template set in Bika Setup > Stickers.
+            If the template doesn't exist, uses the default bika.lims'
+            Code_128_1x48mm.pt template (was sticker_small.pt).
+            If no template selected but size param, get the sticker template
+            set as default in Bika Setup for the size set.
+        """
+        bs_template = self.context.bika_setup.getAutoStickerTemplate()
+        size = self.request.get('size', '')
+        if size == 'small':
+            bs_template = self.context.bika_setup.getSmallStickerTemplate()
+        elif size == 'large':
+            bs_template = self.context.bika_setup.getLargeStickerTemplate()
+        rq_template = self.request.get('template', bs_template)
+        # Check if the template exists. If not, fallback to default's
+        prefix = ''
+        if rq_template.find(':') >= 0:
+            prefix, rq_template = rq_template.split(':')
+            try:
+                templates_dir = queryResourceDirectory('stickers', prefix).directory
+            except:
+                import pdb;pdb.set_trace();pass
+                templates_dir = queryResourceDirectory('stickers', prefix).directory
+        else:
+            this_dir = os.path.dirname(os.path.abspath(__file__))
+            templates_dir = os.path.join(this_dir, 'templates/stickers/')
+        if not os.path.isfile(os.path.join(templates_dir, rq_template)):
+            rq_template = 'Code_128_1x48mm.pt'
+        return '%s:%s' % (prefix, rq_template) if prefix else rq_template
 
-    def css(self):
+    def getSelectedTemplateCSS(self):
         """ Looks for the CSS file from the selected template and return its
             contents. If the selected template is default.pt, looks for a
             file named default.css in the stickers path and return its contents.
-            If no CSS file found, returns an empty string
+            If no CSS file found, retrns an empty string
         """
-        css_fn = self.template_fn.replace(".pt", ".css")
-        return open(css_fn).read() if os.path.exists(css_fn) else ""
-
-
-    def get_template_filename(self):
-        """Get the template name.  It can come from:
-        - bika_setup.AutoStickerTemplate
-        - request.template
-        Perhaps the name specifies the package in which the sticker lives. we
-        check this by splitting the template name on ':'. if no package is
-        specified, we'll assume bika.lims.
-        """
-        # get the name of the specified template
-        template = self.request.get('template')
-        if not template:
-            template = self.context.bika_setup.getAutoStickerTemplate()
-            assert template, "Sticker template is required and was not provided"
-        # check for package name
-        if ':' in template:
+        template = self.getSelectedTemplate()
+        # Look for the CSS
+        content = ''
+        if template.find(':') >= 0:
+            # A template from another add-on
             prefix, template = template.split(':')
+            resource = queryResourceDirectory('stickers', prefix)
+            css = '{0}.css'.format(template[:-3])
+            if css in resource.listDirectory():
+                content = resource.readFile(css)
         else:
-            prefix, template = 'bika.lims', template
-        # Check for existence
-        templates_dir = queryResourceDirectory('stickers', prefix).directory
-        template_fn = os.path.join(templates_dir, template)
-        assert os.path.isfile(template_fn), "%s does not exist" % template_fn
-        return template_fn
+            this_dir = os.path.dirname(os.path.abspath(__file__))
+            templates_dir = os.path.join(this_dir, 'templates/stickers/')
+            path = '%s/%s.css' % (templates_dir, template[:-3])
+            if os.path.isfile(path):
+                with open(path, 'r') as content_file:
+                    content = content_file.read()
+        return content
 
-
-    def get_items(self):
-        """Return a list of objects for which we will print stickers
-        Items can be specified in the "items" request parameter.
-        If it's empty, or not present, we will attempt to use the current
-        context as the only item.
-        If the context is not one of the items for which sticker printing is
-        supported, we will fail with an assertion error.
-        Items for which sticker printing is supported are:
-        - AnalysisRequest
-        - Sample
+    def nextItem(self):
+        """ Iterates to the next item in the list and moves one position up the
+            item index. If the end of the list of items is reached, returns the
+            first item of the list.
         """
-        names = self.request.get('items', '')
-        if names:
-            brains = self.bika_catalog(id=names.split(","))
-            instances = [o.getObject() for o in brains]
-        else:
-            instances = [self.context, ]
+        if self.item_index == len(self.items):
+            self.item_index = 0
+            self.rendered_items = []
+        self.current_item = self.items[self.item_index]
+        self.rendered_items.append(self.current_item[2].getId())
+        self.item_index += 1
+        return self.current_item
 
-        items = []
-        for instance in instances:
-            if instance.portal_type == 'Sample':
-                items.append(instance)
-            elif instance.portal_type == 'AnalysisRequest':
-                items.append(instance.getSample())
-            else:
-                raise Exception("%s is not a Sample or AnalysisRequest")
+    def renderItem(self):
+        """ Renders the next available sticker.
+            Uses the template specified in the request ('template' parameter) by
+            default. If no template defined in the request, uses the default
+            template set by default in Bika Setup > Stickers.
+            If the template specified doesn't exist, uses the default
+            bika.lims' Code_128_1x48mm.pt template (was sticker_small.pt).
+        """
+        curritem = self.nextItem()
+        templates_dir = 'templates/stickers'
+        embedt = self.getSelectedTemplate()
+        if embedt.find(':') >= 0:
+            prefix, embedt = embedt.split(':')
+            templates_dir = queryResourceDirectory('stickers', prefix).directory
+        fullpath = os.path.join(templates_dir, embedt)
+        try:
+            embed = ViewPageTemplateFile(fullpath)
+            return embed(self)
+        except:
+            tbex = traceback.format_exc()
+            stickerid = curritem[2].id if curritem[2] else curritem[1].id
+            return "<div class='error'>%s - %s '%s':<pre>%s</pre></div>" % \
+                    (stickerid, _("Unable to load the template"), embedt, tbex)
 
-        items.sort(cmp=lambda x,y:cmp(x.id, y.id))
-        return items
+    def getItemsURL(self):
+        req_items = self.request.get('items', '')
+        req_items = req_items if req_items else self.context.getId()
+        req = '%s?items=%s' % (self.request.URL, req_items)
+        return req
