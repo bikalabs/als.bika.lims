@@ -13,15 +13,5 @@ class ClientBatchesView(BatchFolderContentsView):
         self.view_url = self.context.absolute_url() + "/batches"
 
     def __call__(self):
+        self.contentFilter['getClientTitle'] = self.context.Title()
         return BatchFolderContentsView.__call__(self)
-
-    def contentsMethod(self, contentFilter):
-        bc = getToolByName(self.context, "bika_catalog")
-        batches = {}
-        for ar in bc(portal_type='AnalysisRequest',
-                     getClientUID=self.context.UID()):
-            ar = ar.getObject()
-            batch = ar.getBatch()
-            if batch is not None:
-                batches[batch.UID()] = batch
-        return batches.values()

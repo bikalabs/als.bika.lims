@@ -618,6 +618,7 @@ class BikaGenerator:
         addIndex(bc, 'getAnalysisService', 'KeywordIndex')
         addIndex(bc, 'getAnalyst', 'FieldIndex')
         addIndex(bc, 'getAnalysts', 'KeywordIndex')
+        addIndex(bc, 'BatchID', 'FieldIndex', 'getBatchID')
         addIndex(bc, 'BatchDate', 'DateIndex')
         addIndex(bc, 'BatchID', 'FieldIndex')
         addIndex(bc, 'getClientOrderNumber', 'FieldIndex')
