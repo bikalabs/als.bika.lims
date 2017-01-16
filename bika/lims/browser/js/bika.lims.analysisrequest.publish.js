@@ -29,7 +29,7 @@ function AnalysisRequestPublishView() {
         // Report is hidden by default in css
         load_barcodes();
         load_layout();
-        window.bika.lims.RangeGraph.load();
+//        window.bika.lims.RangeGraph.load();
         convert_svgs();
 
         // Store referrer in cookie in case it is lost due to a page reload
