@@ -592,7 +592,7 @@ class AnalysisRequestPublishView(BrowserView):
                         andict['previous'].append(pandict)
 
                 andict['previous'] = sorted(andict['previous'], key=itemgetter("capture_date"))
-                andict['previous_results'] = ", ".join([p['formatted_result'] for p in andict['previous'][-5:]])
+                andict['previous_results'] = ", ".join([str(p['formatted_result']) for p in andict['previous'][-5:]])
 
             analyses.append(andict)
         return analyses
@@ -783,163 +783,135 @@ class AnalysisRequestPublishView(BrowserView):
         return cleanup, _htmltext
 
     def publishFromPOST(self):
+        """The handler for the Publish button in the report preview page.
+        """
         html = self.request.form.get('html')
         style = self.request.form.get('style')
         uids = self.request.form.get('uid').split(':')
+        template = self.request.form.get('template', '')
         reporthtml = "<html><head>%s</head><body><div id='report'>%s</body></html>" % (style, html)
         publishedars = []
-        for uid in uids:
-            ars = self.publishFromHTML(uid, safe_unicode(reporthtml).encode('utf-8'))
-            publishedars.extend(ars)
+        if 'multi_' in template.lower():
+            publishedars = self.publishFromHTML(
+                uids, safe_unicode(reporthtml).encode('utf-8'))
+        else:
+            for uid in uids:
+                ars = self.publishFromHTML(
+                    uid, safe_unicode(reporthtml).encode('utf-8'))
+                publishedars.extend(ars)
         return publishedars
 
-    def publishFromHTML(self, aruid, results_html):
+    def publishFromHTML(self, ar_uids, results_html):
+        """ar_uids can be a single UID or a list of AR uids.  The resulting
+        ARs will be published together (ie, sent as a single outbound email)
+        and the entire report will be saved in each AR's published-results
+        tab.
+        """
+        debug_mode = App.config.getConfiguration().debug_mode
+        wf = getToolByName(self.context, 'portal_workflow')
+
         # The AR can be published only and only if allowed
         uc = getToolByName(self.context, 'uid_catalog')
-        ars = uc(UID=aruid)
-        if not ars or len(ars) != 1:
+        ars = [p.getObject() for p in uc(UID=ar_uids)]
+        if not ars:
             return []
 
-        ar = ars[0].getObject();
-        wf = getToolByName(ar, 'portal_workflow')
-        allowed_states = ['verified', 'published']
-        # Publish/Republish allowed?
-        if wf.getInfoFor(ar, 'review_state') not in allowed_states:
-            # Pre-publish allowed?
-            if not ar.getAnalyses(review_state=allowed_states):
-                return []
-
-        # HTML written to debug file
-        debug_mode = App.config.getConfiguration().debug_mode
-        if debug_mode:
-            tmp_fn = tempfile.mktemp(suffix=".html")
-            logger.debug("Writing HTML for %s to %s" % (ar.Title(), tmp_fn))
-            open(tmp_fn, "wb").write(results_html)
-
-        # Create the pdf report (will always be attached to the AR)
+        # Create the pdf report for the supplied HTML.
         # we must supply the file ourself so that createPdf leaves it alone.
         pdf_fn = tempfile.mktemp(suffix=".pdf")
         pdf_report = createPdf(htmlreport=results_html, outfile=pdf_fn)
-
-        # PDF written to debug file
+        # PDF written to debug file?
         if debug_mode:
-            logger.debug("Writing PDF for %s to %s" % (ar.Title(), pdf_fn))
+            logger.debug("Writing PDF for %s to %s" % (
+                [ar.Title() for ar in ars], pdf_fn))
         else:
             os.remove(pdf_fn)
 
-        recipients = []
-        contact = ar.getContact()
-        lab = ar.bika_setup.laboratory
-        if pdf_report:
-            if contact:
-                recipients = [{
-                    'UID': contact.UID(),
-                    'Username': to_utf8(contact.getUsername()),
-                    'Fullname': to_utf8(contact.getFullname()),
-                    'EmailAddress': to_utf8(contact.getEmailAddress()),
-                    'PublicationModes': contact.getPublicationPreference()
-                }]
+        for ar in ars:
+            # Generate in each relevant AR, a new ARReport
             reportid = ar.generateUniqueId('ARReport')
             report = _createObjectByType("ARReport", ar, reportid)
             report.edit(
                 AnalysisRequest=ar.UID(),
                 Pdf=pdf_report,
                 Html=results_html,
-                Recipients=recipients
             )
             report.unmarkCreationFlag()
             renameAfterCreation(report)
-
-            # Set status to prepublished/published/republished
+            # Modify the workflow state of each AR that's been published
             status = wf.getInfoFor(ar, 'review_state')
-            transitions = {'verified': 'publish',
-                           'published' : 'republish'}
+            transitions = {'verified': 'publish', 'published': 'republish'}
             transition = transitions.get(status, 'prepublish')
             try:
                 wf.doActionFor(ar, transition)
             except WorkflowException:
                 pass
 
-            # compose and send email.
-            # The managers of the departments for which the current AR has
-            # at least one AS must receive always the pdf report by email.
-            # https://github.com/bikalabs/Bika-LIMS/issues/1028
-            mime_msg = MIMEMultipart('related')
-            mime_msg['Subject'] = self.get_mail_subject(ar)[0]
-            mime_msg['From'] = formataddr(
-                (encode_header(lab.getName()), lab.getEmailAddress()))
-            mime_msg.preamble = 'This is a multi-part MIME message.'
-            msg_txt = MIMEText(results_html, _subtype='html')
-            mime_msg.attach(msg_txt)
+        # compose and send email.
+        # The managers of the departments for which the current AR has
+        # at least one AS must receive always the pdf report by email.
+        # https://github.com/bikalabs/Bika-LIMS/issues/1028
+        lab = ars[0].bika_setup.laboratory
+        mime_msg = MIMEMultipart('related')
+        mime_msg['Subject'] = "Published results for %s" % \
+                              ",".join([ar.Title() for ar in ars])
+        mime_msg['From'] = formataddr(
+            (encode_header(lab.getName()), lab.getEmailAddress()))
+        mime_msg.preamble = 'This is a multi-part MIME message.'
+        msg_txt = MIMEText(results_html, _subtype='html')
+        mime_msg.attach(msg_txt)
 
-            to = []
-            mngrs = ar.getResponsible()
-            for mngrid in mngrs['ids']:
-                name = mngrs['dict'][mngrid].get('name', '')
-                email = mngrs['dict'][mngrid].get('email', '')
-                if (email != ''):
-                    to.append(formataddr((encode_header(name), email)))
+        to = []
 
-            if len(to) > 0:
-                # Send the email to the managers
-                mime_msg['To'] = ','.join(to)
-                attachPdf(mime_msg, pdf_report, ar.id)
-
-                try:
-                    host = getToolByName(ar, 'MailHost')
-                    host.send(mime_msg.as_string(), immediate=True)
-                except SMTPServerDisconnected as msg:
-                    logger.warn("SMTPServerDisconnected: %s." % msg)
-                except SMTPRecipientsRefused as msg:
-                    raise WorkflowException(str(msg))
+        mngrs = []
+        for ar in ars:
+            resp = ar.getResponsible()
+            if 'dict' in resp and resp['dict']:
+                for mngrid,mngr in resp['dict'].items():
+                    if mngr['email'] not in [m['email'] for m in mngrs]:
+                        mngrs.append(mngr)
+        for mngr in mngrs:
+            name = mngr['name']
+            email = mngr['email']
+            to.append(formataddr((encode_header(name), email)))
 
         # Send report to recipients
-        recips = self.get_recipients(ar)
-        for recip in recips:
-            if 'email' not in recip.get('pubpref', []) \
-                    or not recip.get('email', ''):
-                continue
+        for ar in ars:
+            recips = self.get_recipients(ar)
+            for recip in recips:
+                if 'email' not in recip.get('pubpref', []) \
+                        or not recip.get('email', ''):
+                    continue
+                title = encode_header(recip.get('title', ''))
+                email = recip.get('email')
+                to.append(formataddr((title, email)))
 
-            title = encode_header(recip.get('title', ''))
-            email = recip.get('email')
-            formatted = formataddr((title, email))
+        # Create the new mime_msg object, cause the previous one
+        # has the pdf already attached
+        mime_msg = MIMEMultipart('related')
+        mime_msg['Subject'] = "Published results for %s" % \
+                              ",".join([ar.Title() for ar in ars])
+        mime_msg['From'] = formataddr(
+        (encode_header(lab.getName()), lab.getEmailAddress()))
+        mime_msg.preamble = 'This is a multi-part MIME message.'
+        msg_txt = MIMEText(results_html, _subtype='html')
+        mime_msg.attach(msg_txt)
+        mime_msg['To'] = ",".join(to)
 
-            # Create the new mime_msg object, cause the previous one
-            # has the pdf already attached
-            mime_msg = MIMEMultipart('related')
-            mime_msg['Subject'] = self.get_mail_subject(ar)[0]
-            mime_msg['From'] = formataddr(
-            (encode_header(lab.getName()), lab.getEmailAddress()))
-            mime_msg.preamble = 'This is a multi-part MIME message.'
-            msg_txt = MIMEText(results_html, _subtype='html')
-            mime_msg.attach(msg_txt)
-            mime_msg['To'] = formatted
+        # Attach the pdf to the email
+        fn = "_".join([ar.Title() for ar in ars])
+        attachPdf(mime_msg, pdf_report, fn)
+        msg_string = mime_msg.as_string()
 
-            # Attach the pdf to the email if requested
-            if pdf_report and 'pdf' in recip.get('pubpref'):
-                attachPdf(mime_msg, pdf_report, ar.id)
+        try:
+            host = getToolByName(ars[0], 'MailHost')
+            host.send(msg_string, immediate=True)
+        except SMTPServerDisconnected as msg:
+            logger.warn("SMTPServerDisconnected: %s." % msg)
+        except SMTPRecipientsRefused as msg:
+            raise WorkflowException(str(msg))
 
-            # For now, I will simply ignore mail send under test.
-            if hasattr(self.portal, 'robotframework'):
-                continue
-
-            msg_string = mime_msg.as_string()
-
-            # content of outgoing email written to debug file
-            if debug_mode:
-                tmp_fn = tempfile.mktemp(suffix=".email")
-                logger.debug("Writing MIME message for %s to %s" % (ar.Title(), tmp_fn))
-                open(tmp_fn, "wb").write(msg_string)
-
-            try:
-                host = getToolByName(ar, 'MailHost')
-                host.send(msg_string, immediate=True)
-            except SMTPServerDisconnected as msg:
-                logger.warn("SMTPServerDisconnected: %s." % msg)
-            except SMTPRecipientsRefused as msg:
-                raise WorkflowException(str(msg))
-
-        return [ar]
+        return ars
 
     def publish(self):
         """ Publish the AR report/s. Generates a results pdf file
