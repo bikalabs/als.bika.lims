@@ -24,6 +24,12 @@ function AnalysisRequestPublishView() {
      */
     that.load = function() {
 
+        // Format and layout on first load.  see reloadReport() below.
+        // Doing this manually here prevents immediately re-rendering template.
+        // Report is hidden by default in css
+        load_barcodes();
+        load_layout();
+        convert_svgs();
         // Store referrer in cookie in case it is lost due to a page reload
         var cookiename = "ar.publish.view.referrer";
         var backurl = document.referrer;
@@ -36,14 +42,6 @@ function AnalysisRequestPublishView() {
                 backurl = portal_url;
             }
         }
-
-        // Some JS may be required to run for the initial report rendering
-        load_barcodes();
-        load_layout();
-        if (window.bika.lims.RangeGraph){
-            window.bika.lims.RangeGraph.load();
-        }
-        convert_svgs();
 
         // Smooth scroll to content
         $('#ar_publish_container #ar_publish_summary a[href^="#"]').click(function(e) {
