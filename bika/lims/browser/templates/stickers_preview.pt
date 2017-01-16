@@ -107,8 +107,19 @@
     <script type="text/javascript">
         $(function(){
             $('#print-button').click(function(e) {
-                e.preventDefault();
-                window.print();
+                // set html into hidden field for form handler
+                $("#htmldata").val( $("div#stickers").html() );
+                // Funge the back-button to refresh when returning
+                url = $("#cancel-button").attr('data-url')
+                parts = url.split("?");
+                if (parts.length > 1){
+                  part2 = "?v=" + Math.random() + parts[1].replace("?", "&");
+                } else {
+                  part2 = "?v=" + Math.random();
+                }
+                window.history.pushState({}, '', parts[0] + part2);
+                // Submit form to echo back PDF data
+                $("form#sticker_form").submit();
             });
             $('#cancel-button').click(function(e) {
                 e.preventDefault();
@@ -150,50 +161,54 @@
 </head>
 <body tal:attributes="onload        python:'this.print()' if view.request.get('autoprint', False) else '';
                       data-itemsurl python:view.getItemsURL();">
-    <div id='sticker-preview-wrapper'>
-        <!-- Header of the preview. This will never be printed.
-             Container with preview options and buttons -->
-        <div id="sticker-preview-header">
-            <div id='options-handler'>
-                <div class='options-line'>
-                    <label for="template" i18n:translate="">Template</label>
-                    <select id="template" name="template">
-                    <tal:formats tal:repeat="tpl python:view.getAvailableTemplates()">
-                          <option selected
-                                  tal:attributes="value tpl/id"
-                                  tal:content="tpl/title"
-                                  tal:condition="tpl/selected"></option>
-                          <option tal:attributes="value tpl/id"
-                                  tal:content="tpl/title"
-                                  tal:condition="not:tpl/selected"></option>
-                    </tal:formats>
-                    </select>
+    <form id="sticker_form" method="POST" action="sticker">
+        <input type="hidden" name="htmldata" id="htmldata" value=""/>
+        <div id='sticker-preview-wrapper'>
+            <!-- Container with preview options and buttons -->
+            <div id="sticker-preview-header">
+                <div id='options-handler'>
+                    <div class='options-line'>
+                        <label for="template" i18n:translate="">Template</label>
+                        <select id="template" name="template">
+                        <tal:formats tal:repeat="tpl python:view.getAvailableTemplates()">
+                              <option selected
+                                      tal:attributes="value tpl/id"
+                                      tal:content="tpl/title"
+                                      tal:condition="tpl/selected"></option>
+                              <option tal:attributes="value tpl/id"
+                                      tal:content="tpl/title"
+                                      tal:condition="not:tpl/selected"></option>
+                        </tal:formats>
+                        </select>
+                    </div>
+                </div>
+                <div id='sticker-buttons'>
+                    <input type="button" id='cancel-button' value="Go back"
+                           tal:attributes="data-url goback_url;"/>
+                    <input type="button" id='print-button' value="Print"/>
                 </div>
             </div>
-            <div id='sticker-buttons'>
-                <input type="button" id='cancel-button' value="Go back"
-                       tal:attributes="data-url goback_url;"/>
-                <input type="button" id='print-button' value="Print"/>
-            </div>
-        </div>
 
-        <!-- Container where all the stickers are embedded. -->
-        <div id="stickers-wrapper">
-            <style id='stickers-style' type="text/css" tal:content="structure python:view.getSelectedTemplateCSS()"></style>
-            <div id="sticker-rule">
-              <div style="font-size:6pt">mm</div>
-              <tal:tick repeat="mm python:[0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,210]">
-              <div tal:define="odd repeat/mm/odd;
-                               css python:'sticker-rule-tick-odd' if odd else 'sticker-rule-tick';"
-                   tal:attributes="class css"
-                   tal:content="mm"></div>
-              </tal:tick>
+            <!-- Container where all the stickers are embedded. -->
+            <div id="stickers-wrapper">
+                <div id="sticker-rule">
+                  <div style="font-size:6pt">mm</div>
+                  <tal:tick repeat="mm python:[0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,210]">
+                  <div tal:define="odd repeat/mm/odd;
+                                   css python:'sticker-rule-tick-odd' if odd else 'sticker-rule-tick';"
+                       tal:attributes="class css"
+                       tal:content="mm"></div>
+                  </tal:tick>
+                </div>
+                <div id="stickers">
+                    <style id='stickers-style' type="text/css" tal:content="structure python:view.getSelectedTemplateCSS()"></style>
+                    <tal:stickers tal:repeat="sticker view/items">
+                        <div class='sticker'
+                             tal:content='structure python:view.renderItem()'></div>
+                    </tal:stickers>
+                </div>
             </div>
-            <tal:stickers repeat="sticker view/items">
-            <div class='sticker'
-                 tal:content='structure python:view.renderItem()'></div>
-            </tal:stickers>
         </div>
-    </div>
+    </form>
 </body>
 </html>
