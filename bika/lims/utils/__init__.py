@@ -366,7 +366,7 @@ def isnumber(s):
         return False
 
 
-def localise_images(context, htmlreport):
+def localise_images(htmlreport):
     """WeasyPrint will attempt to retrieve attachments directly from the URL
     referenced in the HTML report, which may refer back to a single-threaded
     (and currently occupied) zeoclient, hanging it.  All "attachments"
