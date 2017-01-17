@@ -18,7 +18,7 @@ from DateTime import DateTime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.Utils import formataddr
-from operator import itemgetter, methodcaller
+from operator import itemgetter, itemgetter
 from plone.registry.interfaces import IRegistry
 from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
 from Products.CMFCore.utils import getToolByName
@@ -87,7 +87,7 @@ class AnalysisRequestPublishView(BrowserView):
             uids = self.request.get('items').split(',')
             uc = getToolByName(self.context, 'uid_catalog')
             self._ars = sorted([obj.getObject() for obj in uc(UID=uids)],
-                               key=methodcaller('getDateReceived'))
+                               key=itemgetter('id'))
         else:
             #Do nothing
             self.destination_url = self.request.get_header("referer",
