@@ -258,37 +258,33 @@ function AnalysisRequestPublishView() {
 
             // Header defined for this AR Report?
             // Note that if the header of the report is taller than the
-            // margin, the header will be dismissed.
+            // margin, the margin will be increased.
             var header_html = '<div class="page-header"></div>';
             var header_height = $(header_html).outerHeight(true);
             if ($(this).find('.page-header').length > 0) {
                 var pgh = $(this).find('.page-header').first();
                 header_height = parseFloat($(pgh).outerHeight(true));
                 if (header_height > mmTopx(dim.marginTop)) {
-                    // Footer too tall
-                    header_html = "<div class='page-header header-invalid'>Header height is above page's top margin height</div>";
-                    header_height = parseFloat($(header_html));
-                } else {
-                    header_html   = '<div class="page-header">'+$(pgh).html()+'</div>';
+                    dim.marginTop = pxTomm(header_height);
+                    $('#margin-top').val(pxTomm(header_height));
                 }
+                header_html   = '<div class="page-header">'+$(pgh).html()+'</div>';
                 $(this).find('.page-header').remove();
             }
 
             // Footer defined for this AR Report?
             // Note that if the footer of the report is taller than the
-            // margin, the footer will be dismissed
+            // margin, the footer height will be increased
             var footer_html = '<div class="page-footer"></div>';
             var footer_height = $(footer_html).outerHeight(true);
             if ($(this).find('.page-footer').length > 0) {
                 var pgf = $(this).find('.page-footer').first();
                 footer_height = parseFloat($(pgf).outerHeight(true));
                 if (footer_height > mmTopx(dim.marginBottom)) {
-                    // Footer too tall
-                    footer_html = "<div class='page-footer footer-invalid'>Footer height is above page's bottom margin height</div>";
-                    footer_height = parseFloat($(footer_html));
-                } else {
-                    footer_html   = '<div class="page-footer">'+$(pgf).html()+'</div>';
+                    dim.marginBottom = pxTomm(footer_height);
+                    $('#margin-bottom').val(pxTomm(header_height));
                 }
+                footer_html   = '<div class="page-footer">'+$(pgf).html()+'</div>';
                 $(this).find('.page-footer').remove();
             }
 
