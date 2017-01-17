@@ -228,8 +228,6 @@
         </style>
 
         <div id='report'>
-        <span tal:omit-tag tal:condition="python:request.form.get('template',False)">
-
             <tal:singlearreport condition="python:view.isSingleARTemplate()">
             <!-- Single-AR template.
               The templates from this type will render one AR at a time, so one
@@ -260,7 +258,6 @@
             </tal:multiar>
             </tal:argroup>
             </tal:multiarreport>
-        </span>
         </div>
     </div>
     <div id="my_mm" style="height:1mm;display:none"></div>

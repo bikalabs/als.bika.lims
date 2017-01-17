@@ -26,10 +26,11 @@ function AnalysisRequestPublishView() {
 
         // Format and layout on first load.  see reloadReport() below.
         // Doing this manually here prevents immediately re-rendering template.
-        // Report is hidden by default in css
         load_barcodes();
         load_layout();
+//        window.bika.lims.RangeGraph.load();
         convert_svgs();
+
         // Store referrer in cookie in case it is lost due to a page reload
         var cookiename = "ar.publish.view.referrer";
         var backurl = document.referrer;
@@ -200,6 +201,7 @@ function AnalysisRequestPublishView() {
         })
         .always(function(data) {
             var htmldata = data;
+            debugger;
             cssdata = $(htmldata).find('#report-style').html();
             $('#report-style').html(cssdata);
             htmldata = $(htmldata).find('#report').html();
@@ -284,7 +286,7 @@ function AnalysisRequestPublishView() {
                 if (footer_height > mmTopx(dim.marginBottom)) {
                     // Footer too tall
                     footer_html = "<div class='page-footer footer-invalid'>Footer height is above page's bottom margin height</div>";
-                    footer_height = parseFloat($(footer_html).outerHeight(true));
+                    footer_height = parseFloat($(footer_html));
                 } else {
                     footer_html   = '<div class="page-footer">'+$(pgf).html()+'</div>';
                 }
