@@ -24,6 +24,7 @@ from socket import timeout
 from time import time
 from weasyprint import HTML, CSS
 from zope.component import queryUtility
+from zope.component.hooks import getSite
 from zope.i18n import translate
 from zope.i18n.locales import locales
 
@@ -365,7 +366,7 @@ def isnumber(s):
         return False
 
 
-def localise_images(self, htmlreport):
+def localise_images(context, htmlreport):
     """WeasyPrint will attempt to retrieve attachments directly from the URL
     referenced in the HTML report, which may refer back to a single-threaded
     (and currently occupied) zeoclient, hanging it.  All "attachments"
@@ -377,12 +378,15 @@ def localise_images(self, htmlreport):
     """
     cleanup = []
 
+    portal = getSite()
+    portal_url = portal.absolute_url().split("?")[0]
+
     _htmltext = to_utf8(htmlreport)
     # first regular image tags
     for match in re.finditer("""http.*at_download\/AttachmentFile""", _htmltext, re.I):
         url = match.group()
-        att_path = url.replace(self.portal_url+"/", "")
-        attachment = self.portal.unrestrictedTraverse(att_path)
+        att_path = url.replace(portal_url+"/", "")
+        attachment = portal.unrestrictedTraverse(att_path)
         af = attachment.getAttachmentFile()
         filename = af.filename
         extension = "."+filename.split(".")[-1]
