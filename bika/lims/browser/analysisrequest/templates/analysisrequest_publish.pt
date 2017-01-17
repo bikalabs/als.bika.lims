@@ -71,15 +71,24 @@
         </div>
         <style id='report-base-style'>
             /** Report preview styling **/
-            html, body { margin: 0; }
-            html { background-color:#cdcdcd; }
-            body.A4 #ar_publish_container { width: 210mm; }
-            body.letter #ar_publish_container { width: 216mm; }
+            html, body {
+                margin: 0;
+            }
+            html {
+                background-color:#cdcdcd;
+            }
+            body.A4 #ar_publish_container {
+                width: 210mm;
+            }
+            body.letter #ar_publish_container {
+                width: 216mm;
+            }
             #report {
                 background-color:#ffffff;
             }
             div.ar_publish_page {
                 border: 1px dashed #cdcdcd;
+                margin-top:5px;
             }
             #ar_publish_container {
                 margin:0 auto;
@@ -185,6 +194,7 @@
                 }
                 div.ar_publish_page {
                     border: none;
+                    margin-top:0;
                 }
                 html {
                     background-color:#fff !important;

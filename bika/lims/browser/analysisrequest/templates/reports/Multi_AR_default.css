@@ -34,6 +34,11 @@
     line-height:125% !important;
 }
 
+#section-info div {
+  margin-top:5px;
+  padding:0 5px;
+}
+
 #section-info-heading {
     height:2em;
     text-align:center !important;
