@@ -834,6 +834,7 @@ class AnalysisRequestPublishView(BrowserView):
         mime_msg.attach(msg_txt)
 
         to = []
+        to_emails = []
 
         mngrs = []
         for ar in ars:
@@ -856,7 +857,9 @@ class AnalysisRequestPublishView(BrowserView):
                     continue
                 title = encode_header(recip.get('title', ''))
                 email = recip.get('email')
-                to.append(formataddr((title, email)))
+                if email not in to_emails:
+                    to.append(formataddr((title, email)))
+                    to_emails.append(email)
 
         # Create the new mime_msg object, cause the previous one
         # has the pdf already attached
