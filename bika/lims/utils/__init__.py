@@ -24,6 +24,7 @@ from socket import timeout
 from time import time
 from weasyprint import HTML, CSS
 from zope.component import queryUtility
+from zope.component.hooks import getSite
 from zope.i18n import translate
 from zope.i18n.locales import locales
 
@@ -365,6 +366,38 @@ def isnumber(s):
         return False
 
 
+def localise_images(htmlreport):
+    """WeasyPrint will attempt to retrieve attachments directly from the URL
+    referenced in the HTML report, which may refer back to a single-threaded
+    (and currently occupied) zeoclient, hanging it.  All "attachments"
+    using urls ending with at_download/AttachmentFile must be converted
+    to local files.
+
+    Returns a list of files which were created, and a modified copy
+    of htmlreport.
+    """
+    cleanup = []
+
+    portal = getSite()
+    portal_url = portal.absolute_url().split("?")[0]
+
+    _htmltext = to_utf8(htmlreport)
+    # first regular image tags
+    for match in re.finditer("""http.*at_download\/AttachmentFile""", _htmltext, re.I):
+        url = match.group()
+        att_path = url.replace(portal_url+"/", "")
+        attachment = portal.unrestrictedTraverse(att_path)
+        af = attachment.getAttachmentFile()
+        filename = af.filename
+        extension = "."+filename.split(".")[-1]
+        outfile, outfilename = tempfile.mkstemp(suffix=extension)
+        outfile = open(outfilename, 'wb')
+        outfile.write(str(af.data))
+        outfile.close()
+        _htmltext.replace(url, outfilename)
+        cleanup.append(outfilename)
+    return cleanup, _htmltext
+
 def createPdf(htmlreport, outfile=None, css=None, images={}):
     """create a PDF from some HTML.
     htmlreport: rendered html
@@ -379,7 +412,7 @@ def createPdf(htmlreport, outfile=None, css=None, images={}):
     # URL's referenced in htmlreport should be local files.
     """
     # A list of files that should be removed after PDF is written
-    cleanup = []
+    cleanup, htmlreport = localise_images(htmlreport)
     css_def = ''
     if css:
         if css.startswith("http://") or css.startswith("https://"):

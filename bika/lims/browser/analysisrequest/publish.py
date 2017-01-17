@@ -18,7 +18,7 @@ from DateTime import DateTime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.Utils import formataddr
-from operator import itemgetter
+from operator import itemgetter, itemgetter
 from plone.registry.interfaces import IRegistry
 from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
 from Products.CMFCore.utils import getToolByName
@@ -86,7 +86,8 @@ class AnalysisRequestPublishView(BrowserView):
             and self.request.get('items',''):
             uids = self.request.get('items').split(',')
             uc = getToolByName(self.context, 'uid_catalog')
-            self._ars = [obj.getObject() for obj in uc(UID=uids)]
+            self._ars = sorted([obj.getObject() for obj in uc(UID=uids)],
+                               key=itemgetter('id'))
         else:
             #Do nothing
             self.destination_url = self.request.get_header("referer",
@@ -753,35 +754,6 @@ class AnalysisRequestPublishView(BrowserView):
 
         return managers
 
-    def localise_images(self, htmlreport):
-        """WeasyPrint will attempt to retrieve attachments directly from the URL
-        referenced in the HTML report, which may refer back to a single-threaded
-        (and currently occupied) zeoclient, hanging it.  All "attachments"
-        using urls ending with at_download/AttachmentFile must be converted
-        to local files.
-
-        Returns a list of files which were created, and a modified copy
-        of htmlreport.
-        """
-        cleanup = []
-
-        _htmltext = to_utf8(htmlreport)
-        # first regular image tags
-        for match in re.finditer("""http.*at_download\/AttachmentFile""", _htmltext, re.I):
-            url = match.group()
-            att_path = url.replace(self.portal_url+"/", "")
-            attachment = self.portal.unrestrictedTraverse(att_path)
-            af = attachment.getAttachmentFile()
-            filename = af.filename
-            extension = "."+filename.split(".")[-1]
-            outfile, outfilename = tempfile.mkstemp(suffix=extension)
-            outfile = open(outfilename, 'wb')
-            outfile.write(str(af.data))
-            outfile.close()
-            _htmltext.replace(url, outfilename)
-            cleanup.append(outfilename)
-        return cleanup, _htmltext
-
     def publishFromPOST(self):
         """The handler for the Publish button in the report preview page.
         """
@@ -862,6 +834,7 @@ class AnalysisRequestPublishView(BrowserView):
         mime_msg.attach(msg_txt)
 
         to = []
+        to_emails = []
 
         mngrs = []
         for ar in ars:
@@ -884,7 +857,9 @@ class AnalysisRequestPublishView(BrowserView):
                     continue
                 title = encode_header(recip.get('title', ''))
                 email = recip.get('email')
-                to.append(formataddr((title, email)))
+                if email not in to_emails:
+                    to.append(formataddr((title, email)))
+                    to_emails.append(email)
 
         # Create the new mime_msg object, cause the previous one
         # has the pdf already attached
