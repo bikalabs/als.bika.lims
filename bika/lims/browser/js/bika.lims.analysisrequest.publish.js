@@ -201,7 +201,6 @@ function AnalysisRequestPublishView() {
         })
         .always(function(data) {
             var htmldata = data;
-            debugger;
             cssdata = $(htmldata).find('#report-style').html();
             $('#report-style').html(cssdata);
             htmldata = $(htmldata).find('#report').html();
