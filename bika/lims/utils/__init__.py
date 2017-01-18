@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
-from AccessControl import getSecurityManager
 # This file is part of Bika LIMS
 #
 # Copyright 2011-2016 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
-
+from AccessControl import getSecurityManager
 from AccessControl import ModuleSecurityInfo, allow_module
-
-import math
-
 from bika.lims import logger
 from bika.lims.browser import BrowserView
 from DateTime import DateTime
 from email import Encoders
 from email.MIMEBase import MIMEBase
+from pkg_resources import resource_filename
 from plone.memoize import ram
 from plone.registry.interfaces import IRegistry
 from Products.Archetypes.public import DisplayList
@@ -30,6 +27,7 @@ from zope.i18n.locales import locales
 
 import App
 import Globals
+import math
 import os
 import re
 import tempfile
@@ -414,7 +412,7 @@ def createPdf(htmlreport, outfile=None, css=None, images={}):
     outfile: pdf filename; if supplied, caller is responsible for creating
              and removing it.
     css: remote URL of css file to download
-    images: A dictionary containing possible URLs (keys) and local filenames
+    images: A dictionary containing pxossible URLs (keys) and local filenames
             (values) with which they may to be replaced during rendering.
     # WeasyPrint will attempt to retrieve images directly from the URL
     # referenced in the HTML report, which may refer back to a single-threaded
