@@ -265,7 +265,7 @@ function AnalysisRequestPublishView() {
                 var pgh = $(this).find('.page-header').first();
                 header_height = parseFloat($(pgh).outerHeight(true));
                 if (header_height > mmTopx(dim.marginTop)) {
-                    dim.marginTop = pxTomm(header_height);
+                    dim.marginTop = pxTomm(header_height) + 2;
                     $('#margin-top').val(pxTomm(header_height));
                 }
                 header_html   = '<div class="page-header">'+$(pgh).html()+'</div>';
@@ -281,7 +281,7 @@ function AnalysisRequestPublishView() {
                 var pgf = $(this).find('.page-footer').first();
                 footer_height = parseFloat($(pgf).outerHeight(true));
                 if (footer_height > mmTopx(dim.marginBottom)) {
-                    dim.marginBottom = pxTomm(footer_height);
+                    dim.marginBottom = pxTomm(footer_height) + 2;
                     $('#margin-bottom').val(pxTomm(header_height));
                 }
                 footer_html   = '<div class="page-footer">'+$(pgf).html()+'</div>';
