@@ -455,6 +455,7 @@ class AnalysesView(BikaListingView):
                 getSecurityManager().checkPermission(ViewResults, obj)
 
             # permission to edit this item's results
+            # Editing Field Results is possible while in Sample Due.
             poc = self.contentFilter.get("getPointOfCapture", 'lab')
             can_edit_analysis = self.allow_edit and context_active and \
                 ( (poc == 'field' and getSecurityManager().checkPermission(EditFieldResults, obj))
@@ -782,20 +783,18 @@ class AnalysesView(BikaListingView):
                         (t(_("Cannot verify, submitted or verified by current user before")))
                         )
                 elif allowed:
-                    if hasattr(obj, 'getSubmittedBy') and \
-                                    obj.getSubmittedBy() == member.getUser().getId():
+                    if obj.getSubmittedBy() == member.getUser().getId():
                         after_icons.append(
                         "<img src='++resource++bika.lims.images/warning.png' title='%s'/>" %
                         (t(_("Can verify, but submitted by current user")))
                         )
             #If analysis Submitted and Verified by the same person, then warning icon will appear.
-            if hasattr(obj, 'getSubmittedBy'):
-                submitter=obj.getSubmittedBy()
-                if submitter and obj.wasVerifiedByUser(submitter):
-                    after_icons.append(
-                        "<img src='++resource++bika.lims.images/warning.png' title='%s'/>" %
-                        (t(_("Submited and verified by the same user- "+ submitter)))
-                        )
+            submitter=obj.getSubmittedBy()
+            if submitter and obj.wasVerifiedByUser(submitter):
+                after_icons.append(
+                    "<img src='++resource++bika.lims.images/warning.png' title='%s'/>" %
+                    (t(_("Submited and verified by the same user- "+ submitter)))
+                    )
 
             # add icon for assigned analyses in AR views
             if self.context.portal_type == 'AnalysisRequest':

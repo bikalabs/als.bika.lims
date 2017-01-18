@@ -147,7 +147,20 @@ def getTransitionDate(obj, action_id):
             return value
     return None
 
-
+def getTransitionActor(obj, action_id):
+    """Returns the identifier of the user who last performed the action
+    on the object.
+    """
+    workflow = getToolByName(obj, "portal_workflow")
+    try:
+        review_history = list(workflow.getInfoFor(obj, "review_history"))
+        review_history.reverse()
+        for event in review_history:
+            if event.get("action") == action_id:
+                return event.get("actor")
+        return ''
+    except WorkflowException:
+        return ''
 
 # Enumeration of the available status flows
 StateFlow = enum(review='review_state',
