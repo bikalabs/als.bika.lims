@@ -376,25 +376,35 @@ def localise_images(htmlreport):
     Returns a list of files which were created, and a modified copy
     of htmlreport.
     """
+    _htmltext = to_utf8(htmlreport)
+
     cleanup = []
 
     portal = getSite()
     portal_url = portal.absolute_url().split("?")[0]
 
-    _htmltext = to_utf8(htmlreport)
-    # first regular image tags
-    for match in re.finditer("""http.*at_download\/AttachmentFile""", _htmltext, re.I):
-        url = match.group()
+    # First replace the images that can't be resolved with traversal
+    path = resource_filename('bika.lims', 'skins/bika/logo_print.png')
+    _htmltext = re.sub(r"""http.*logo_print[^'"]+""",
+                       "file://" + path, _htmltext)
+    path = resource_filename('bika.lims', 'browser/images/accredited.png')
+    _htmltext = re.sub(r"""http.*accredited[^'"]+""",
+                       "file://" + path, _htmltext)
+
+    # All other images should be traversable.
+    for match in re.finditer("""src.*\=.*(http[^'"]*)""", _htmltext, re.I):
+        url = match.group(1)
         att_path = url.replace(portal_url+"/", "")
         attachment = portal.unrestrictedTraverse(att_path)
-        af = attachment.getAttachmentFile()
-        filename = af.filename
+        if hasattr(attachment, 'getAttachmentFile'):
+            attachment = attachment.getAttachmentFile()
+        filename = attachment.filename
         extension = "."+filename.split(".")[-1]
         outfile, outfilename = tempfile.mkstemp(suffix=extension)
         outfile = open(outfilename, 'wb')
-        outfile.write(str(af.data))
+        outfile.write(str(attachment.data))
         outfile.close()
-        _htmltext.replace(url, outfilename)
+        _htmltext.replace(url, "file://" + outfilename)
         cleanup.append(outfilename)
     return cleanup, _htmltext
 
@@ -427,11 +437,6 @@ def createPdf(htmlreport, outfile=None, css=None, images={}):
             _cssfile = css
         cssfile = open(_cssfile, 'r')
         css_def = cssfile.read()
-
-    htmlreport = to_utf8(htmlreport)
-
-    for (key, val) in images.items():
-        htmlreport = htmlreport.replace(key, val)
 
     # render
     htmlreport = to_utf8(htmlreport)
