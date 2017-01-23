@@ -251,6 +251,7 @@ class WorkflowAction:
             # selected_items is a list of UIDs (stickers for AR_add use IDs)
             q += ",".join(transitioned)
             dest = self.context.absolute_url() + q
+            self.destination_url = dest
 
         return len(transitioned), dest
 
