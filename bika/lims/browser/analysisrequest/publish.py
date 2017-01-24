@@ -18,7 +18,7 @@ from DateTime import DateTime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.Utils import formataddr
-from operator import itemgetter, itemgetter
+from operator import itemgetter
 from plone.registry.interfaces import IRegistry
 from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
 from Products.CMFCore.utils import getToolByName
