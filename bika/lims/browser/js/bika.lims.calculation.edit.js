@@ -38,7 +38,6 @@ function CalculationEditView() {
                     // insert the keyword into the new row
                     $(newrow).find('[id^=TestParameters-keyword]').val(e);
                     // rename IDs of inputs
-                    debugger
                     $(newrow).find('[id^=TestParameters-keyword]').attr('id', 'TestParameters-keyword-' + nr);
                     $(newrow).find('[id^=TestParameters-value]').attr('id', 'TestParameters-value-' + nr);
                     $(newrow).insertBefore(lastrow);
