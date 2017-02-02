@@ -159,8 +159,7 @@
         });
     </script>
 </head>
-<body tal:attributes="onload        python:'this.print()' if view.request.get('autoprint', False) else '';
-                      data-itemsurl python:view.getItemsURL();">
+<body tal:attributes="data-itemsurl python:view.getItemsURL();">
     <form id="sticker_form" method="POST" action="sticker">
         <input type="hidden" name="htmldata" id="htmldata" value=""/>
         <div id='sticker-preview-wrapper'>
