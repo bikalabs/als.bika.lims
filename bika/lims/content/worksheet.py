@@ -412,7 +412,7 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
                          'getServiceUID': wst_service_uids,
                          'review_state': 'sample_received',
                          'worksheetanalysis_review_state': 'unassigned',
-                         'cancellation_state ':  'active',
+                         'cancellation_state':  'active',
                          'sort_on': 'getDueDate'}
         if client_title and client_title != 'any':
             contentFilter['getClientTitle'] = client_title
