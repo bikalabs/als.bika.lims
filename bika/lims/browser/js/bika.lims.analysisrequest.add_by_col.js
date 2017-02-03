@@ -1881,7 +1881,7 @@ function AnalysisRequestAddByCol() {
                         $("#singleservice").focus()
                     }
                     var title = $(this).parents("[title]").attr("title")
-                    deps_calc(arnum, [uid], false, title)
+                    deps_calc(arnum, [uid], true, title)
                     partition_indicators_set(arnum)
                     recalc_prices(arnum)
                 })
@@ -1903,10 +1903,9 @@ function AnalysisRequestAddByCol() {
                         recalc_prices(i)
                     }
                     var title = $(this).parents("[title]").attr("title")
-                    for (i = 0; i < nr_ars; i++) {
-                        deps_calc(i, [uid], true, title)
-                        partition_indicators_set(i)
-                    }
+                    // -1 in arnum signals to deps_calc (and deps_add_yes)
+                    // that it should click all the checkboxes ON.
+                    deps_calc(-1, [uid], true, title)
                     // If the click is on "new" row, focus the selector
                     if (uid == "new") {
                         $("#singleservice").focus()
@@ -2018,7 +2017,7 @@ function AnalysisRequestAddByCol() {
     function deps_calc(arnum, uids, skip_confirmation, initiator) {
         /* Calculate dependants and dependencies.
          *
-         * arnum - the column number.
+         * arnum - the column number.  -1 means all columns.
          * uids - zero or more service UIDs to calculate
          * skip_confirmation - assume yes instead of confirmation dialog
          * initiator - the service or control that initiated this check.
@@ -2038,8 +2037,12 @@ function AnalysisRequestAddByCol() {
             if (uid == "new") {
                 continue
             }
+            // if arnum is -1, we need to get the first column instead;
+            // as it contains info we want.
+            var _arnum = arnum;
+            if (arnum == -1){_arnum=0;}
             var element = $("tr[uid='" + uids[n] + "'] " +
-                            "td[class*='ar\\." + arnum + "'] " +
+                            "td[class*='ar\\." + _arnum + "'] " +
                             "input[type='checkbox']")
             var initiator = $(element).parents("[title]").attr("title")
 
@@ -2049,7 +2052,7 @@ function AnalysisRequestAddByCol() {
                 for (i = 0; i < Dependencies.length; i++) {
                     var Dep = Dependencies[i]
                     dep_element = $("tr[uid='" + Dep['Service_uid'] + "'] " +
-                                    "td[class*='ar\\." + arnum + "'] " +
+                                    "td[class*='ar\\." + _arnum + "'] " +
                                     "input[type='checkbox']")
                     if (!$(dep_element).prop("checked")) {
                         dep_titles.push(Dep['Service'])
@@ -2058,6 +2061,7 @@ function AnalysisRequestAddByCol() {
                 }
                 if (dep_services.length > 0) {
                     if (skip_confirmation) {
+                        // here we pass arnum unmolested; it can be -1.
                         dependancies_add_yes(arnum, dep_services)
                     }
                     else {
@@ -2200,32 +2204,52 @@ function AnalysisRequestAddByCol() {
          Adding required analyses to this AR - Clicked "yes" to confirmation,
          or if confirmation dialog is skipped, this function is called directly.
          */
-        for (var i = 0; i < dep_services.length; i++) {
-            var Dep = dep_services[i]
-            var uid = Dep['Service_uid']
-            var dep_cb = $("tr[uid='" + uid + "'] " +
-                           "td[class*='ar\\." + arnum + "'] " +
-                           "input[type='checkbox']")
-            if (dep_cb.length > 0) {
-                // row already exists
-                if ($(dep_cb).prop("checked")) {
-                    // skip if checked already
-                    continue
+
+        // First, expand all the categories
+        var Dep;
+        var defs = []
+        var expanded_categories = []
+        for (var si = 0; si < dep_services.length; si++) {
+            Dep = dep_services[si];
+            var th = $("table[form_id='"+Dep['PointOfCapture']+"'] th.collapsed[cat='"+Dep['Category']+"']")
+            if(expanded_categories.indexOf(th) == -1) {
+                expanded_categories.push(th);
+                var def = $.Deferred();
+                def = category_header_expand_handler(th);
+                // sneaky, remove collapsed class.  otherwise, async promises
+                // are kept too late, and the category is requested again.
+                th.removeClass("collapsed");
+                defs.push(def);
+            }
+        }
+        // Now check all service checkboxes from dep_services
+        $.when.apply(null, defs).then(function () {
+            var _arnum;
+            for (var i = 0; i < dep_services.length; i++) {
+                Dep = dep_services[i]
+                var uid = Dep['Service_uid']
+                if (arnum == -1){
+                    // -1 means loop over columns.
+                    var nr_ars = parseInt($("#ar_count").val(), 10);
+                    for (_arnum = 0; _arnum < nr_ars; _arnum ++){
+                        if (!$("tr[uid='" + uid + "'] td[class*='ar\\." + _arnum + "'] input[type='checkbox']")
+                                .prop("checked")) {
+                            analysis_cb_check(_arnum, uid);
+                            recalc_prices(_arnum)
+                            _partition_indicators_set(_arnum)
+                        }
+                    }
+                }
+                else {
+                    if (!$("tr[uid='" + uid + "'] td[class*='ar\\." + arnum + "'] input[type='checkbox']")
+                            .prop("checked")) {
+                        analysis_cb_check(arnum, uid);
+                        recalc_prices(arnum)
+                        _partition_indicators_set(arnum)
+                    }
                 }
             }
-            else {
-                // create new row for all services we may need
-                singleservice_duplicate(Dep['Service_uid'],
-                                        Dep["Service"],
-                                        Dep["Keyword"],
-                                        Dep["Price"],
-                                        Dep["VAT"])
-            }
-            // finally check the service
-            analysis_cb_check(arnum, uid);
-        }
-        recalc_prices(arnum)
-        _partition_indicators_set(arnum)
+        })
     }
 
     function dependencies_add_no(arnum, uid) {
