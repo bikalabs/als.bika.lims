@@ -7,7 +7,7 @@ from Products.CMFCore.utils import getToolByName
 from bika.lims import bikaMessageFactory as _, t
 from bika.lims import logger
 from bika.lims.browser import BrowserView
-from bika.lims.utils import createPdf
+from bika.lims.utils.pdf import createPdf
 from bika.lims.vocabularies import getStickerTemplates
 from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -35,7 +35,7 @@ class Sticker(BrowserView):
         if 'htmldata' in self.request:
             htmldata = self.request.get("htmldata", False)
             if htmldata:
-                data = createPdf(htmlreport=htmldata)
+                data = createPdf(htmldata, False)
                 self.request.RESPONSE.setHeader(
                     'Content-Type', 'application/pdf')
                 self.request.RESPONSE.write(data)

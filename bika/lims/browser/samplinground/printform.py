@@ -7,6 +7,7 @@ from bika.lims import bikaMessageFactory as _, t
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import safe_unicode
 from bika.lims.utils import to_utf8
+from bika.lims.utils.pdf import createPdf
 from bika.lims.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
