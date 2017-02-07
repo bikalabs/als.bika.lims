@@ -167,7 +167,8 @@
                                 </a>
                             </td>
                             <td>
-                                <img tal:attributes="src python:lab.getAccreditationBodyLogo().absolute_url()"/>
+                                <img tal:attributes="src python:lab.getAccreditationBodyLogo().absolute_url()"
+                                     tal:condition="python:lab.getAccreditationBodyLogo()"/>
                             </td>
                         </tr>
                     </table>
