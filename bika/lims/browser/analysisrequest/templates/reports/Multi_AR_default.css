@@ -2,9 +2,6 @@
  * Do not use margins, use padding instead
  */
 
-@page {
-}
-
 #report {
     font: 8pt Arial, Verdana, serif;
 }
