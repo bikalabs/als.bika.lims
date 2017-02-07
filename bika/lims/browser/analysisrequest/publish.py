@@ -10,9 +10,10 @@ from bika.lims.config import POINTS_OF_CAPTURE
 from bika.lims.idserver import renameAfterCreation
 from bika.lims.interfaces import IResultOutOfRange
 from bika.lims.utils import isnumber
-from bika.lims.utils import to_utf8, encode_header, createPdf, attachPdf
+from bika.lims.utils import to_utf8, encode_header
 from bika.lims.utils import to_utf8, formatDecimalMark, format_supsub
 from bika.lims.utils.analysis import format_uncertainty
+from bika.lims.utils.pdf import attachPdf, createPdf
 from bika.lims.vocabularies import getARReportTemplates
 from DateTime import DateTime
 from email.mime.multipart import MIMEMultipart
@@ -789,15 +790,13 @@ class AnalysisRequestPublishView(BrowserView):
             return []
 
         # Create the pdf report for the supplied HTML.
-        # we must supply the file ourself so that createPdf leaves it alone.
-        pdf_fn = tempfile.mktemp(suffix=".pdf")
-        pdf_report = createPdf(htmlreport=results_html, outfile=pdf_fn)
+        pdf_report = createPdf(results_html, False)
         # PDF written to debug file?
         if debug_mode:
-            logger.debug("Writing PDF for %s to %s" % (
-                [ar.Title() for ar in ars], pdf_fn))
-        else:
-            os.remove(pdf_fn)
+            pdf_fn = tempfile.mktemp(suffix=".pdf")
+            logger.info("Writing PDF for {} to {}".format(
+                ', '.join([ar.Title() for ar in ars]), pdf_fn))
+            open(pdf_fn, 'wb').write(pdf_report)
 
         for ar in ars:
             # Generate in each relevant AR, a new ARReport
