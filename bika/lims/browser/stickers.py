@@ -7,12 +7,14 @@ from Products.CMFCore.utils import getToolByName
 from bika.lims import bikaMessageFactory as _, t
 from bika.lims import logger
 from bika.lims.browser import BrowserView
+from bika.lims.utils.pdf import createPdf
 from bika.lims.vocabularies import getStickerTemplates
 from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 import glob, os, os.path, sys, traceback
 
 import os
+
 
 class Sticker(BrowserView):
     """ Invoked via URL on an object or list of objects from the types
@@ -25,27 +27,42 @@ class Sticker(BrowserView):
     current_item = None
     rendered_items = []
 
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+
     def __call__(self):
-        self.rendered_items = []
-        bc = getToolByName(self.context, 'bika_catalog')
-        items = self.request.get('items', '')
-        if items:
-            self.items = [o.getObject() for o in bc(id=items.split(","))]
+        if 'htmldata' in self.request:
+            htmldata = self.request.get("htmldata", False)
+            if htmldata:
+                data = createPdf(htmldata, False)
+                self.request.RESPONSE.setHeader(
+                    'Content-Type', 'application/pdf')
+                self.request.RESPONSE.write(data)
         else:
-            self.items = [self.context,]
+            self.rendered_items = []
+            bc = getToolByName(self.context, 'bika_catalog')
+            items = self.request.get('items', '')
 
-        new_items = []
-        for i in self.items:
-            outitems = self._populateItems(i)
-            new_items.extend(outitems)
+            if items:
+                items = sorted(items.split(","))
+                self.items = [o.getObject() for o in bc(id=items)]
+            else:
+                self.items = [self.context, ]
 
-        self.items = new_items
-        if not self.items:
-            logger.warning("Cannot print stickers: no items specified in request")
-            self.request.response.redirect(self.context.absolute_url())
-            return
+            new_items = []
+            for i in self.items:
+                outitems = self._populateItems(i)
+                new_items.extend(outitems)
 
-        return self.template()
+            self.items = new_items
+            if not self.items:
+                logger.warning(
+                    "Cannot print stickers: no items specified in request")
+                self.request.response.redirect(self.context.absolute_url())
+                return
+
+            return self.template()
 
     def _populateItems(self, item):
         """ Creates an wel-defined array for this item to make the sticker
@@ -86,7 +103,7 @@ class Sticker(BrowserView):
             parts = sample.objectValues('SamplePartition')
         elif item.portal_type == 'SamplePartition':
             sample = item.aq_parent
-            parts = [item,]
+            parts = [item, ]
         elif item.portal_type == 'ReferenceSample':
             sample = item
 
@@ -130,7 +147,8 @@ class Sticker(BrowserView):
         prefix = ''
         if rq_template.find(':') >= 0:
             prefix, rq_template = rq_template.split(':')
-            templates_dir = queryResourceDirectory('stickers', prefix).directory
+            templates_dir = queryResourceDirectory('stickers',
+                                                   prefix).directory
         else:
             this_dir = os.path.dirname(os.path.abspath(__file__))
             templates_dir = os.path.join(this_dir, 'templates/stickers/')
@@ -198,7 +216,7 @@ class Sticker(BrowserView):
             tbex = traceback.format_exc()
             stickerid = curritem[2].id if curritem[2] else curritem[1].id
             return "<div class='error'>%s - %s '%s':<pre>%s</pre></div>" % \
-                    (stickerid, _("Unable to load the template"), embedt, tbex)
+                   (stickerid, _("Unable to load the template"), embedt, tbex)
 
     def getItemsURL(self):
         req_items = self.request.get('items', '')

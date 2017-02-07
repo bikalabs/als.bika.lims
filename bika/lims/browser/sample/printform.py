@@ -8,7 +8,6 @@ from Products.CMFCore.utils import getToolByName
 from plone.resource.utils import iterDirectoriesOfType
 from bika.lims.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from bika.lims.utils import createPdf
 from bika.lims import logger
 from bika.lims import bikaMessageFactory as _
 from bika.lims.utils import t
@@ -22,6 +21,8 @@ import glob
 import traceback
 import App
 import tempfile
+
+from bika.lims.utils.pdf import createPdf
 
 
 class SamplesPrint(BrowserView):
@@ -494,10 +495,7 @@ class SamplesPrint(BrowserView):
             open(tmp_fn, "wb").write(code_html)
 
         # Creates the pdf
-        # we must supply the file ourself so that createPdf leaves it alone.
-        pdf_fn = tempfile.mktemp(suffix=".pdf")
-        pdf_report = createPdf(htmlreport=code_html, outfile=pdf_fn)
-        return pdf_report
+        return createPdf(code_html, False)
 
     def getSamplers(self):
         """
