@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
-from AccessControl import getSecurityManager
 # This file is part of Bika LIMS
 #
 # Copyright 2011-2016 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
-
+from AccessControl import getSecurityManager
 from AccessControl import ModuleSecurityInfo, allow_module
-
-import math
-
 from bika.lims import logger
 from bika.lims.browser import BrowserView
 from DateTime import DateTime
 from email import Encoders
 from email.MIMEBase import MIMEBase
+from pkg_resources import resource_filename
 from plone.memoize import ram
 from plone.registry.interfaces import IRegistry
 from Products.Archetypes.public import DisplayList
@@ -30,6 +27,7 @@ from zope.i18n.locales import locales
 
 import App
 import Globals
+import math
 import os
 import re
 import tempfile
@@ -376,25 +374,35 @@ def localise_images(htmlreport):
     Returns a list of files which were created, and a modified copy
     of htmlreport.
     """
+    _htmltext = to_utf8(htmlreport)
+
     cleanup = []
 
     portal = getSite()
     portal_url = portal.absolute_url().split("?")[0]
 
-    _htmltext = to_utf8(htmlreport)
-    # first regular image tags
-    for match in re.finditer("""http.*at_download\/AttachmentFile""", _htmltext, re.I):
-        url = match.group()
+    # First replace the images that can't be resolved with traversal
+    path = resource_filename('bika.lims', 'skins/bika/logo_print.png')
+    _htmltext = re.sub(r"""http.*logo_print[^'"]+""",
+                       "file://" + path, _htmltext)
+    path = resource_filename('bika.lims', 'browser/images/accredited.png')
+    _htmltext = re.sub(r"""http.*accredited[^'"]+""",
+                       "file://" + path, _htmltext)
+
+    # All other images should be traversable.
+    for match in re.finditer("""src.*\=.*(http[^'"]*)""", _htmltext, re.I):
+        url = match.group(1)
         att_path = url.replace(portal_url+"/", "")
         attachment = portal.unrestrictedTraverse(att_path)
-        af = attachment.getAttachmentFile()
-        filename = af.filename
+        if hasattr(attachment, 'getAttachmentFile'):
+            attachment = attachment.getAttachmentFile()
+        filename = attachment.filename
         extension = "."+filename.split(".")[-1]
         outfile, outfilename = tempfile.mkstemp(suffix=extension)
         outfile = open(outfilename, 'wb')
-        outfile.write(str(af.data))
+        outfile.write(str(attachment.data))
         outfile.close()
-        _htmltext.replace(url, outfilename)
+        _htmltext = _htmltext.replace(url, "file://" + outfilename)
         cleanup.append(outfilename)
     return cleanup, _htmltext
 
@@ -404,7 +412,7 @@ def createPdf(htmlreport, outfile=None, css=None, images={}):
     outfile: pdf filename; if supplied, caller is responsible for creating
              and removing it.
     css: remote URL of css file to download
-    images: A dictionary containing possible URLs (keys) and local filenames
+    images: A dictionary containing pxossible URLs (keys) and local filenames
             (values) with which they may to be replaced during rendering.
     # WeasyPrint will attempt to retrieve images directly from the URL
     # referenced in the HTML report, which may refer back to a single-threaded
@@ -427,11 +435,6 @@ def createPdf(htmlreport, outfile=None, css=None, images={}):
             _cssfile = css
         cssfile = open(_cssfile, 'r')
         css_def = cssfile.read()
-
-    htmlreport = to_utf8(htmlreport)
-
-    for (key, val) in images.items():
-        htmlreport = htmlreport.replace(key, val)
 
     # render
     htmlreport = to_utf8(htmlreport)
