@@ -402,7 +402,7 @@ def localise_images(htmlreport):
         outfile = open(outfilename, 'wb')
         outfile.write(str(attachment.data))
         outfile.close()
-        _htmltext.replace(url, "file://" + outfilename)
+        _htmltext = _htmltext.replace(url, "file://" + outfilename)
         cleanup.append(outfilename)
     return cleanup, _htmltext
 
