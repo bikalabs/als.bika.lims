@@ -9,6 +9,8 @@
 #report h1 {
     font-size:1.4em;
     font-weight:bold;
+    /* Center the heading text */
+    margin: 0 auto;
 }
 
 #report h2 {
