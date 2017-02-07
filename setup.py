@@ -62,7 +62,6 @@ setup(name='bika.lims',
           'magnitude',
           'gpw',
           'jarn.jsi18n==0.3',
-          'WeasyPrint==0.19.2',
           'collective.progressbar',
           'z3c.unconfigure==1.0.1',
           'plone.app.dexterity',
@@ -71,7 +70,9 @@ setup(name='bika.lims',
           'five.pt',
           'z3c.jbot',
           'plone.resource',
-          'CairoSVG==1.0.20',
+          'wkhtmltopdf',
+          'pdfkit',
+
       ],
       extras_require={
           'test': [

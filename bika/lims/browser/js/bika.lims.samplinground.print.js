@@ -138,8 +138,7 @@ function SamplingRoundPrintView() {
      * Applies the selected layout (A4, US-letter) to the reports view,
      * splits each report in pages depending on the layout and margins
      * and applies the dynamic footer and/or header if required.
-     * In fact, this method makes the html ready to be printed via
-     * Weasyprint.
+     * In fact, this method makes the html ready to be printed to PDF.
      */
     function load_layout() {
         // Set page layout (DIN-A4, US-letter, etc.)

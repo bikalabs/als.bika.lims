@@ -11,7 +11,6 @@ from bika.lims.utils import isAttributeHidden
 from bika.lims.browser import BrowserView
 from bika.lims.browser.bika_listing import BikaListingView
 from bika.lims.browser.reports.selection_macros import SelectionMacrosView
-from bika.lims.utils import createPdf
 from bika.lims.utils import getUsers, logged_in_client
 from bika.lims.utils import to_unicode as _u
 from bika.lims.utils import to_utf8 as _c
@@ -26,6 +25,8 @@ from zope.component import getAdapters
 from zope.interface import implements
 import os
 import plone
+
+from bika.lims.utils.pdf import createPdf
 
 
 class ProductivityView(BrowserView):
@@ -300,7 +301,7 @@ class SubmitForm(BrowserView):
         framed_output = self.frame_template()
 
         # this is the good part
-        result = createPdf(framed_output)
+        result = createPdf(framed_output, False)
 
         # remove temporary files
         for f in self.request['to_remove']:

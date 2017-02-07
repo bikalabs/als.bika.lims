@@ -83,12 +83,9 @@ function AnalysisRequestPublishView() {
                 var repstyle = $('#report-style').clone().wrap('<div>').parent().html();
                 repstyle += $('#layout-style').clone().wrap('<div>').parent().html();
                 repstyle += $('#layout-print').clone().wrap('<div>').parent().html();
-                // We want this sincronously because we don't want to
-                // flood WeasyPrint
                 $.ajax({
                     url: url,
                     type: 'POST',
-                    async: false,
                     data: { "publish":1,
                             "id":$(this).attr('id'),
                             "uid":$(this).attr('uid'),
@@ -217,8 +214,7 @@ function AnalysisRequestPublishView() {
      * Applies the selected layout (A4, US-letter) to the reports view,
      * splits each report in pages depending on the layout and margins
      * and applies the dynamic footer and/or header if required.
-     * In fact, this method makes the html ready to be printed via
-     * Weasyprint.
+     * In fact, this method makes the html ready to be printed to PDF.
      */
     function load_layout() {
         // Set page layout (DIN-A4, US-letter, etc.)

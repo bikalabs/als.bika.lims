@@ -20,12 +20,14 @@ from bika.lims.browser import BrowserView
 from Products.CMFCore.utils import getToolByName
 from Products.CMFCore.WorkflowCore import WorkflowException
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from bika.lims.utils import encode_header, createPdf
+from bika.lims.utils import encode_header
 from os.path import join
 from Products.CMFPlone.utils import safe_unicode
 from bika.lims.utils import tmpID
 import Globals
 from zope.component import getAdapters
+
+from bika.lims.utils.pdf import createPdf
 
 
 class ResultOutOfRangeIcons(object):
@@ -207,8 +209,7 @@ class AnalysesRetractedListReport(BrowserView):
 
     def toPdf(self):
         html = safe_unicode(self.template()).encode('utf-8')
-        pdf_data = createPdf(html)
-        return pdf_data
+        return createPdf(html, False)
 
     def sendEmail(self):
         added = []

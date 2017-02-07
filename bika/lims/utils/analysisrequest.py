@@ -13,8 +13,7 @@ from bika.lims.interfaces import ISample, IAnalysisService, IAnalysis
 from bika.lims.utils import tmpID
 from bika.lims.utils import to_utf8
 from bika.lims.utils import encode_header
-from bika.lims.utils import createPdf
-from bika.lims.utils import attachPdf
+from bika.lims.utils.pdf import createPdf, attachPdf
 from bika.lims.utils.sample import create_sample
 from bika.lims.utils.samplepartition import create_samplepartition
 from Products.CMFCore.WorkflowCore import WorkflowException
@@ -281,9 +280,11 @@ def notify_rejection(analysisrequest):
     html = safe_unicode(html).encode('utf-8')
     filename = '%s-rejected' % arid
     pdf_fn = tempfile.mktemp(suffix=".pdf")
-    pdf = createPdf(htmlreport=html, outfile=pdf_fn)
-    if pdf:
+    pdf_success = createPdf(html, pdf_fn)
+    pdf_data = None
+    if pdf_success:
         # Attach the pdf to the Analysis Request
+        pdf_data = open(pdf_fn, 'rb').read()
         attid = analysisrequest.aq_parent.generateUniqueId('Attachment')
         att = _createObjectByType("Attachment", analysisrequest.aq_parent, tmpID())
         att.setAttachmentFile(open(pdf_fn))
@@ -326,8 +327,8 @@ def notify_rejection(analysisrequest):
     mime_msg.preamble = 'This is a multi-part MIME message.'
     msg_txt = MIMEText(html, _subtype='html')
     mime_msg.attach(msg_txt)
-    if pdf:
-        attachPdf(mime_msg, pdf, filename)
+    if pdf_success:
+        attachPdf(mime_msg, pdf_data, filename)
 
     try:
         host = getToolByName(analysisrequest, 'MailHost')
