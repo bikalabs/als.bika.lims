@@ -2,9 +2,6 @@
  * Do not use margins, use padding instead
  */
 
-@page {
-}
-
 #report {
     font: 8pt Arial, Verdana, serif;
 }
@@ -12,6 +9,8 @@
 #report h1 {
     font-size:1.4em;
     font-weight:bold;
+    /* Center the heading text */
+    margin: 0 auto;
 }
 
 #report h2 {
