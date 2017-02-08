@@ -138,6 +138,7 @@ class BatchFolderExportCSV(InvoiceBatchInvoicesView):
             'Total Price'
         ])
         invoices_items_rows = []
+        currency = currency_format(self.context, 'en')
         for invoice in invoices:
             # Building the invoice field header
             invoice_info_header = [
@@ -147,6 +148,7 @@ class BatchFolderExportCSV(InvoiceBatchInvoicesView):
                 invoice.getClient().getAccountNumber(),
                 invoice.getClient().getPhone(),
                 invoice.getInvoiceDate().strftime('%Y-%m-%d'),
+                currency(invoice.getTotal()),
             ]
             csv_rows.append(invoice_info_header)
             # Obtaining and sorting all analysis items.
