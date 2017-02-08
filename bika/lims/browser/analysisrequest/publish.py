@@ -20,6 +20,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.Utils import formataddr
 from operator import itemgetter
+from pkg_resources import resource_filename
 from plone.registry.interfaces import IRegistry
 from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
 from Products.CMFCore.utils import getToolByName
@@ -774,6 +775,20 @@ class AnalysisRequestPublishView(BrowserView):
                 publishedars.extend(ars)
         return publishedars
 
+    def localize_images(self, html):
+        """Replace manually the image URLs that can't be traversed,
+        with filesystem paths
+        """
+        path = resource_filename('bika.lims', 'skins/bika/logo_print.png')
+        html = re.sub(r"""http.*logo_print[^'"]+""",
+                       "file://" + path, html)
+
+        path = resource_filename('bika.lims', 'browser/images/accredited.png')
+        html = re.sub(r"""http.*accredited[^'"]+""",
+                       "file://" + path, html)
+
+        return html
+
     def publishFromHTML(self, ar_uids, results_html):
         """ar_uids can be a single UID or a list of AR uids.  The resulting
         ARs will be published together (ie, sent as a single outbound email)
@@ -789,6 +804,7 @@ class AnalysisRequestPublishView(BrowserView):
         if not ars:
             return []
 
+        results_html = self.localize_images(results_html)
         # Create the pdf report for the supplied HTML.
         pdf_report = createPdf(results_html, False)
         # PDF written to debug file?

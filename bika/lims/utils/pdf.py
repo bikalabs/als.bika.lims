@@ -12,7 +12,7 @@ import re
 from pkg_resources import resource_filename
 from zope.component.hooks import getSite
 
-from bika.lims.utils import to_utf8, tmpID
+from bika.lims.utils import tmpID
 from email import Encoders
 
 import pdfkit
@@ -49,7 +49,7 @@ def createPdf(input, output_path, **kwargs):
         pdf_data = createPdf(input, False)
     """
     temp_files, input = localize_images(input)
-    retval = pdfkit.from_string(to_utf8(input), output_path, **kwargs)
+    retval = pdfkit.from_string(input, output_path, **kwargs)
     # remove temporary files
     for fn in temp_files:
         os.remove(fn)
@@ -83,24 +83,16 @@ def localize_images(html):
     of html where all remote URL's have been replaced with file:///...
     """
     cleanup = []
-    _html = to_utf8(html)
+    _html = html.decode('utf-8')
 
     # get site URL for traversal
-    portal_url = get_portal_url()
-
-    # First replace the images that can't be resolved with traversal
-    path = resource_filename('bika.lims', 'skins/bika/logo_print.png')
-    _html = re.sub(r"""http.*logo_print[^'"]+""",
-                       "file://" + path, _html)
-
-    path = resource_filename('bika.lims', 'browser/images/accredited.png')
-    _html = re.sub(r"""http.*accredited[^'"]+""",
-                       "file://" + path, _html)
+    portal = getSite()
+    portal_url = portal.absolute_url().split("?")[0]
 
     # All other images should be traversable.
-    for match in re.finditer("""src.*\=.*(http[^'"]*)""", _htmltext, re.I):
+    for match in re.finditer("""src.*\=.*(http[^'"]*)""", _html, re.I):
         url = match.group(1)
-        att_path = url.replace(portal_url+"/", "")
+        att_path = url.replace(portal_url+"/", "").encode('utf-8')
         attachment = portal.unrestrictedTraverse(att_path)
         if hasattr(attachment, 'getAttachmentFile'):
             attachment = attachment.getAttachmentFile()
@@ -110,10 +102,6 @@ def localize_images(html):
         outfile = open(outfilename, 'wb')
         outfile.write(str(attachment.data))
         outfile.close()
-        _htmltext = _htmltext.replace(url, "file://" + outfilename)
+        _html = _html.replace(url, "file://" + outfilename)
         cleanup.append(outfilename)
-    return cleanup, _htmltext
-
-def get_portal_url():
-    portal = getSite()
-    portal_url = portal.absolute_url().split("?")[0]
+    return cleanup, _html
