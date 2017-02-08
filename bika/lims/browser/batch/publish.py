@@ -10,8 +10,8 @@ from bika.lims.utils import t, formatDecimalMark
 from bika.lims.utils.analysis import format_uncertainty, format_numeric_result
 from bika.lims.browser import BrowserView
 from bika.lims.permissions import *
-from bika.lims.utils import createPdf
 from bika.lims.utils import to_utf8
+from bika.lims.utils.pdf import createPdf
 from bika.lims.vocabularies import CatalogVocabulary
 from cStringIO import StringIO
 from DateTime import DateTime
@@ -129,20 +129,20 @@ class PublishView(BrowserView):
             tmp_fd.write(report_html)
             tmp_fd.close()
 
-        pdf_fd, pdf_fn = tempfile.mkstemp(suffix="pdf")
-        pdf_fd.close()
-        pdf = createPdf(report_html, outfile=pdf_fn)
+        pdf_data = createPdf(report_html, False)
         if debug_mode:
-            logger.debug("Wrote PDF for %s to %s" % (self.context, pdf_fn))
-        else:
-            os.remove(pdf_fn)
+            # PDF written to debug file?
+            if debug_mode:
+                pdf_fn = tempfile.mktemp(suffix=".pdf")
+                logger.info("Writing PDF for {} to {}".format(
+                    self.context, pdf_fn))
+                open(pdf_fn, 'wb').write(pdf_data)
 
         # XXX Email published batches to who?
 
         # Send PDF to browser
-        if not pdf.err:
+        if pdf_data:
             setheader = self.request.RESPONSE.setHeader
             setheader('Content-Type', 'application/pdf')
             setheader("Content-Disposition", "attachment;filename=\"%s\"" % fn)
-            self.request.RESPONSE.write(pdf)
-
+            self.request.RESPONSE.write(pdf_data)

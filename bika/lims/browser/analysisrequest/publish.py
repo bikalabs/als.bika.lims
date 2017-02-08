@@ -10,15 +10,17 @@ from bika.lims.config import POINTS_OF_CAPTURE
 from bika.lims.idserver import renameAfterCreation
 from bika.lims.interfaces import IResultOutOfRange
 from bika.lims.utils import isnumber
-from bika.lims.utils import to_utf8, encode_header, createPdf, attachPdf
+from bika.lims.utils import to_utf8, encode_header
 from bika.lims.utils import to_utf8, formatDecimalMark, format_supsub
 from bika.lims.utils.analysis import format_uncertainty
+from bika.lims.utils.pdf import attachPdf, createPdf
 from bika.lims.vocabularies import getARReportTemplates
 from DateTime import DateTime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.Utils import formataddr
 from operator import itemgetter
+from pkg_resources import resource_filename
 from plone.registry.interfaces import IRegistry
 from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
 from Products.CMFCore.utils import getToolByName
@@ -773,6 +775,20 @@ class AnalysisRequestPublishView(BrowserView):
                 publishedars.extend(ars)
         return publishedars
 
+    def localize_images(self, html):
+        """Replace manually the image URLs that can't be traversed,
+        with filesystem paths
+        """
+        path = resource_filename('bika.lims', 'skins/bika/logo_print.png')
+        html = re.sub(r"""http.*logo_print[^'"]+""",
+                       "file://" + path, html)
+
+        path = resource_filename('bika.lims', 'browser/images/accredited.png')
+        html = re.sub(r"""http.*accredited[^'"]+""",
+                       "file://" + path, html)
+
+        return html
+
     def publishFromHTML(self, ar_uids, results_html):
         """ar_uids can be a single UID or a list of AR uids.  The resulting
         ARs will be published together (ie, sent as a single outbound email)
@@ -788,16 +804,15 @@ class AnalysisRequestPublishView(BrowserView):
         if not ars:
             return []
 
+        results_html = self.localize_images(results_html)
         # Create the pdf report for the supplied HTML.
-        # we must supply the file ourself so that createPdf leaves it alone.
-        pdf_fn = tempfile.mktemp(suffix=".pdf")
-        pdf_report = createPdf(htmlreport=results_html, outfile=pdf_fn)
+        pdf_report = createPdf(results_html, False)
         # PDF written to debug file?
         if debug_mode:
-            logger.debug("Writing PDF for %s to %s" % (
-                [ar.Title() for ar in ars], pdf_fn))
-        else:
-            os.remove(pdf_fn)
+            pdf_fn = tempfile.mktemp(suffix=".pdf")
+            logger.info("Writing PDF for {} to {}".format(
+                ', '.join([ar.Title() for ar in ars]), pdf_fn))
+            open(pdf_fn, 'wb').write(pdf_report)
 
         for ar in ars:
             # Generate in each relevant AR, a new ARReport

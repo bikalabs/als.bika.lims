@@ -6,7 +6,8 @@
 from bika.lims import bikaMessageFactory as _, t
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import safe_unicode
-from bika.lims.utils import to_utf8, createPdf
+from bika.lims.utils import to_utf8
+from bika.lims.utils.pdf import createPdf
 from bika.lims.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
@@ -265,7 +266,4 @@ class PrintForm(BrowserView):
             open(tmp_fn, "wb").write(sr_html)
 
         # Creates the pdf
-        # we must supply the file ourself so that createPdf leaves it alone.
-        pdf_fn = tempfile.mktemp(suffix=".pdf")
-        pdf_report = createPdf(htmlreport=sr_html, outfile=pdf_fn)
-        return pdf_report
+        return createPdf(sr_html, False)
