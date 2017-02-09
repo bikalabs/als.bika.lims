@@ -4,6 +4,7 @@
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 from AccessControl import getSecurityManager
+
 from bika.lims.browser import BrowserView
 from bika.lims import bikaMessageFactory as _
 from bika.lims.utils import t
@@ -192,7 +193,11 @@ class ReferenceAnalysesView(AnalysesView):
             upper = smax + error_amount
             lower = smin - error_amount
 
-            anrow = {'date': item['Captured'],
+            # this must be the same as the format for the x axis in
+            # bika.lims.graphics.controlchart.js
+            format = "%Y-%m-%d %I:%M %p"
+            cd = DT2dt(analysis.getResultCaptureDate()).strftime(format)
+            anrow = {'date': cd,
                      'min': smin,
                      'max': smax,
                      'target': target,
