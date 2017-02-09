@@ -231,6 +231,33 @@
         });
     }
 
+    function sortNames(a, b){
+        /* Sort statusNames according to the natural order of workflow states
+           this is a combined list of states from all workflows.
+
+           1. if the function returns less than zero, sort a before b
+           2. if the function returns greater than zero, sort b before a
+           3. if the function returns zero, leave a and b unchanged
+        */
+        order = [
+            'Open',
+            'Assignment pending',
+            'To be sampled',
+            'To be preserved',
+            'Sampling scheduled',
+            'Sample reception pending',
+            'Reception pending',
+            'Results pending',
+            'To be verified',
+            'Retracted',
+            'Verified',
+            'Published',
+            'Rejected',
+            'Other status'
+        ];
+        return order.indexOf(b) - order.indexOf(a);
+    }
+
     function loadBarChart(id) {
         var container = $('#'+id);
         $(container).find('svg').remove();
@@ -268,6 +295,8 @@
         var statusNames = d3.keys(data[0]).filter(function(key) {
             return key !== "date";
         });
+        statusNames.sort(sortNames);
+
         data.forEach(function(d) {
             var y0=0;
             d.statuses=color.domain().map(function(name) {
