@@ -5,6 +5,7 @@ LIMS-2561: Valid Reference Samples not being listed in worksheet views
 LIMS-2489: Fix error in suppliers view when a Reference Sample is past expiry date
 LIMS-2352: Cleaner and smaller instrument import log
 LIMS-2562: Add Client filter when applying Worksheet Template
+LIMS-2512: Update dashboard formatting and fix incorrect totals
 LIMS-2477: Reference Analysis has no dependencies; remove guard that assumes it does
 LIMS-2480: Fix issues with sorting and filtering when viewing Batches
 LIMS-2465: Not possible to translate Bika Listing Table Workflow Action Buttons
