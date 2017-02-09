@@ -11,49 +11,63 @@ from email.mime.base import MIMEBase
 import re
 from pkg_resources import resource_filename
 from zope.component.hooks import getSite
+from weasyprint import HTML, CSS
 
-from bika.lims.utils import tmpID
+from bika.lims.utils import tmpID, to_utf8
 from email import Encoders
 
 import pdfkit
 
-def createPdf(input, output_path, **kwargs):
-    """Create a PDF from some HTML.  The arguments are passed directly to the
-    pdfkit.api.from_string function, and the return value of from_string is
-    returned without modification.
-
-    The following paragraph contains the from_string arguments for reference:
-
-    :param input: string with a desired text. Could be a raw text or a html file
-    :param output_path: path to output PDF file. False means file will be returned as string.
-    :param options: (optional) dict with wkhtmltopdf options, with or w/o '--'
-    :param toc: (optional) dict with toc-specific wkhtmltopdf options, with or w/o '--'
-    :param cover: (optional) string with url/filename with a cover html page
-    :param css: (optional) string with path to css file which will be added to a input string
-    :param configuration: (optional) instance of pdfkit.configuration.Configuration()
-    :param configuration_first: (optional) if True, cover always precedes TOC
-
-    Returns: True on success
-
-    The only difference is that this function localizes all traversable images
-    to filesystem paths before generating the PDF data, and deletes these
-    temporary files afterwards.
-
-    Any images or external resources that are referenced in the input, but are
-    not resolvable from the portal root via traversal, must first be replaced
-    with local filesystem paths before calling this fuction, for example:
-
-        from pkg_resources import resource_filename
-        path = resource_filename('bika.lims', 'skins/bika/logo_print.png')
-        input = re.sub(r'''http.*logo_print[^'"]+''', "file://" + path,  input)
-        pdf_data = createPdf(input, False)
+def createPdf(htmlreport, outfile=None, css=None, images={}):
+    """create a PDF from some HTML.
+    htmlreport: rendered html
+    outfile: pdf filename; if supplied, caller is responsible for creating
+             and removing it.
+    css: remote URL of css file to download
+    images: A dictionary containing possible URLs (keys) and local filenames
+            (values) with which they may to be replaced during rendering.
+    # WeasyPrint will attempt to retrieve images directly from the URL
+    # referenced in the HTML report, which may refer back to a single-threaded
+    # (and currently occupied) zeoclient, hanging it.  All image source
+    # URL's referenced in htmlreport should be local files.
     """
-    temp_files, input = localize_images(input)
-    retval = pdfkit.from_string(input, output_path, **kwargs)
-    # remove temporary files
-    for fn in temp_files:
+    # A list of files that should be removed after PDF is written
+    htmlreport = to_utf8(htmlreport)
+    cleanup, htmlreport = localize_images(htmlreport)
+    css_def = ''
+    if css:
+        if css.startswith("http://") or css.startswith("https://"):
+            # Download css file in temp dir
+            u = urllib2.urlopen(css)
+            _cssfile = tempfile.mktemp(suffix='.css')
+            localFile = open(_cssfile, 'w')
+            localFile.write(u.read())
+            localFile.close()
+            cleanup.append(_cssfile)
+        else:
+            _cssfile = css
+        cssfile = open(_cssfile, 'r')
+        css_def = cssfile.read()
+
+
+    for (key, val) in images.items():
+        htmlreport = htmlreport.replace(key, val)
+
+    # render
+    htmlreport = to_utf8(htmlreport)
+    renderer = HTML(string=htmlreport, encoding='utf-8')
+    pdf_fn = outfile if outfile else tempfile.mktemp(suffix=".pdf")
+    if css:
+        renderer.write_pdf(pdf_fn, stylesheets=[CSS(string=css_def)])
+    else:
+        renderer.write_pdf(pdf_fn)
+    # return file data
+    pdf_data = open(pdf_fn, "rb").read()
+    if outfile is None:
+        os.remove(pdf_fn)
+    for fn in cleanup:
         os.remove(fn)
-    return retval
+    return pdf_data
 
 def attachPdf(mimemultipart, pdfdata, filename=None):
     """Attach a PDF file to a mime multipart message

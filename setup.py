@@ -70,6 +70,8 @@ setup(name='bika.lims',
           'five.pt',
           'z3c.jbot',
           'plone.resource',
+          'WeasyPrint==0.19.2',
+          'CairoSVG==1.0.20',
           'wkhtmltopdf',
           'pdfkit',
 
