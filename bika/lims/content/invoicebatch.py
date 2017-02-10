@@ -71,7 +71,7 @@ class InvoiceBatch(BaseFolder):
         invoice_id = self.generateUniqueId('Invoice')
         invoice = _createObjectByType("Invoice", self, invoice_id)
         pc = getToolByName(self, "portal_catalog")
-        client = pc(portal_type="Client", title=client_title)
+        client = pc(portal_type="Client", getName=client_title)[0].getObject()
         invoice.edit(
             Client=client,
             InvoiceDate=DateTime(),
