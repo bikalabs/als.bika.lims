@@ -26,6 +26,8 @@ class InvoiceBatchInvoicesView(BikaListingView):
         self.columns = {
             'id': {'title': _('Invoice Number'),
                 'toggle': True },
+            'Created': {'title': _('Created'),
+                'toggle': True },
             'client': {'title': _('Client'),
                 'toggle': True},
             'email': {'title': _('Email Address'),
@@ -53,6 +55,7 @@ class InvoiceBatchInvoicesView(BikaListingView):
                 'transitions': [],
                 'columns': [
                     'id',
+                    'Created',
                     'client',
                     'email',
                     'phone',
@@ -68,18 +71,6 @@ class InvoiceBatchInvoicesView(BikaListingView):
 
     def getInvoices(self, contentFilter):
         return self.context.objectValues('Invoice')
-
-    # def __call__(self):
-    #     mtool = getToolByName(self.context, 'portal_membership')
-    #     addPortalMessage = self.context.plone_utils.addPortalMessage
-    #     if mtool.checkPermission(AddInvoice, self.context):
-    #         clients = self.context.clients.objectIds()
-    #         if clients:
-    #             self.context_actions[_('Add')] = {
-    #                 'url': 'createObject?type_name=Invoice',
-    #                 'icon': '++resource++bika.lims.images/add.png'
-    #             }
-    #     return super(InvoiceBatchInvoicesView, self).__call__()
 
     def folderitems(self, full_objects=False):
         currency = currency_format(self.context, 'en')
@@ -109,6 +100,7 @@ class InvoiceBatchInvoicesView(BikaListingView):
                 item['email'] = ''
                 item['phone'] = ''
             
+            item['Created'] = self.ulocalized_time(obj.created())
             item['invoicedate'] = self.ulocalized_time(obj.getInvoiceDate())
             item['startdate'] = self.ulocalized_time(obj.getBatchStartDate())
             item['enddate'] = self.ulocalized_time(obj.getBatchEndDate())
