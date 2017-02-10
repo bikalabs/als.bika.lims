@@ -9,7 +9,7 @@ from AccessControl import ClassSecurityInfo
 from DateTime import DateTime
 from Products.Archetypes.public import *
 from Products.CMFPlone.utils import _createObjectByType
-from bika.lims import bikaMessageFactory as _
+from bika.lims import bikaMessageFactory as _, getToolByName
 from bika.lims.config import ManageInvoices, PROJECTNAME
 from bika.lims.content.bikaschema import BikaSchema
 from bika.lims.content.invoice import InvoiceLineItem
