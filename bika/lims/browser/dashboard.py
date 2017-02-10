@@ -228,7 +228,7 @@ class DashboardView(BrowserView):
         query['created'] = self.min_date_range
         outevo = self._fill_dates_evo(bc, query)
         out.append({'type':         'bar-chart-panel',
-                    'name':         _('Evolution of Analysis Requests'),
+                    'name':         _(''),
                     'class':        'informative',
                     'description':  _('Evolution of Analysis Requests'),
                     'data':         json.dumps(outevo),
@@ -282,7 +282,7 @@ class DashboardView(BrowserView):
         query['created'] = self.min_date_range
         outevo = self._fill_dates_evo(bc, query)
         out.append({'type':         'bar-chart-panel',
-                    'name':         _('Evolution of Worksheets'),
+                    'name':         _(''),
                     'class':        'informative',
                     'description':  _('Evolution of Worksheets'),
                     'data':         json.dumps(outevo),
@@ -349,7 +349,7 @@ class DashboardView(BrowserView):
         query['created'] = self.min_date_range
         outevo = self._fill_dates_evo(bc, query)
         out.append({'type':         'bar-chart-panel',
-                    'name':         _('Evolution of Analyses'),
+                    'name':         _(''),
                     'class':        'informative',
                     'description':  _('Evolution of Analyses'),
                     'data':         json.dumps(outevo),
