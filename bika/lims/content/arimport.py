@@ -33,8 +33,10 @@ from Products.DataGridField import Column
 from Products.DataGridField import DataGridField
 from Products.DataGridField import DataGridWidget
 from Products.DataGridField import DateColumn
+from Products.DataGridField import DatetimeColumn
 from Products.DataGridField import LinesColumn
 from Products.DataGridField import SelectColumn
+from Products.DataGridField import TimeColumn
 from zope import event
 from zope.event import notify
 from zope.i18nmessageid import MessageFactory
@@ -170,6 +172,7 @@ SampleData = DataGridField(
     columns=('ClientSampleID',
              'SamplingDate',
              'DateSampled',
+             'Sampler',
              'SamplePoint',
              'SampleMatrix',
              'SampleType',  # not a schema field!
@@ -184,7 +187,8 @@ SampleData = DataGridField(
         columns={
             'ClientSampleID': Column('Sample ID'),
             'SamplingDate': DateColumn('Sampling Date'),
-            'DateSampled': DateColumn('Date Sampled'),
+            'DateSampled': DatetimeColumn('Date Sampled'),
+            'Sampler': Column('Sampler'),
             'SamplePoint': SelectColumn(
                 'Sample Point', vocabulary='Vocabulary_SamplePoint'),
             'SampleMatrix': SelectColumn(
@@ -352,6 +356,7 @@ class ARImport(BaseFolder):
             row['ClientReference'] = self.getClientReference()
             row['ClientOrderNumber'] = self.getClientOrderNumber()
             row['Contact'] = self.getContact()
+            row['DateSampled'] = row['DateSampled'].replace('-', '/')
             # Create AR
             ar = _createObjectByType("AnalysisRequest", client, tmpID())
             ar.setSample(sample)
@@ -540,6 +545,12 @@ class ARImport(BaseFolder):
             # in put spreadsheet
             gridrow = {'sid': row['Samples']}
             del (row['Samples'])
+
+            gridrow = {'ClientSampleID': row['ClientSampleID']}
+            del (row['ClientSampleID'])
+
+            gridrow['Sampler'] = row['Sampler']
+            del (row['Sampler'])
 
             # We'll use this later to verify the number against selections
             if 'Total number of Analyses or Profiles' in row:
