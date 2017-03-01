@@ -16,8 +16,6 @@ from weasyprint import HTML, CSS
 from bika.lims.utils import tmpID, to_utf8
 from email import Encoders
 
-import pdfkit
-
 def createPdf(htmlreport, outfile=None, css=None, images={}):
     """create a PDF from some HTML.
     htmlreport: rendered html

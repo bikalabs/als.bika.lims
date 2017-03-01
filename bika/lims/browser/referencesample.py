@@ -193,11 +193,13 @@ class ReferenceAnalysesView(AnalysesView):
             upper = smax + error_amount
             lower = smin - error_amount
 
+            # ALS # XXX This is still odd in master, when the date format is changed
             # this must be the same as the format for the x axis in
             # bika.lims.graphics.controlchart.js
             format = "%Y-%m-%d %I:%M %p"
             cd = DT2dt(analysis.getResultCaptureDate()).strftime(format)
-            anrow = {'date': cd,
+            
+            anrow = {'date': item['Captured'],
                      'min': smin,
                      'max': smax,
                      'target': target,

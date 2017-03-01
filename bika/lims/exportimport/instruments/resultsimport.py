@@ -533,7 +533,8 @@ class AnalysisResultsImporter(Logger):
             for analysis in analyses:
                 analysis = analysis.getObject()
                 initial_result = analysis.getResult()
-                calc_passed = analysis.calculateResult(True, True)
+                calc_passed = analysis.calculateResult(override=True,
+                                                       cascade=True)
                 if calc_passed and initial_result != analysis.getResult():
                     self.log(
                         "${request_id}: calculated result for "
