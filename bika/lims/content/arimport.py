@@ -16,7 +16,7 @@ from bika.lims.content.analysisrequest import schema as ar_schema
 from bika.lims.content.sample import schema as sample_schema
 from bika.lims.idserver import renameAfterCreation
 from bika.lims.interfaces import IARImport, IClient
-from bika.lims.utils import tmpID
+from bika.lims.utils import tmpID, getUsers
 from bika.lims.vocabularies import CatalogVocabulary
 from collective.progressbar.events import InitialiseProgressBar
 from collective.progressbar.events import ProgressBar
@@ -357,6 +357,19 @@ class ARImport(BaseFolder):
             row['ClientOrderNumber'] = self.getClientOrderNumber()
             row['Contact'] = self.getContact()
             row['DateSampled'] = row['DateSampled'].replace('-', '/')
+            if row['Sampler']:
+                #Lookup sampler's uid
+                found = False
+                users = getUsers(self, ['LabManager', 'Sampler']).items()
+                for (samplerid, samplername) in users:
+                    if row['Sampler'] == samplername:
+                        found = True
+                        row['Sampler'] = samplerid
+                        break
+                if not found:
+                    #TODO Not sure what to do
+                    raise RuntimeError(
+                                'Import sampler %s unknown' % row['Sampler'])
             # Create AR
             ar = _createObjectByType("AnalysisRequest", client, tmpID())
             ar.setSample(sample)
