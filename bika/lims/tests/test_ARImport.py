@@ -296,6 +296,7 @@ Total price excl Tax,,,,,,,,,,,,,,
                   for a in analyses]
         if states != ['sample_due'] * 12:
             self.fail('Analysis states should all be sample_due, but are not!')
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestARImports))
