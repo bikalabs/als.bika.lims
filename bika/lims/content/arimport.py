@@ -287,6 +287,34 @@ class ARImport(BaseFolder):
     def workflow_script_import(self):
         """Create objects from valid ARImport
         """
+
+        def convert_date_string(datestr):
+            return datestr.replace('-', '/')
+
+        def lookup_sampler_uid(import_user):
+            #Lookup sampler's uid
+            found = False
+            userid = None
+            user_ids = []
+            users = getUsers(self, ['LabManager', 'Sampler']).items()
+            for (samplerid, samplername) in users:
+                if import_user == samplerid:
+                    found = True
+                    userid = samplerid
+                    break
+                if import_user == samplername:
+                    user_ids.append(samplerid)
+            if found:
+                return userid
+            if len(user_ids) == 1:
+                return user_ids[0]
+            if len(user_ids) > 1:
+                #raise ValueError('Sampler %s is ambiguous' % import_user)
+                return None
+            #Otherwise
+            #raise ValueError('Sampler %s not found' % import_user)
+            return None
+
         bsc = getToolByName(self, 'bika_setup_catalog')
         workflow = getToolByName(self, 'portal_workflow')
         client = self.aq_parent
@@ -356,20 +384,10 @@ class ARImport(BaseFolder):
             row['ClientReference'] = self.getClientReference()
             row['ClientOrderNumber'] = self.getClientOrderNumber()
             row['Contact'] = self.getContact()
-            row['DateSampled'] = row['DateSampled'].replace('-', '/')
+            row['DateSampled'] = convert_date_string(row['DateSampled'])
             if row['Sampler']:
-                #Lookup sampler's uid
-                found = False
-                users = getUsers(self, ['LabManager', 'Sampler']).items()
-                for (samplerid, samplername) in users:
-                    if row['Sampler'] == samplername:
-                        found = True
-                        row['Sampler'] = samplerid
-                        break
-                if not found:
-                    #TODO Not sure what to do
-                    raise RuntimeError(
-                                'Import sampler %s unknown' % row['Sampler'])
+                row['Sampler'] = lookup_sampler_uid(row['Sampler'])
+
             # Create AR
             ar = _createObjectByType("AnalysisRequest", client, tmpID())
             ar.setSample(sample)
