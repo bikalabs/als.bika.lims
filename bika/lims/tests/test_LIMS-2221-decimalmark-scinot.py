@@ -4,11 +4,15 @@
 #
 # Copyright 2011-2016 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
+import transaction
+from DateTime import DateTime
+from Products.CMFPlone.FactoryTool import _createObjectByType
 
-
+from bika.lims.api import get_bika_setup
+from bika.lims.api import get_portal
 from bika.lims.content.analysis import Analysis
 from bika.lims.testing import BIKA_FUNCTIONAL_TESTING
-from bika.lims.tests.base import BikaFunctionalTestCase
+from bika.lims.tests.base import BikaFunctionalTestCase, BikaSimpleTestCase
 from bika.lims.utils.analysisrequest import create_analysisrequest
 from bika.lims.workflow import doActionFor
 from plone.app.testing import login, logout
@@ -22,34 +26,35 @@ except ImportError: # Python 2.7
     import unittest
 
 
-class Test_DecimalMarkWithSciNotation(BikaFunctionalTestCase):
-    layer = BIKA_FUNCTIONAL_TESTING
+class Test_DecimalMarkWithSciNotation(BikaSimpleTestCase):
+
+    def addthing(self, folder, portal_type, **kwargs):
+        thing = _createObjectByType(portal_type, folder, 'tmp')
+        thing.unmarkCreationFlag()
+        thing.edit(**kwargs)
+        thing._renameAfterCreation()
+        return thing
 
     def setUp(self):
         super(Test_DecimalMarkWithSciNotation, self).setUp()
+        portal = get_portal()
+        bika_setup = get_bika_setup()
         login(self.portal, TEST_USER_NAME)
-
-        # analysis-service-3: Calcium (Ca)
-        servs = self.portal.bika_setup.bika_analysisservices
-        self.service = servs['analysisservice-3']
-
-        # Original values
-        self.orig_as_prec = self.service.getPrecision()
-        self.orig_as_expf = self.service.getExponentialFormatPrecision()
-        self.orig_as_ldl  = self.service.getLowerDetectionLimit()
-        self.orig_bs_expf = self.service.getExponentialFormatThreshold()
-        self.orig_bs_scin = self.service.getScientificNotationResults()
-        self.orig_dm = self.portal.bika_setup.getResultsDecimalMark()
+        self.client = self.addthing(
+            portal.clients, 'Client', title='Happy Hills', ClientID='HH')
+        self.contact = self.addthing(
+            self.client, 'Contact', Firstname='Rita', Lastname='Mohale')
+        self.sampletype = self.addthing(
+            bika_setup.bika_sampletypes,
+            'SampleType', title='Water', Prefix='H2O')
+        self.service = self.addthing(
+            bika_setup.bika_analysisservices, 'AnalysisService',
+            title='Calcium', Keyword='Ca')
+        transaction.commit()
 
     def tearDown(self):
-        self.portal.bika_setup.setExponentialFormatThreshold(self.orig_bs_expf)
-        self.portal.bika_setup.setScientificNotationResults(self.orig_bs_scin)
-        self.service.setPrecision(self.orig_as_prec)
-        self.service.setExponentialFormatPrecision(self.orig_as_expf)
-        self.service.setLowerDetectionLimit(self.orig_as_ldl)
-        self.portal.bika_setup.setResultsDecimalMark(self.orig_dm)
-        logout()
-        super(Test_DecimalMarkWithSciNotation, self).tearDown()
+        super(Test_DecimalMarkWithSciNotation, self).setUp()
+        login(self.portal, TEST_USER_NAME)
 
     def test_DecimalMarkWithSciNotation(self):
         # Notations
@@ -97,37 +102,38 @@ class Test_DecimalMarkWithSciNotation(BikaFunctionalTestCase):
             [4,        3,      4, '-1234.5678',    '-1,2345678·10^3'],
             [4,        3,      5, '-1234.5678',    '-1,2345678·10<sup>3</sup>'],
         ]
-        s = self.service
-        s.setLowerDetectionLimit('-99999') # We want to test results below 0 too
+        serv = self.service
+        serv.setLowerDetectionLimit('-99999') # We want to test results below 0 too
         prevm = []
         an = None
-        bs = self.portal.bika_setup;
+        bs = get_bika_setup()
         bs.setResultsDecimalMark(',')
         for m in matrix:
             # Create the AR and set the values to the AS, but only if necessary
             if not an or prevm[0] != m[0] or prevm[1] != m[1]:
-                s.setPrecision(m[0])
-                s.setExponentialFormatPrecision(m[1])
-                self.assertEqual(s.getPrecision(), m[0])
-                self.assertEqual(s.Schema().getField('Precision').get(s), m[0])
-                self.assertEqual(s.getExponentialFormatPrecision(), m[1])
-                self.assertEqual(s.Schema().getField('ExponentialFormatPrecision').get(s), m[1])
+                serv.setPrecision(m[0])
+                serv.setExponentialFormatPrecision(m[1])
+                self.assertEqual(serv.getPrecision(), m[0])
+                self.assertEqual(serv.Schema().getField('Precision').get(serv), m[0])
+                self.assertEqual(serv.getExponentialFormatPrecision(), m[1])
+                self.assertEqual(serv.Schema().getField('ExponentialFormatPrecision').get(serv), m[1])
                 client = self.portal.clients['client-1']
                 sampletype = bs.bika_sampletypes['sampletype-1']
                 values = {'Client': client.UID(),
                           'Contact': client.getContacts()[0].UID(),
                           'SamplingDate': '2015-01-01',
                           'SampleType': sampletype.UID()}
-                ar = create_analysisrequest(client, {}, values, [s.UID()])
+                ar = create_analysisrequest(client, {}, values, [serv.UID()])
                 wf = getToolByName(ar, 'portal_workflow')
                 wf.doActionFor(ar, 'receive')
                 an = ar.getAnalyses()[0].getObject()
-                prevm = m;
+                prevm = m
             an.setResult(m[3])
 
             self.assertEqual(an.getResult(), m[3])
             self.assertEqual(an.Schema().getField('Result').get(an), m[3])
-            fr = an.getFormattedResult(sciformat=m[2],decimalmark=bs.getResultsDecimalMark())
+            fr = an.getFormattedResult(
+                sciformat=m[2], decimalmark=bs.getResultsDecimalMark())
             #print '%s   %s   %s   %s  =>  \'%s\' ?= \'%s\'' % (m[0],m[1],m[2],m[3],m[4],fr)
             self.assertEqual(fr, m[4])
 
