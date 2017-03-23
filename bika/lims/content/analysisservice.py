@@ -245,6 +245,16 @@ schema = BikaSchema.copy() + Schema((
                         "e.g. mg/l, ppm, dB, mV, etc."),
                 ),
     ),
+    StringField('DisplayRounding',
+                schemata="Analysis",
+                default="DECIMAL_PRECISION",
+                widget=SelectionWidget(
+                    format='radio',
+                    label=_("Display rounding"),
+                    description=_("Type of rounding to apply to result.")
+                )
+    ),
+
     IntegerField('Precision',
                  schemata="Analysis",
                  widget=IntegerWidget(
@@ -263,6 +273,20 @@ schema = BikaSchema.copy() + Schema((
                          "notation.  The default is 7."),
                  ),
     ),
+
+    IntegerField('SignificantFigures',
+                 schemata="Analysis",
+                 required=0,
+                 default=0,
+                 widget=IntegerWidget(
+                     label=_("Significant Figures in results"),
+                     description=_(
+                         "If significant figures rounding is enabled for this "
+                         "service, this is the number of significant digits "
+                         "that will be retained.  If this field is set to 0, "
+                         "the default value from site setup will be used.")
+                 )
+                 ),
     FixedPointField('LowerDetectionLimit',
                     schemata="Analysis",
                     default='0.0',
