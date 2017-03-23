@@ -37,6 +37,7 @@ from Products.Archetypes.utils import IntDisplayList
 from Products.Archetypes.references import HoldingReference
 from archetypes.referencebrowserwidget import ReferenceBrowserWidget
 
+from bika.lims.api import get_bika_setup
 from bika.lims.browser.fields import DurationField
 from bika.lims.browser.widgets import DurationWidget
 from bika.lims.browser.widgets import RecordsWidget
@@ -46,7 +47,7 @@ from bika.lims.interfaces import IBikaSetup
 from bika.lims.interfaces import IHaveNoBreadCrumbs
 from bika.lims.vocabularies import getStickerTemplates as _getStickerTemplates
 
-from bika.lims.config import ARIMPORT_OPTIONS
+from bika.lims.config import ARIMPORT_OPTIONS, ROUNDING_METHODS
 from bika.lims.config import ATTACHMENT_OPTIONS
 from bika.lims.config import CURRENCIES
 from bika.lims.config import DECIMAL_MARKS
@@ -370,6 +371,19 @@ schema = BikaFolderSchema.copy() + Schema((
             format='select',
         )
     ),
+    StringField(
+        'DisplayRounding',
+        schemata="Analyses",
+        widget=SelectionWidget(
+            format='radio',
+            label=_("Default display rounding"),
+            description=_(
+                "Type of rounding to apply to result. This is the system "
+                "default, and can be overridden in Analysis Service "
+                "configuration"),
+            vocabulary=ROUNDING_METHODS
+        )
+    ),
     IntegerField(
         'ExponentialFormatThreshold',
         schemata="Analyses",
@@ -382,6 +396,20 @@ schema = BikaFolderSchema.copy() + Schema((
                 "digits are displayed in scientific notation using the "
                 "letter 'e' to indicate the exponent.  The precision can be "
                 "configured in individual Analysis Services."),
+        )
+    ),
+    IntegerField(
+        'SignificantFigures',
+        schemata="Analyses",
+        required=0,
+        default=0,
+        widget=IntegerWidget(
+            label=_("Significant Figures in results"),
+            description=_(
+                "If significant figures rounding is enabled for this "
+                "service, this is the number of significant digits "
+                "that will be retained.  If this field is set to 0, "
+                "the default value from site setup will be used.")
         )
     ),
     BooleanField(
@@ -775,6 +803,12 @@ class BikaSetup(folder.ATFolder):
         """
         out = [[t['id'], t['title']] for t in _getStickerTemplates()]
         return DisplayList(out)
+
+    def getSignificantFigures(self):
+        sfigs = self.getField('SignificantFigures').get(self)
+        if not sfigs:
+            bika_setup = get_bika_setup()
+            return bika_setup.getField('SignificantFigures').get(bika_setup)
 
     def getARAttachmentsPermitted(self):
         """AR attachments permitted

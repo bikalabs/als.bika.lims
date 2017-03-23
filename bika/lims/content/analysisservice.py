@@ -12,7 +12,6 @@ from AccessControl import ClassSecurityInfo
 from DateTime import DateTime
 from plone.indexer import indexer
 from Products.ATContentTypes.lib.historyaware import HistoryAwareMixin
-from Products.ATExtensions.Extensions.utils import makeDisplayList
 from Products.ATExtensions.ateapi import RecordField, RecordsField
 from Products.Archetypes.Registry import registerField
 from Products.Archetypes.public import DisplayList, ReferenceField, \
@@ -24,14 +23,10 @@ from Products.Archetypes.public import DisplayList, ReferenceField, \
     FloatField
 from Products.Archetypes.utils import IntDisplayList
 from Products.Archetypes.references import HoldingReference
-from Products.CMFCore.permissions import View, ModifyPortalContent
 from Products.CMFCore.utils import getToolByName
-from Products.validation import validation
-from Products.validation.validators.RegexValidator import RegexValidator
-from Products.CMFCore.WorkflowCore import WorkflowException
 from bika.lims import PMF, bikaMessageFactory as _
+from bika.lims.api import get_bika_setup
 from bika.lims.utils import to_utf8 as _c
-from bika.lims.utils import to_unicode as _u
 from bika.lims.utils.analysis import get_significant_digits
 from bika.lims.browser.widgets.durationwidget import DurationWidget
 from bika.lims.browser.widgets.partitionsetupwidget import PartitionSetupWidget
@@ -39,14 +34,12 @@ from bika.lims.browser.widgets.recordswidget import RecordsWidget
 from bika.lims.browser.widgets.referencewidget import ReferenceWidget
 from bika.lims.browser.fields import *
 from bika.lims.config import ATTACHMENT_OPTIONS, PROJECTNAME, \
-    SERVICE_POINT_OF_CAPTURE
+    SERVICE_POINT_OF_CAPTURE, ROUNDING_METHODS
 from bika.lims.content.bikaschema import BikaSchema
 from bika.lims.interfaces import IAnalysisService, IHaveIdentifiers
-from magnitude import mg, MagnitudeError
-from zope import i18n
+from magnitude import mg
 from zope.interface import implements
 import transaction
-import math
 
 
 def getContainers(instance,
@@ -247,14 +240,16 @@ schema = BikaSchema.copy() + Schema((
     ),
     StringField('DisplayRounding',
                 schemata="Analysis",
-                default="DECIMAL_PRECISION",
+                default_method='getDefaultDisplayRounding',
                 widget=SelectionWidget(
                     format='radio',
-                    label=_("Display rounding"),
-                    description=_("Type of rounding to apply to result.")
+                    label=_("Default display rounding"),
+                    description=_(
+                        "Type of rounding to apply to result. This value "
+                        "overrides the system default specified in site-setup"),
+                    vocabulary = ROUNDING_METHODS
                 )
     ),
-
     IntegerField('Precision',
                  schemata="Analysis",
                  widget=IntegerWidget(
@@ -273,11 +268,10 @@ schema = BikaSchema.copy() + Schema((
                          "notation.  The default is 7."),
                  ),
     ),
-
     IntegerField('SignificantFigures',
                  schemata="Analysis",
                  required=0,
-                 default=0,
+                 default=3,
                  widget=IntegerWidget(
                      label=_("Significant Figures in results"),
                      description=_(
@@ -1334,6 +1328,13 @@ class AnalysisService(BaseContent, HistoryAwareMixin):
             return float(udl)
         except ValueError:
             return 0
+
+    def getDefaultDisplayRounding(self):
+        """Default value for DisplayRounding comes from bika_setup
+        """
+        bika_setup = get_bika_setup()
+        def_rtype = bika_setup.getField('DisplayRounding').get(bika_setup)
+        return def_rtype
 
     def getPrecision(self, result=None):
         """
