@@ -47,7 +47,7 @@ from bika.lims.interfaces import IBikaSetup
 from bika.lims.interfaces import IHaveNoBreadCrumbs
 from bika.lims.vocabularies import getStickerTemplates as _getStickerTemplates
 
-from bika.lims.config import ARIMPORT_OPTIONS, ROUNDING_METHODS
+from bika.lims.config import ARIMPORT_OPTIONS
 from bika.lims.config import ATTACHMENT_OPTIONS
 from bika.lims.config import CURRENCIES
 from bika.lims.config import DECIMAL_MARKS
@@ -60,6 +60,11 @@ from bika.lims.locales import COUNTRIES
 
 from bika.lims import bikaMessageFactory as _
 
+ROUNDING_METHODS = DisplayList((
+    ('NONE', _("No rounding")),
+    ('DECIMAL_PLACES', _("Round to decimal places")),
+    ('SIGNIFICANT_FIGURES', _("Round to significant figures")),
+))
 
 class PrefixesField(RecordsField):
     """A list of prefixes per portal_type
@@ -373,29 +378,15 @@ schema = BikaFolderSchema.copy() + Schema((
     ),
     StringField(
         'DisplayRounding',
+        vocabulary=ROUNDING_METHODS,
         schemata="Analyses",
         widget=SelectionWidget(
-            format='radio',
+            format='select',
             label=_("Default display rounding"),
             description=_(
                 "Type of rounding to apply to result. This is the system "
                 "default, and can be overridden in Analysis Service "
                 "configuration"),
-            vocabulary=ROUNDING_METHODS
-        )
-    ),
-    IntegerField(
-        'ExponentialFormatThreshold',
-        schemata="Analyses",
-        required=1,
-        default=7,
-        widget=IntegerWidget(
-            label=_("Exponential format threshold"),
-            description=_(
-                "Result values with at least this number of significant "
-                "digits are displayed in scientific notation using the "
-                "letter 'e' to indicate the exponent.  The precision can be "
-                "configured in individual Analysis Services."),
         )
     ),
     IntegerField(
@@ -410,6 +401,20 @@ schema = BikaFolderSchema.copy() + Schema((
                 "service, this is the number of significant digits "
                 "that will be retained.  If this field is set to 0, "
                 "the default value from site setup will be used.")
+        )
+    ),
+    IntegerField(
+        'ExponentialFormatThreshold',
+        schemata="Analyses",
+        required=1,
+        default=7,
+        widget=IntegerWidget(
+            label=_("Exponential format threshold"),
+            description=_(
+                "Result values with at least this number of significant "
+                "digits are displayed in scientific notation using the "
+                "letter 'e' to indicate the exponent.  The precision can be "
+                "configured in individual Analysis Services."),
         )
     ),
     BooleanField(

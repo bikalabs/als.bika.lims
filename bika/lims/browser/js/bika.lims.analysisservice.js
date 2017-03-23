@@ -28,7 +28,9 @@ function AnalysisServiceEditView() {
     var ldman_fd   = $('#archetypes-fieldname-AllowManualDetectionLimit');
     var ldman_chk  = $('#archetypes-fieldname-AllowManualDetectionLimit #AllowManualDetectionLimit');
 
-    var rounding_type = $('#archetypes-fieldname-RoundingType');
+    var rounding_type = $('#archetypes-fieldname-DisplayRounding #DisplayRounding');
+    var precision = $('#archetypes-fieldname-Precision')
+    var significant_figures = $('#archetypes-fieldname-SignificantFigures');
 
     /**
      * Entry-point method for AnalysisServiceEditView
@@ -825,14 +827,18 @@ function AnalysisServiceEditView() {
     function rounding_type_changed(){
         var value = $(rounding_type).val();
         if (value == "NONE") {
-          $("#archetypes-fieldname-SignificantFigures").hide();
+          $(significant_figures).hide();
+          $(precision).hide();
         }
         else if (value == "DECIMAL_PLACES"){
-          $("#archetypes-fieldname-SignificantFigures").hide();
+          $(significant_figures).hide();
+          $(precision).show();
         }
-        else if (value == "SIGNIFICANT_FIGURES"){/
-          $("#archetypes-fieldname-SignificantFigures").show();
+        else if (value == "SIGNIFICANT_FIGURES"){
+          $(precision).hide();
+          $(significant_figures).show();
         }
     }
+    rounding_type_changed();
 
 }

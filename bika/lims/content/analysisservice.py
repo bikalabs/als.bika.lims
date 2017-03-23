@@ -34,13 +34,19 @@ from bika.lims.browser.widgets.recordswidget import RecordsWidget
 from bika.lims.browser.widgets.referencewidget import ReferenceWidget
 from bika.lims.browser.fields import *
 from bika.lims.config import ATTACHMENT_OPTIONS, PROJECTNAME, \
-    SERVICE_POINT_OF_CAPTURE, ROUNDING_METHODS
+    SERVICE_POINT_OF_CAPTURE
 from bika.lims.content.bikaschema import BikaSchema
 from bika.lims.interfaces import IAnalysisService, IHaveIdentifiers
 from magnitude import mg
 from zope.interface import implements
 import transaction
 
+ROUNDING_METHODS = DisplayList((
+    ('DEFAULT', _("Default from site setup")),
+    ('NONE', _("No rounding")),
+    ('DECIMAL_PLACES', _("Round to decimal places")),
+    ('SIGNIFICANT_FIGURES', _("Round to significant figures")),
+))
 
 def getContainers(instance,
                   minvol=None,
@@ -240,14 +246,13 @@ schema = BikaSchema.copy() + Schema((
     ),
     StringField('DisplayRounding',
                 schemata="Analysis",
-                default_method='getDefaultDisplayRounding',
+                vocabulary = ROUNDING_METHODS,
                 widget=SelectionWidget(
-                    format='radio',
+                    format='select',
                     label=_("Default display rounding"),
                     description=_(
                         "Type of rounding to apply to result. This value "
                         "overrides the system default specified in site-setup"),
-                    vocabulary = ROUNDING_METHODS
                 )
     ),
     IntegerField('Precision',
@@ -256,16 +261,6 @@ schema = BikaSchema.copy() + Schema((
                      label = _("Precision as number of decimals"),
                      description=_(
                          "Define the number of decimals to be used for this result."),
-                 ),
-    ),
-    IntegerField('ExponentialFormatPrecision',
-                 schemata="Analysis",
-                 default = 7,
-                 widget=IntegerWidget(
-                     label = _("Exponential format precision"),
-                     description=_(
-                         "Define the precision when converting values to exponent "
-                         "notation.  The default is 7."),
                  ),
     ),
     IntegerField('SignificantFigures',
@@ -281,6 +276,16 @@ schema = BikaSchema.copy() + Schema((
                          "the default value from site setup will be used.")
                  )
                  ),
+    IntegerField('ExponentialFormatPrecision',
+                 schemata="Analysis",
+                 default = 7,
+                 widget=IntegerWidget(
+                     label = _("Exponential format precision"),
+                     description=_(
+                         "Define the precision when converting values to exponent "
+                         "notation.  The default is 7."),
+                 ),
+    ),
     FixedPointField('LowerDetectionLimit',
                     schemata="Analysis",
                     default='0.0',
@@ -1328,13 +1333,6 @@ class AnalysisService(BaseContent, HistoryAwareMixin):
             return float(udl)
         except ValueError:
             return 0
-
-    def getDefaultDisplayRounding(self):
-        """Default value for DisplayRounding comes from bika_setup
-        """
-        bika_setup = get_bika_setup()
-        def_rtype = bika_setup.getField('DisplayRounding').get(bika_setup)
-        return def_rtype
 
     def getPrecision(self, result=None):
         """

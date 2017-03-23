@@ -125,8 +125,3 @@ MULTI_VERIFICATION_TYPE = DisplayList((
     ('self_multi_not_cons', _('Allow same user to verify multiple times, but not consecutively')),
     ('self_multi_disabled', _('Disable multi-verification for the same user')),
 ))
-ROUNDING_METHODS = DisplayList((
-    ('NONE', _("No rounding")),
-    ('DECIMAL_PLACES', _("Round to decimal places")),
-    ('SIGNIFICANT_FIGURES', _("Round to significant figures")),
-))
