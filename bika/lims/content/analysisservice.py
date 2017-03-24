@@ -249,7 +249,7 @@ schema = BikaSchema.copy() + Schema((
                 vocabulary = ROUNDING_METHODS,
                 widget=SelectionWidget(
                     format='select',
-                    label=_("Default display rounding"),
+                    label=_("Display rounding"),
                     description=_(
                         "Type of rounding to apply to result. This value "
                         "overrides the system default specified in site-setup"),
@@ -1527,6 +1527,5 @@ class AnalysisService(BaseContent, HistoryAwareMixin):
                 pu.addPortalMessage(message, 'error')
                 transaction.get().abort()
                 raise WorkflowException
-
 
 registerType(AnalysisService, PROJECTNAME)

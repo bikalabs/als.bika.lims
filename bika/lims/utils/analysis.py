@@ -12,8 +12,10 @@ from bika.lims import bikaMessageFactory as _
 from bika.lims.utils import formatDecimalMark
 from Products.Archetypes.event import ObjectInitializedEvent
 from Products.CMFCore.WorkflowCore import WorkflowException
-from Products.CMFPlone.utils import _createObjectByType
+from Products.CMFPlone.utils import _createObjectByType1
 from Products.CMFCore.utils import getToolByName
+from bika.lims.api import get_bika_setup
+from decimal import Decimal, ROUND_HALF_UP
 
 
 def create_analysis(context, service, keyword, interim_fields):
@@ -40,8 +42,7 @@ def create_analysis(context, service, keyword, interim_fields):
     # Return the newly created analysis
     return analysis
 
-
-def get_significant_digits(numeric_value):
+def get_significant_precision(numeric_value):
     """
     Returns the precision for a given floatable value.
     If value is None or not floatable, returns None.
@@ -70,7 +71,7 @@ def get_significant_digits(numeric_value):
 
 def _format_decimal_or_sci(result, precision, threshold, sciformat):
     # Current result's precision is above the threshold?
-    sig_digits = get_significant_digits(result)
+    sig_digits = get_significant_precision(result)
 
     # Note that if result < 1, sig_digits > 0. Otherwise, sig_digits = 0
     # Eg:
@@ -78,7 +79,7 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
     #                0.002 -> sig_digit = 3
     #                0     -> sig_digit = 0
     #                2     -> sig_digit = 0
-    # See get_significant_digits signature for further details!
+    # See get_significant_precision signature for further details!
     #
     # Also note if threshold is negative, the result will always be expressed
     # in scientific notation:
@@ -138,8 +139,7 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
     return formatted
 
 def format_uncertainty(analysis, result, decimalmark='.', sciformat=1):
-    """
-    Returns the formatted uncertainty according to the analysis, result
+    """Returns the formatted uncertainty according to the analysis, result
     and decimal mark specified following these rules:
 
     If the "Calculate precision from uncertainties" is enabled in
@@ -223,9 +223,94 @@ def format_uncertainty(analysis, result, decimalmark='.', sciformat=1):
     # Get the default precision for scientific notation
     threshold = service.getExponentialFormatPrecision()
     precision = analysis.getPrecision(result)
-    formatted = _format_decimal_or_sci(uncertainty, precision, threshold, sciformat)
+    formatted = _format_decimal_or_sci(uncertainty, precision,
+                                       threshold, sciformat)
     return formatDecimalMark(formatted, decimalmark)
 
+def round_numeric_result(analysis, result, sig_figures):
+    rounding_type = get_display_rounding_type(analysis)
+    if rounding_type == "NONE":
+        return result
+    elif rounding_type == "DECIMAL_PLACES":
+        precision = get_decimal_precision(analysis)
+        return round_by_decimal(result, precision)
+    elif rounding_type == "SIGNIFICANT_FIGURES":
+        sig_figures = get_sigfig_precision(analysis)
+        return round_by_sigfig(result, sig_figures)
+
+def get_display_rounding_type(analysis):
+    service = analysis.getService()
+    rounding_type = service.getDisplayRounding()
+    if rounding_type == 'DEFAULT':
+        rounding_type = get_bika_setup().getDisplayRounding()
+    return rounding_type
+
+def get_decimal_precision(analysis):
+    return analysis.getService().getPrecision()
+
+def get_sigfig_precision(analysis):
+    sig_figures = analysis.getService().getSignificantFigures()
+    if sig_figures == 0:  # indicates to use bika setup default:
+        sig_figures = get_bika_setup().getSignificantFigures()
+    return sig_figures
+
+def round_by_decimal(value, precision):
+    value = Decimal(value)
+    if int(precision) != 0:
+        precision = Decimal("."+"0"*int(precision))
+    return Decimal(value.quantize(precision, rounding=ROUND_HALF_UP))
+
+def round_by_sigfig(value, sig_figures):
+    """Rounding by significant figures source:
+    http://randlet.com/blog/python-significant-figures-format/
+    """
+    value = float(value)
+
+    if value == 0.:
+        return "0." + "0"*(sig_figures-1)
+
+    out = []
+
+    if value < 0:
+        out.append("-")
+        value = -value
+
+    e = int(math.log10(value))
+    tens = math.pow(10, e - sig_figures + 1)
+    n = math.floor(value/tens)
+
+    if n < math.pow(10, sig_figures - 1):
+        e = e -1
+        tens = math.pow(10, e - sig_figures+1)
+        n = math.floor(value / tens)
+
+    if abs((n + 1.) * tens - value) <= abs(n * tens -value):
+        n = n + 1
+
+    if n >= math.pow(10,sig_figures):
+        n = n / 10.
+        e = e + 1
+
+    m = "%.*g" % (sig_figures, n)
+
+    if e == (sig_figures -1):
+        out.append(m)
+    elif e >= 0:
+        out.append(m[:e+1])
+        if e+1 < len(m):
+            out.append(".")
+            out.extend(m[e+1:])
+    else:
+        out.append("0.")
+        out.extend(["0"]*-(e+1))
+        out.append(m)
+
+    strout = "".join(out)
+    if "." not in strout:
+        padding = len(str(value).split('.')[0])
+        return str("%%-%dd"%padding%int(strout)).replace(' ', '0')
+    else:
+        return strout
 
 def format_numeric_result(analysis, result, decimalmark='.', sciformat=1):
     """
@@ -299,7 +384,6 @@ def format_numeric_result(analysis, result, decimalmark='.', sciformat=1):
     precision = analysis.getPrecision(result)
     formatted = _format_decimal_or_sci(result, precision, threshold, sciformat)
     return formatDecimalMark(formatted, decimalmark)
-
 
 def get_method_instrument_constraints(context, uids):
     """
