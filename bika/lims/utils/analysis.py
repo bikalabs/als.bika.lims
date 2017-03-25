@@ -113,6 +113,7 @@ def format_numeric_result(analysis, result, decimalmark='.', sciformat=1):
     threshold = service.getExponentialFormatPrecision()
     precision = analysis.getPrecision(result)
     rounded_result = round_numeric_result(analysis, result)
+    print rounded_result
     formatted = _format_decimal_or_sci(rounded_result, precision, threshold, sciformat)
     return formatDecimalMark(formatted, decimalmark)
 
@@ -205,7 +206,8 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
             formatted = "%s%s%s%s" % (res,"e",sign,sig_digits)
     else:
         # Decimal notation
-        formatter = str(result)
+        formatted = str(result)
+    print formatted
     return formatted
 
 def format_uncertainty(analysis, result, decimalmark='.', sciformat=1):
