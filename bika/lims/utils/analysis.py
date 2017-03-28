@@ -113,7 +113,6 @@ def format_numeric_result(analysis, result, decimalmark='.', sciformat=1):
     threshold = service.getExponentialFormatPrecision()
     precision = analysis.getPrecision(result)
     rounded_result = round_numeric_result(analysis, result)
-    print rounded_result
     formatted = _format_decimal_or_sci(rounded_result, precision, threshold, sciformat)
     return formatDecimalMark(formatted, decimalmark)
 
@@ -137,7 +136,7 @@ def get_significant_digits(numeric_value):
     """
     try:
         numeric_value = float(numeric_value)
-    except ValueError:
+    except (TypeError, ValueError):
         return None
     if numeric_value == 0:
         return 0
@@ -207,7 +206,6 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
     else:
         # Decimal notation
         formatted = str(result)
-    print formatted
     return formatted
 
 def format_uncertainty(analysis, result, decimalmark='.', sciformat=1):
@@ -542,19 +540,19 @@ def get_method_instrument_constraints(context, uids):
 
 def round_numeric_result(analysis, result):
     rounding_type = get_display_rounding_type(analysis)
-    if rounding_type == "NONE":
-        return result
-    elif rounding_type == "DECIMAL_PLACES":
+    ret = result
+    if rounding_type == "DECIMAL_PLACES":
         precision = get_decimal_precision(analysis)
-        return round_by_decimal(result, precision)
+        ret = round_by_decimal(result, precision)
     elif rounding_type == "SIGNIFICANT_FIGURES":
         sig_figures = get_sigfig_precision(analysis)
-        return round_by_sigfig(result, sig_figures)
+        ret = round_by_sigfig(result, sig_figures)
+    return ret
 
 def get_display_rounding_type(analysis):
     service = analysis.getService()
     rounding_type = service.getDisplayRounding()
-    if rounding_type == 'DEFAULT':
+    if not rounding_type or rounding_type == 'DEFAULT':
         rounding_type = get_bika_setup().getDisplayRounding()
     return rounding_type
 
