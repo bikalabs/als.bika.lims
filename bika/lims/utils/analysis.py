@@ -100,7 +100,7 @@ def format_numeric_result(analysis, result, decimalmark='.', sciformat=1):
     """
     try:
         result = float(result)
-    except ValueError:
+    except (TypeError, ValueError):
         return result
 
     # continuing with 'nan' result will cause formatting to fail.
@@ -113,8 +113,10 @@ def format_numeric_result(analysis, result, decimalmark='.', sciformat=1):
     threshold = service.getExponentialFormatPrecision()
     precision = analysis.getPrecision(result)
     rounded_result = round_numeric_result(analysis, result)
-    formatted = _format_decimal_or_sci(rounded_result, precision, threshold, sciformat)
-    return formatDecimalMark(formatted, decimalmark)
+    formatted = _format_decimal_or_sci(
+        rounded_result, precision, threshold, sciformat)
+    formatted = formatDecimalMark(formatted, decimalmark)
+    return formatted
 
 def get_significant_digits(numeric_value):
     """
@@ -205,7 +207,9 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
             formatted = "%s%s%s%s" % (res,"e",sign,sig_digits)
     else:
         # Decimal notation
-        formatted = str(result)
+        # Cut/pad the extra decimals according to the precision
+        prec = precision if precision and precision > 0 else 0
+        formatted = str("%%.%sf" % prec) % result
     return formatted
 
 def format_uncertainty(analysis, result, decimalmark='.', sciformat=1):
