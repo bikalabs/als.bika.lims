@@ -206,10 +206,10 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
             sig_digits = "%02d" % sig_digits
             formatted = "%s%s%s%s" % (res,"e",sign,sig_digits)
     else:
-        # Decimal notation
-        # Cut/pad the extra decimals according to the precision
-        prec = precision if precision and precision > 0 else 0
-        formatted = str("%%.%sf" % prec) % result
+        # Decimal notation.  The rounding applied by round_numeric_result
+        # should set the formatting correctly
+        # @zylinx
+        formatted = result
     return formatted
 
 def format_uncertainty(analysis, result, decimalmark='.', sciformat=1):
