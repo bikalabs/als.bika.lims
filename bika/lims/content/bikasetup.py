@@ -380,6 +380,7 @@ schema = BikaFolderSchema.copy() + Schema((
         'DisplayRounding',
         vocabulary=ROUNDING_METHODS,
         schemata="Analyses",
+        default="DECIMAL_PRECISION",
         widget=SelectionWidget(
             format='select',
             label=_("Default display rounding"),
