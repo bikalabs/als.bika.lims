@@ -148,9 +148,15 @@ class test_FormattedResult(BikaSimpleTestCase):
             self.assertEqual(an.getResult(), _result)
             self.assertEqual(an.Schema().getField('Result').get(an), _result)
             decimalmark = bs.getResultsDecimalMark()
-            fr = an.getFormattedResult(sciformat=notation,
-                                       decimalmark=decimalmark)
-            self.assertEqual(fr, _expected)
+            try:
+                fr = an.getFormattedResult(sciformat=notation,
+                                           decimalmark=decimalmark)
+                self.assertEqual(fr, _expected)
+            except:
+                import pdb; pdb.set_trace()
+                fr = an.getFormattedResult(sciformat=notation,
+                                           decimalmark=decimalmark)
+                self.assertEqual(fr, _expected)
 
     def test_LIMS_2371_SignificantFigures(self):
 

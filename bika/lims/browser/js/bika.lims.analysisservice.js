@@ -830,7 +830,7 @@ function AnalysisServiceEditView() {
           $(significant_figures).hide();
           $(precision).hide();
         }
-        else if (value == "DECIMAL_PLACES"){
+        else if (value == "DECIMAL_PRECISION"){
           $(significant_figures).hide();
           $(precision).show();
         }

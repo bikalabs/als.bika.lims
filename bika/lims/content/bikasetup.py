@@ -62,7 +62,7 @@ from bika.lims import bikaMessageFactory as _
 
 ROUNDING_METHODS = DisplayList((
     ('NONE', _("No rounding")),
-    ('DECIMAL_PLACES', _("Round to decimal places")),
+    ('DECIMAL_PRECISION', _("Round to decimal places")),
     ('SIGNIFICANT_FIGURES', _("Round to significant figures")),
 ))
 

@@ -545,7 +545,7 @@ def get_method_instrument_constraints(context, uids):
 def round_numeric_result(analysis, result):
     rounding_type = get_display_rounding_type(analysis)
     ret = result
-    if rounding_type == "DECIMAL_PLACES":
+    if not rounding_type or rounding_type == "DECIMAL_PRECISION":
         precision = get_decimal_precision(analysis)
         ret = round_by_decimal(result, precision)
     elif rounding_type == "SIGNIFICANT_FIGURES":

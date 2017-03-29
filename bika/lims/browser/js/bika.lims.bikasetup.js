@@ -91,7 +91,7 @@ function BikaSetupEditView() {
         if (value == "NONE") {
           $(significant_figures).hide();
         }
-        else if (value == "DECIMAL_PLACES"){
+        else if (value == "DECIMAL_PRECISION"){
           $(significant_figures).hide();
         }
         else if (value == "SIGNIFICANT_FIGURES"){

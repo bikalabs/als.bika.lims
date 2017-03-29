@@ -44,7 +44,7 @@ import transaction
 ROUNDING_METHODS = DisplayList((
     ('DEFAULT', _("Default from site setup")),
     ('NONE', _("No rounding")),
-    ('DECIMAL_PLACES', _("Round to decimal places")),
+    ('DECIMAL_PRECISION', _("Round to decimal places")),
     ('SIGNIFICANT_FIGURES', _("Round to significant figures")),
 ))
 
