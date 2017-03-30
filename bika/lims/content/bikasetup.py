@@ -398,10 +398,9 @@ schema = BikaFolderSchema.copy() + Schema((
         widget=IntegerWidget(
             label=_("Significant Figures in results"),
             description=_(
-                "If significant figures rounding is enabled for this "
-                "service, this is the number of significant digits "
-                "that will be retained.  If this field is set to 0, "
-                "the default value from site setup will be used.")
+                "If significant figures rounding is enabled for any service, "
+                "this is the default number of significant digits that will "
+                "be retained.")
         )
     ),
     IntegerField(
