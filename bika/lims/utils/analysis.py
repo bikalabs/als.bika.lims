@@ -177,6 +177,8 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
     if sci:
         # First, cut the extra decimals according to the precision
         prec = precision if precision and precision > 0 else 0
+        # result argument is a string, formatted in decimal notation
+        result = float(result)
         nresult = str("%%.%sf" % prec) % result
 
         if sign:
