@@ -37,6 +37,7 @@ from Products.Archetypes.utils import IntDisplayList
 from Products.Archetypes.references import HoldingReference
 from archetypes.referencebrowserwidget import ReferenceBrowserWidget
 
+from bika.lims.api import get_bika_setup
 from bika.lims.browser.fields import DurationField
 from bika.lims.browser.widgets import DurationWidget
 from bika.lims.browser.widgets import RecordsWidget
@@ -59,6 +60,11 @@ from bika.lims.locales import COUNTRIES
 
 from bika.lims import bikaMessageFactory as _
 
+ROUNDING_METHODS = DisplayList((
+    ('NONE', _("No rounding")),
+    ('DECIMAL_PRECISION', _("Round to decimal places")),
+    ('SIGNIFICANT_FIGURES', _("Round to significant figures")),
+))
 
 class PrefixesField(RecordsField):
     """A list of prefixes per portal_type
@@ -368,6 +374,34 @@ schema = BikaFolderSchema.copy() + Schema((
                 "applied when an AR is published in permanent media, "
                 "e.g. PDF."),
             format='select',
+        )
+    ),
+    StringField(
+        'DisplayRounding',
+        vocabulary=ROUNDING_METHODS,
+        schemata="Analyses",
+        default="DECIMAL_PRECISION",
+        widget=SelectionWidget(
+            format='select',
+            label=_("Default display rounding"),
+            description=_(
+                "Type of rounding to apply to result. This is the system "
+                "default, and can be overridden in Analysis Service "
+                "configuration"),
+        )
+    ),
+    IntegerField(
+        'SignificantFigures',
+        schemata="Analyses",
+        required=0,
+        default=0,
+        widget=IntegerWidget(
+            label=_("Significant Figures in results"),
+            description=_(
+                "If significant figures rounding is enabled for this "
+                "service, this is the number of significant digits "
+                "that will be retained.  If this field is set to 0, "
+                "the default value from site setup will be used.")
         )
     ),
     IntegerField(
@@ -775,6 +809,12 @@ class BikaSetup(folder.ATFolder):
         """
         out = [[t['id'], t['title']] for t in _getStickerTemplates()]
         return DisplayList(out)
+
+    def getSignificantFigures(self):
+        sfigs = self.getField('SignificantFigures').get(self)
+        if not sfigs:
+            bika_setup = get_bika_setup()
+            return bika_setup.getField('SignificantFigures').get(bika_setup)
 
     def getARAttachmentsPermitted(self):
         """AR attachments permitted
