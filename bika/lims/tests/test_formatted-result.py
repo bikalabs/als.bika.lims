@@ -180,7 +180,6 @@ class test_FormattedResult(BikaSimpleTestCase):
                 do_transition_for(ar, 'receive')
                 an = ar.getAnalyses()[0].getObject()
                 an.setResult(value)
-                print an.getFormattedResult()
                 self.assertEqual(an.getFormattedResult(), expected)
 
 
