@@ -582,6 +582,7 @@ def round_by_sigfig(value, sig_figures):
     http://randlet.com/blog/python-significant-figures-format/
     """
     value = float(value)
+    negative = None
 
     if value == 0.:
         return "0." + "0"*(sig_figures-1)
@@ -591,6 +592,7 @@ def round_by_sigfig(value, sig_figures):
     if value < 0:
         out.append("-")
         value = -value
+        negative = True
 
     e = int(math.log10(value))
     tens = math.pow(10, e - sig_figures + 1)
@@ -625,6 +627,7 @@ def round_by_sigfig(value, sig_figures):
     strout = "".join(out)
     if "." not in strout:
         padding = len(str(value).split('.')[0])
+        if negative: padding += 1 #account for '-' in negative number
         return str("%%-%dd"%padding%int(strout)).replace(' ', '0')
     else:
         return strout
