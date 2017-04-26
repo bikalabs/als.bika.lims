@@ -650,6 +650,18 @@ def get_workflows_for(brain_or_object):
     return workflow.getChainFor(obj)
 
 
+def get_transitions_for(brain_or_object):
+    """List available workflow transitions for all workflows
+    """
+    workflow = get_tool('portal_workflow')
+    transitions = []
+    for wfid in get_workflows_for(brain_or_object):
+        wf = workflow[wfid]
+        tlist = wf.getTransitionsFor(brain_or_object)
+        transitions.extend([t for t in tlist if t not in transitions])
+    return transitions
+
+
 def get_workflow_status_of(brain_or_object):
     """Get the current workflow status of the given brain or context.
 
