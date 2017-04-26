@@ -8,6 +8,7 @@ from Products.CMFPlone.utils import _createObjectByType
 from Products.CMFPlone.utils import safe_unicode
 from bika.lims import bikaMessageFactory as _
 from bika.lims import logger
+from bika.lims.api import get_transitions_for, do_transition_for
 from bika.lims.idserver import renameAfterCreation
 from bika.lims.interfaces import ISample, IAnalysisService, IAnalysis
 from bika.lims.utils import tmpID
@@ -168,10 +169,20 @@ def create_analysisrequest(context, request, values, analyses=None,
                 state = workflow.getInfoFor(part, 'review_state')
                 if state == 'to_be_preserved':
                     workflow.doActionFor(part, 'preserve')
+
     # Once the ar is fully created, check if there are rejection reasons
     reject_field = values.get('RejectionReasons', '')
     if reject_field and reject_field.get('checkbox', False):
         doActionFor(ar, 'reject')
+
+    # If the Sampling Workflow field values are valid,
+    # and the SamplingWorkflow is enabled, we will
+    # automatically kick off the "sample" transition now
+    tids = [t['id'] for t in get_transitions_for(ar)]
+    if 'sample' in tids:
+        import pdb;pdb.set_trace()
+        do_transition_for(ar, 'sample')
+
     # Return the newly created Analysis Request
     return ar
 
