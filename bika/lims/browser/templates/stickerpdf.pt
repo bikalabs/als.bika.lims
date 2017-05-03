@@ -7,6 +7,5 @@
 </head>
 
 <div tal:repeat=" html view/htmls" style="page-break-after:always;">
-    asdf
     <span tal:replace="structure html"/>
 </div>
