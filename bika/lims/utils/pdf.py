@@ -108,12 +108,18 @@ def localize_images(html):
         attachment = portal.unrestrictedTraverse(att_path)
         if hasattr(attachment, 'getAttachmentFile'):
             attachment = attachment.getAttachmentFile()
-        filename = attachment.filename
-        extension = "."+filename.split(".")[-1]
-        outfile, outfilename = tempfile.mkstemp(suffix=extension)
-        outfile = open(outfilename, 'wb')
-        outfile.write(str(attachment.data))
-        outfile.close()
+        if '++' in url:
+            filename = url.split("/")[-1]
+            outfilename = resource_filename(
+                'bika.lims', 'browser/images/' + filename)
+        else:
+            filename = attachment.filename
+            data = str(attachment.data)
+            extension = "." + filename.split(".")[-1]
+            outfile, outfilename = tempfile.mkstemp(suffix=extension)
+            outfile = open(outfilename, 'wb')
+            outfile.write(data)
+            outfile.close()
         _html = _html.replace(url, "file://" + outfilename)
         cleanup.append(outfilename)
     return cleanup, _html
