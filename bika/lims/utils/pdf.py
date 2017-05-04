@@ -104,15 +104,15 @@ def localize_images(html):
     # All other images should be traversable.
     for match in re.finditer("""src.*\=.*(http[^'"]*)""", _html, re.I):
         url = match.group(1)
-        att_path = url.replace(portal_url+"/", "").encode('utf-8')
-        attachment = portal.unrestrictedTraverse(att_path)
-        if hasattr(attachment, 'getAttachmentFile'):
-            attachment = attachment.getAttachmentFile()
         if '++' in url:
             filename = url.split("/")[-1]
             outfilename = resource_filename(
                 'bika.lims', 'browser/images/' + filename)
         else:
+            att_path = url.replace(portal_url + "/", "").encode('utf-8')
+            attachment = portal.unrestrictedTraverse(att_path)
+            if hasattr(attachment, 'getAttachmentFile'):
+                attachment = attachment.getAttachmentFile()
             filename = attachment.filename
             data = str(attachment.data)
             extension = "." + filename.split(".")[-1]
@@ -120,6 +120,6 @@ def localize_images(html):
             outfile = open(outfilename, 'wb')
             outfile.write(data)
             outfile.close()
+            cleanup.append(outfilename)
         _html = _html.replace(url, "file://" + outfilename)
-        cleanup.append(outfilename)
     return cleanup, _html
