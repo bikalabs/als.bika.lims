@@ -29,6 +29,9 @@ function BarcodeUtils() {
                             {'barHeight': parseInt(barHeight),
                              'addQuietZone': Boolean(addQuietZone),
                              'showHRI': Boolean(showHRI) });
+            // We will handle the output overflow ourselves;
+            // otherwise PDF generation fails without explaining itself.
+            $(this).css({'overflow': 'visible'});
         });
     }
 }
