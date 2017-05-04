@@ -180,7 +180,7 @@ def create_analysisrequest(context, request, values, analyses=None,
     # automatically kick off the "sample" transition now
     tids = [t['id'] for t in get_transitions_for(ar)]
     if 'sample' in tids:
-        import pdb;pdb.set_trace()
+        #XXX XXX CAMPBELL come on now.  LIMS-2514.
         do_transition_for(ar, 'sample')
 
     # Return the newly created Analysis Request
