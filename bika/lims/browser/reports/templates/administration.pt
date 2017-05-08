@@ -129,37 +129,6 @@
                 </li>
             </ul>
 
-            <h2 i18n:translate="">Traceability</h2>
-            <ul id="toc-reports">
-                <li>
-                    <a href="#" id="usershistory_selector"
-                            i18n:translate="">User history</a><br/>
-            <span i18n:translate="">
-                Actions performed by users (or specific user) between a period of time
-            </span>
-
-                    <div id="usershistory" style="display:none" class="criteria">
-                        <form action="createreport" method="post"
-                              name="administration_usershistory">
-                            <input type="hidden" name="report_id"
-                                   value="administration_usershistory"/>
-                            <fieldset>
-                                <tal:x content="structure python:view.selection_macros.select_daterange(
-                                                     field_id='getModificationDate',
-                                                     field_title='Modification date')"/>
-                                <tal:x content="structure python:view.selection_macros.select_user(allow_blank=True)"/>
-                                <tal:x content="structure context/@@selection_macros/select_output_format"/>
-                            </fieldset>
-                            <input tabindex=""
-                                   class="searchButton allowMultiSubmit"
-                                   type="submit"
-                                   name="submit"
-                                   value="Generate report"
-                                    i18n:attributes="value"/>
-                        </form>
-                    </div>
-                </li>
-            </ul>
         </fieldset>
     </div>
 </metal:content-core>
