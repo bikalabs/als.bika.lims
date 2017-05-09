@@ -25,6 +25,10 @@
     padding-bottom:5px !important;
 }
 
+* {
+    font-size:80%;
+}
+
 .page-header {
     height: 76px;
 }
@@ -76,8 +80,7 @@
 }
 
 .ar_table {
-    padding-top:10px;
-    font-size: 82.5%;
+    font-size: 70%;
     border-top:1px solid #cdcdcd;
     border-left:1px solid #cdcdcd;
 }
@@ -87,7 +90,6 @@
 }
 .ar_table .header_td {
     text-align: center;
-    font-weight:bold;
     padding:2px;
 }
 .ar_table .th {
@@ -103,8 +105,6 @@
     border-right:1px solid #cdcdcd;
 }
 .cat_title {
-    background: #dddddd;
-    color: #444444;
     padding:2px 0px 2px 0px;
     margin-top:7px;
 }
@@ -113,9 +113,9 @@
 .ar_table .unit sub,
 .ar_table .unit sup {
     color:#777;
-    font-weight:normal;
-    font-style:italic;
-    font-size:7pt;
+    font-weight:normal !important;
+    font-style:italic !important;
+    font-size:80%;
 }
 
 div.resultsinterpretation {
@@ -123,9 +123,8 @@ div.resultsinterpretation {
 }
 
 div.resultsinterpretation_heading {
-    font-weight:bold;
-    background: #dddddd;
-    color: #444444;
+    background: #efefef;
+    color: #333333;
     margin-top:7px;
     padding:2px 0px 2px 0px;
     font-size:1.2em;
@@ -136,6 +135,13 @@ div.resultsinterpretation_heading {
    for the sake of table-less layout. */
 .table { display:table; table-layout:fixed; width:100%; }
 .row { display:table-row; }
+.catmeth_row {
+    display:table-row;
+    background: #bbbbbb;
+    color: #000000;
+    font-weight: bold;
+    padding-top:5px;
+}
 .th { display:table-cell; font-weight:bold; }
 .td { display:table-cell; }
 /* this is where the colspan tricks works. */
