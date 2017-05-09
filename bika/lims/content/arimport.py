@@ -607,6 +607,12 @@ class ARImport(BaseFolder):
             gridrow['Sampler'] = row['Sampler']
             del (row['Sampler'])
 
+            gridrow = {'ClientSampleID': row['ClientSampleID']}
+            del (row['ClientSampleID'])
+
+            gridrow['Sampler'] = row['Sampler']
+            del (row['Sampler'])
+
             # We'll use this later to verify the number against selections
             if 'Total number of Analyses or Profiles' in row:
                 nr_an = row['Total number of Analyses or Profiles']
