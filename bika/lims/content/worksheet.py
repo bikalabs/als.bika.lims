@@ -680,7 +680,7 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
             # for the default method in the picklist.
             meth = instrument.getMethods()[0] if instrument.getMethods() \
                     else None
-            if meth and an.isMethodAllowed(meth):
+            if meth and an.isMethodAllowed(meth) and not an.getMethod():
                 an.setMethod(meth)
             success = an.setInstrument(instrument)
             if success is True:
