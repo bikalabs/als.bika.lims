@@ -296,7 +296,7 @@ Total price excl Tax,,,,,,,,,,,,,,
                   for a in analyses]
         if states != ['sample_due'] * 12:
             self.fail('Analysis states should all be sample_due, but are not!')
-        samplers = [a.Sampler for a in analyses]
+        samplers = [a.getSampler() for a in analyses]
         if samplers != ['test_sampler'] * 12:
             self.fail('Analysis samplers should all be None, but are not!')
 
@@ -377,7 +377,7 @@ Total price excl Tax,,,,,,,,,,,,,,
         if states != ['sample_due'] * 2:
             self.fail('Analysis states should all be sample_due, but are not!')
         #Ensure invalid user was not imported
-        samplers = [a.Sampler for a in analyses]
+        samplers = [a.getSampler() for a in analyses]
         if samplers != [None] * 2:
             self.fail('Analysis samplers should all be None, but are not!')
 
