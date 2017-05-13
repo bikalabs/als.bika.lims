@@ -155,7 +155,7 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
             # TODO After enabling multiple methods for instruments, we are
             # setting intrument's first method as a method.
             methods = instr.getMethods()
-            if len(methods) > 0:
+            if len(methods) > 0 and not analysis.getMethod():
                 # Set the first method assigned to the selected instrument
                 analysis.setMethod(methods[0])
             analysis.setInstrument(instr)
