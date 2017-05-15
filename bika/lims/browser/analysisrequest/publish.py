@@ -2,7 +2,10 @@
 #
 # Copyright 2011-2016 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
+import csv
+from email.mime.base import MIMEBase
 
+import StringIO
 from bika.lims import bikaMessageFactory as _, t
 from bika.lims import logger
 from bika.lims.browser import BrowserView
@@ -81,6 +84,14 @@ class AnalysisRequestPublishView(BrowserView):
                 Record(field.Int(title=u"Current COA number"), 0)
         val = api.portal.get_registry_record(key) + 1
         api.portal.set_registry_record(key, val)
+        year = str(time.localtime(time.time())[0])[-2:]
+        return "COA%s-%05d"%(year, int(val))
+
+    def current_certificate_number(self):
+        """Return the last written ID from the registry
+        """
+        key = 'bika.lims.current_coa_number'
+        val = api.portal.get_registry_record(key)
         year = str(time.localtime(time.time())[0])[-2:]
         return "COA%s-%05d"%(year, int(val))
 
@@ -897,6 +908,17 @@ class AnalysisRequestPublishView(BrowserView):
         # Attach the pdf to the email
         fn = "_".join([ar.Title() for ar in ars])
         attachPdf(mime_msg, pdf_report, fn)
+
+        # ALS hack.  Create the CSV they desire here now
+        csvdata = self.create_als_csv(ars)
+        # Attach to email
+        part = MIMEBase('text', "csv")
+        fn = self.current_certificate_number()
+        part.add_header(
+            'Content-Disposition', 'attachment; filename="{}.csv"'.format(fn))
+        part.set_payload(csvdata)
+        mime_msg.attach(part)
+
         msg_string = mime_msg.as_string()
 
         try:
@@ -908,6 +930,44 @@ class AnalysisRequestPublishView(BrowserView):
             raise WorkflowException(str(msg))
 
         return ars
+
+    def create_als_csv(self, ars):
+        analyses = []
+        for ar in ars:
+            analyses.extend(ar.getAnalyses(full_objects=True))
+        #
+        fieldnames = [
+            "LRN",
+            "Date",
+            "Constituent",
+            "Value",
+            "Product Description",
+            "Orig site"]
+        #
+        output = StringIO.StringIO()
+        dw = csv.DictWriter(output, fieldnames=fieldnames)
+        dw.writerow(dict((fn, fn) for fn in fieldnames))
+        #
+        for analysis in analyses:
+            ar = analysis.aq_parent
+            sample = ar.getSample()
+            sid = sample.getClientSampleID()
+            if not sid:
+                sid = sample.getId()
+            point = sample.getSamplePoint().Title() \
+                if sample.getSamplePoint() else ''
+            date = analysis.getResultCaptureDate()
+            date = self.ulocalized_time(date, long_format=True)
+            row = {
+                "LRN": sid,
+                "Date": date,
+                "Constituent": analysis.getService().getKeyword(),
+                "Value": analysis.getFormattedResult(),
+                "Product Description": sample.getSampleType().Title(),
+                "Orig site": point,
+            }
+            dw.writerow(row)
+        return output.getvalue()
 
     def publish(self):
         """ Publish the AR report/s. Generates a results pdf file
