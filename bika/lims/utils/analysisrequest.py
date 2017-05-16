@@ -26,6 +26,7 @@ from os.path import join
 from plone import api
 from Products.CMFPlone.utils import _createObjectByType
 from smtplib import SMTPServerDisconnected, SMTPRecipientsRefused
+from DateTime import DateTime
 import os
 import tempfile
 
@@ -88,6 +89,18 @@ def create_analysisrequest(context, request, values, analyses=None,
     # Set some required fields manually before processForm is called
     ar.setSample(sample)
     values['Sample'] = sample
+
+    #Inject the timezone into a selection by
+    #datewidget which is timezone naive
+    #ie. DateSampled is '2017-05-15 01:05'
+    #but should be      '2017/05/15 01:05:00 GMT+2'
+    #else processForm => reindexObject() sets it to GMT+0 which results in
+    #an incorrect date record.
+
+    tz = DateTime().timezone()
+    datesampled = DateTime(values['DateSampled'] + ' ' + tz)
+    values['DateSampled'] = datesampled
+
     ar.processForm(REQUEST=request, values=values)
     # Object has been renamed
     ar.edit(RequestID=ar.getId())
