@@ -341,8 +341,6 @@ class AnalysesView(BikaListingView):
             new_items.append(item)
         items = new_items
 
-        methods = self.get_methods_vocabulary()
-
         self.interim_fields = {}
         self.interim_columns = {}
         self.specs = {}

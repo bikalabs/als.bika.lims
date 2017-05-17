@@ -25,6 +25,8 @@ def create_analysis(context, service, keyword, interim_fields):
     analysis = _createObjectByType("Analysis", context, keyword)
     analysis.setService(service)
     analysis.setInterimFields(interim_fields)
+    analysis.setMethod(service.getMethod())
+    analysis.setInstrument(service.getInstrument())
     analysis.setMaxTimeAllowed(service.getMaxTimeAllowed())
     analysis.unmarkCreationFlag()
     analysis.reindexObject()
