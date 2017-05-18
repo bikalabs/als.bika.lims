@@ -324,6 +324,9 @@ class ReferenceSample(BaseFolder):
         analysis.unmarkCreationFlag()
 
         calculation = service.getCalculation()
+        method = service.getMethod()
+        instrument = service.getInstrument()
+
         interim_fields = calculation and calculation.getInterimFields() or []
         renameAfterCreation(analysis)
 
@@ -341,6 +344,8 @@ class ReferenceSample(BaseFolder):
         analysis.setReferenceType(reference_type)
         analysis.setService(service_uid)
         analysis.setInterimFields(interim_fields)
+        analysis.setMethod(method)
+        analysis.setInstrument(instrument)
         return analysis.UID()
 
 
