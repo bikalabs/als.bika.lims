@@ -13,12 +13,12 @@ function AnalysisRequestPublishView() {
         'A4': {
                 size: 'A4',
                 dimensions: [210, 297],
-                margins:    [15, 10, 20, 10] },
+                margins:    [20, 10, 20, 10] },
 
         'letter': {
                 size: 'letter',
                 dimensions: [216, 279],
-                margins:    [15, 10, 20, 10] },
+                margins:    [20, 10, 20, 10] },
     };
 
     /**

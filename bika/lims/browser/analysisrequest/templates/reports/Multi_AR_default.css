@@ -4,6 +4,7 @@
 
 #report {
     font: 8pt Arial, Verdana, serif;
+    width: 100% !important;
 }
 
 #report h1 {
@@ -25,10 +26,6 @@
     padding-bottom:5px !important;
 }
 
-* {
-    font-size:80%;
-}
-
 .page-header {
     height: 76px;
 }
@@ -45,7 +42,7 @@
 #section-info-heading {
     height:2em;
     text-align:center !important;
-    vertical-align:center;
+    vertical-align:middle;
 }
 
 #discreeter div{
@@ -60,6 +57,10 @@
 .accredited-ico {
     height:1.1em;
     vertical-align:middle;
+}
+
+#report #lab-logo {
+  margin-bottom:4px !important;
 }
 
 #report .label {
@@ -83,6 +84,7 @@
     font-size: 70%;
     border-top:1px solid #cdcdcd;
     border-left:1px solid #cdcdcd;
+    margin-top: 5px !important;
 }
 .ar_table .header_th {
     font-weight:bold;
@@ -115,7 +117,7 @@
     color:#777;
     font-weight:normal !important;
     font-style:italic !important;
-    font-size:80%;
+    font-size:90%;
 }
 
 div.resultsinterpretation {
@@ -134,13 +136,14 @@ div.resultsinterpretation_heading {
 /* this is to reproduce table-like structure
    for the sake of table-less layout. */
 .table { display:table; table-layout:fixed; width:100%; }
-.row { display:table-row; }
+.row { display:table-row; width:100%; }
 .catmeth_row {
     display:table-row;
     background: #bbbbbb;
     color: #000000;
     font-weight: bold;
-    padding-top:5px;
+    padding-top:2px;
+    width:100% !important
 }
 .th { display:table-cell; font-weight:bold; }
 .td { display:table-cell; }

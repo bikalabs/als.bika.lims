@@ -156,14 +156,14 @@
       <!-- This element will be displayed on each page within the top margin area. -->
       <div id="section-header" class="page-header">
         <div id='lab-logo'>
-          <table style="margin:0;padding:0;width:100%" cellpadding="0" cellspacing="0">
+          <table style="margin:0 0 5px 0;padding:0;width:100%" cellpadding="0" cellspacing="0">
             <tr>
               <td width="100%">
                 <a tal:attributes="href python: lab.getLabURL()">
                   <img tal:attributes="src python:portal.absolute_url() + '/logo_print.png'"/>
                 </a>
               </td>
-              <td>
+              <td style="text-align:right !important;">
                 <img tal:condition="acc_logo" tal:attributes="src python:acc_logo.absolute_url()" />
               </td>
             </tr>
@@ -243,7 +243,6 @@
                            class="accredited-ico"/>
                     </span>
                     <span class="td unit"
-                          style="font-size: 80%"
                           tal:attributes="style string:width:${unitcol_width}%"
                           tal:content="python:analysis.getService().getUnit()"></span>
                     <span class="td unit"
