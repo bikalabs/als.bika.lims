@@ -529,7 +529,11 @@ class ARImport(BaseFolder):
                 continue
             # Get values for this sample row
             vals = [x.strip() for x in row]
-            import pdb;pdb.set_trace();pass
+            # ignore these (they were always ignored, this is just explicit!)
+            if vals[0] in ['Analysis price',
+                           'Total Analyses or Profiles',
+                           'Total price excl Tax']:
+                continue
             if not any(vals):
                 continue
             res['samples'].append(zip(res['headers'], vals))
