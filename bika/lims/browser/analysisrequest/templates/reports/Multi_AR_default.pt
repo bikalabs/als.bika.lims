@@ -229,7 +229,7 @@
                 <div class="row">
                   <span class="th" tal:attributes="style string:width:${servicecol_width}%">Service</span>
                   <span class="th" tal:attributes="style string:width:${unitcol_width}%">Unit</span>
-                  <span class="th" tal:attributes="style string:width:${ldlcol_width}%">LOD</span>
+                  <span class="th" tal:attributes="style string:width:${ldlcol_width}%">LOR</span>
                   <tal:ar repeat="ar ars">
                     <span class="th" tal:attributes="style string:width:${arcol_width}%">Result</span>
                   </tal:ar>
