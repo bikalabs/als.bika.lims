@@ -7,7 +7,6 @@ from AccessControl import ClassSecurityInfo
 import csv
 from DateTime.DateTime import DateTime
 from Products.Archetypes.event import ObjectInitializedEvent
-from Products.CMFCore.WorkflowCore import WorkflowException
 from bika.lims import bikaMessageFactory as _
 from bika.lims.browser import ulocalized_time
 from bika.lims.config import PROJECTNAME
@@ -33,11 +32,9 @@ from Products.DataGridField import CheckboxColumn
 from Products.DataGridField import Column
 from Products.DataGridField import DataGridField
 from Products.DataGridField import DataGridWidget
-from Products.DataGridField import DateColumn
 from Products.DataGridField import DatetimeColumn
 from Products.DataGridField import LinesColumn
 from Products.DataGridField import SelectColumn
-from Products.DataGridField import TimeColumn
 from plone import api
 from plone.indexer import indexer
 from zope import event
@@ -196,7 +193,6 @@ SampleData = DataGridField(
              'DateSampled',
              'Sampler',
              'SamplePoint',
-             'SampleMatrix',
              'SampleType',
              'Container',
              'ReportDryMatter',
@@ -208,13 +204,11 @@ SampleData = DataGridField(
         label=_('Samples'),
         columns={
             'ClientSampleID': Column('Sample ID'),
-            'SamplingDate': DateColumn('Sampling Date'),
+            'SamplingDate': DatetimeColumn('Sampling Date'),
             'DateSampled': DatetimeColumn('Date Sampled'),
             'Sampler': Column('Sampler'),
             'SamplePoint': SelectColumn(
                 'Sample Point', vocabulary='Vocabulary_SamplePoint'),
-            'SampleMatrix': SelectColumn(
-                'Sample Matrix', vocabulary='Vocabulary_SampleMatrix'),
             'SampleType': SelectColumn(
                 'Sample Type', vocabulary='Vocabulary_SampleType'),
             'Container': SelectColumn(
@@ -623,16 +617,6 @@ class ARImport(BaseFolder):
             # TODO this is ignored and is probably meant to serve some purpose.
             del (row['Price excl Tax'])
 
-            if 'SampleMatrix' in row:
-                # SampleMatrix - not part of sample or AR schema
-                title = row['SampleMatrix']
-                if title:
-                    obj = self.lookup(('SampleMatrix',),
-                                      Title=row['SampleMatrix'])
-                    if obj:
-                        gridrow['SampleMatrix'] = obj[0].UID
-                del (row['SampleMatrix'])
-
             # match against sample schema
             for k, v in row.items():
                 if k in ['Analyses', 'Profiles']:
@@ -1011,11 +995,6 @@ class ARImport(BaseFolder):
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
         return vocabulary(allow_blank=True, portal_type='SamplePoint')
-
-    def Vocabulary_SampleMatrix(self):
-        vocabulary = CatalogVocabulary(self)
-        vocabulary.catalog = 'bika_setup_catalog'
-        return vocabulary(allow_blank=True, portal_type='SampleMatrix')
 
     def Vocabulary_SampleType(self):
         vocabulary = CatalogVocabulary(self)
