@@ -568,6 +568,9 @@ class ARImport(BaseFolder):
         row_nr = 0
         for row in sample_data['samples']:
             row = dict(row)
+            # Skip blanks
+            if not any(row.values()):
+                continue
             row_nr += 1
 
             # sid is just for referring the user back to row X in their
