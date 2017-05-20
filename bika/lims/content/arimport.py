@@ -189,14 +189,14 @@ SampleData = DataGridField(
     allow_empty_rows=False,
     allow_oddeven=True,
     columns=('ClientSampleID',
-             'SamplingDate',
+             #'SamplingDate',
              'DateSampled',
              'Sampler',
              'SamplePoint',
              'SampleType',
-             'Container',
+             #'Container',
              'ReportDryMatter',
-             'Priority',
+             #'Priority',
              'Analyses',  # not a schema field!
              'Profiles'  # not a schema field!
              ),
@@ -204,18 +204,18 @@ SampleData = DataGridField(
         label=_('Samples'),
         columns={
             'ClientSampleID': Column('Sample ID'),
-            'SamplingDate': DatetimeColumn('Sampling Date'),
+            #'SamplingDate': DatetimeColumn('Sampling Date'),
             'DateSampled': DatetimeColumn('Date Sampled'),
             'Sampler': Column('Sampler'),
             'SamplePoint': SelectColumn(
                 'Sample Point', vocabulary='Vocabulary_SamplePoint'),
             'SampleType': SelectColumn(
                 'Sample Type', vocabulary='Vocabulary_SampleType'),
-            'Container': SelectColumn(
-                'Container', vocabulary='Vocabulary_Container'),
+            #'Container': SelectColumn(
+            #    'Container', vocabulary='Vocabulary_Container'),
             'ReportDryMatter': CheckboxColumn('Dry'),
-            'Priority': SelectColumn(
-                'Priority', vocabulary='Vocabulary_Priority'),
+            #'Priority': SelectColumn(
+            #    'Priority', vocabulary='Vocabulary_Priority'),
             'Analyses': LinesColumn('Analyses'),
             'Profiles': LinesColumn('Profiles'),
         }
@@ -529,6 +529,7 @@ class ARImport(BaseFolder):
                 continue
             # Get values for this sample row
             vals = [x.strip() for x in row]
+            import pdb;pdb.set_trace();pass
             if not any(vals):
                 continue
             res['samples'].append(zip(res['headers'], vals))
