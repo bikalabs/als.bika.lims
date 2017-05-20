@@ -197,8 +197,8 @@ SampleData = DataGridField(
              'Sampler',
              'SamplePoint',
              'SampleMatrix',
-             'SampleType',  # not a schema field!
-             'ContainerType',  # not a schema field!
+             'SampleType',
+             'Container',
              'ReportDryMatter',
              'Priority',
              'Analyses',  # not a schema field!
@@ -217,8 +217,8 @@ SampleData = DataGridField(
                 'Sample Matrix', vocabulary='Vocabulary_SampleMatrix'),
             'SampleType': SelectColumn(
                 'Sample Type', vocabulary='Vocabulary_SampleType'),
-            'ContainerType': SelectColumn(
-                'Container', vocabulary='Vocabulary_ContainerType'),
+            'Container': SelectColumn(
+                'Container', vocabulary='Vocabulary_Container'),
             'ReportDryMatter': CheckboxColumn('Dry'),
             'Priority': SelectColumn(
                 'Priority', vocabulary='Vocabulary_Priority'),
@@ -373,13 +373,9 @@ class ARImport(BaseFolder):
                 workflow.doActionFor(part, 'sampling_workflow')
             else:
                 workflow.doActionFor(part, 'no_sampling_workflow')
-            # Container is special... it could be a containertype.
             container = self.get_row_container(row)
             if container:
-                if container.portal_type == 'ContainerType':
-                    containers = container.getContainers()
-                # XXX And so we must calculate the best container for this partition
-                part.edit(Container=containers[0])
+                part.edit(Container=container)
 
             # Profiles are titles, profile keys, or UIDS: convert them to UIDs.
             newprofiles = []
@@ -626,16 +622,6 @@ class ARImport(BaseFolder):
 
             # TODO this is ignored and is probably meant to serve some purpose.
             del (row['Price excl Tax'])
-
-            # ContainerType - not part of sample or AR schema
-            if 'ContainerType' in row:
-                title = row['ContainerType']
-                if title:
-                    obj = self.lookup(('ContainerType',),
-                                      Title=row['ContainerType'])
-                    if obj:
-                        gridrow['ContainerType'] = obj[0].UID
-                del (row['ContainerType'])
 
             if 'SampleMatrix' in row:
                 # SampleMatrix - not part of sample or AR schema
@@ -1008,10 +994,6 @@ class ARImport(BaseFolder):
             brains = bsc(portal_type='Container', UID=row['Container'])
             if brains:
                 brains[0].getObject()
-            brains = bsc(portal_type='ContainerType', UID=row['Container'])
-            if brains:
-                # XXX Cheating.  The calculation of capacity vs. volume  is not done.
-                return brains[0].getObject()
         return None
 
     def get_row_profiles(self, row):
@@ -1043,10 +1025,10 @@ class ARImport(BaseFolder):
             folders.append(self.aq_parent)
         return vocabulary(allow_blank=True, portal_type='SampleType')
 
-    def Vocabulary_ContainerType(self):
+    def Vocabulary_Container(self):
         vocabulary = CatalogVocabulary(self)
         vocabulary.catalog = 'bika_setup_catalog'
-        return vocabulary(allow_blank=True, portal_type='ContainerType')
+        return vocabulary(allow_blank=True, portal_type='Container')
 
     def Vocabulary_Priority(self):
         vocabulary = CatalogVocabulary(self)
