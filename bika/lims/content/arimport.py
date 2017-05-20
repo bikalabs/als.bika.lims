@@ -514,40 +514,24 @@ class ARImport(BaseFolder):
     def get_sample_values(self):
         """Read the rows specifying Samples and return a dictionary with
         related data.
-
-        keys are:
-            headers - row with "Samples" in column 0.  These headers are
-               used as dictionary keys in the rows below.
-            prices - Row with "Analysis Price" in column 0.
-            total_analyses - Row with "Total analyses" in colmn 0
-            price_totals - Row with "Total price excl Tax" in column 0
-            samples - All other sample rows.
-
         """
         res = {'samples': []}
         lines = self.getOriginalFile().data.splitlines()
         reader = csv.reader(lines)
-        next_rows_are_sample_rows = False
+        found_samples = False
         for row in reader:
-            if not any(row):
-                continue
-            if next_rows_are_sample_rows:
-                vals = [x.strip() for x in row]
-                if not any(vals):
-                    continue
-                res['samples'].append(zip(res['headers'], vals))
-            elif row[0].strip().lower() == 'samples':
+            # Continue until the last column0="Samples" row is found
+            if row[0].strip().lower() == 'samples':
+                found_samples = True
                 res['headers'] = [x.strip() for x in row]
-            elif row[0].strip().lower() == 'analysis price':
-                res['prices'] = \
-                    zip(res['headers'], [x.strip() for x in row])
-            elif row[0].strip().lower() == 'total analyses':
-                res['total_analyses'] = \
-                    zip(res['headers'], [x.strip() for x in row])
-            elif row[0].strip().lower() == 'total price excl tax':
-                res['price_totals'] = \
-                    zip(res['headers'], [x.strip() for x in row])
-                next_rows_are_sample_rows = True
+                continue
+            if not found_samples:
+                continue
+            # Get values for this sample row
+            vals = [x.strip() for x in row]
+            if not any(vals):
+                continue
+            res['samples'].append(zip(res['headers'], vals))
         return res
 
     def save_sample_data(self):
@@ -684,21 +668,18 @@ class ARImport(BaseFolder):
         lines = self.getOriginalFile().data.splitlines()
         reader = csv.reader(lines)
         batch_headers = batch_data = []
+        found_headers = False
         for row in reader:
-            if not any(row):
-                continue
+            # Find headers
             if row[0].strip().lower() == 'batch header':
+                found_headers = True
                 batch_headers = [x.strip() for x in row][1:]
                 continue
-            if row[0].strip().lower() == 'batch data':
-                batch_data = [x.strip() for x in row][1:]
-                break
-        if not (batch_data or batch_headers):
-            return None
-        if not (batch_data and batch_headers):
-            self.error("Missing batch headers or data")
-            return None
-        # Inject us out of here
+            if not found_headers:
+                continue
+            # Next row is batch data.
+            batch_data = [x.strip() for x in row][1:]
+            break
         values = dict(zip(batch_headers, batch_data))
         return values
 
