@@ -961,8 +961,8 @@ class AnalysisRequestPublishView(BrowserView):
             row = {
                 "LRN": sid,
                 "Date": date,
-                "Constituent": analysis.getService().getKeyword(),
-                "Value": analysis.getFormattedResult(),
+                "Constituent": analysis.getService().Title(),
+                "Value": analysis.getResult(),
                 "Product Description": sample.getSampleType().Title(),
                 "Orig site": point,
             }
