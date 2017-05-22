@@ -35,7 +35,7 @@
 }
 
 #section-info div {
-  margin-top:5px;
+  padding-top:5px;
   padding:0 5px;
 }
 
@@ -46,7 +46,7 @@
 }
 
 #discreeter div{
-  margin-top:3px;
+  padding-top:3px;
   line-height: 125% !important;
 }
 
@@ -110,10 +110,6 @@
     border-bottom:1px solid #cdcdcd;
     border-right:1px solid #cdcdcd;
 }
-.cat_title {
-    padding:2px 0px 2px 0px;
-    margin-top:7px;
-}
 
 .ar_table .unit,
 .ar_table .unit sub,
@@ -131,7 +127,7 @@ div.resultsinterpretation {
 div.resultsinterpretation_heading {
     background: #efefef;
     color: #333333;
-    margin-top:7px;
+    padding-top:7px;
     padding:2px 0px 2px 0px;
     font-size:1.2em;
 }
@@ -150,7 +146,7 @@ div.resultsinterpretation_heading {
     width:100% !important
 }
 .catmeth_table {
-    margin-top: 5px !important;
+    padding-top: 5px !important;
 }
 
 .th { display:table-cell; font-weight:bold; }
