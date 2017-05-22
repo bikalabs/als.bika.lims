@@ -13,12 +13,12 @@ function AnalysisRequestPublishView() {
         'A4': {
                 size: 'A4',
                 dimensions: [210, 297],
-                margins:    [20, 10, 20, 10] },
+                margins:    [20, 20, 20, 20] },
 
         'letter': {
                 size: 'letter',
                 dimensions: [216, 279],
-                margins:    [20, 10, 20, 10] },
+                margins:    [20, 20, 20, 20] },
     };
 
     /**
@@ -254,20 +254,6 @@ function AnalysisRequestPublishView() {
             height:       papersize[currentlayout].dimensions[1]-papersize[currentlayout].margins[0]-papersize[currentlayout].margins[2]
         };
 
-        $('#margin-top').val(dim.marginTop);
-        $('#margin-right').val(dim.marginRight);
-        $('#margin-bottom').val(dim.marginBottom);
-        $('#margin-left').val(dim.marginLeft);
-
-        var layout_style =
-            '@page { size:  ' + dim.size + ' ' + orientation + ' !important;' +
-            '        width:  ' + dim.width + 'mm !important;' +
-            '        margin: 0mm '+dim.marginRight+'mm 0mm '+dim.marginLeft+'mm !important;' +
-            '}';
-        $('#layout-style').html(layout_style);
-        $('#ar_publish_container').css({'width':dim.width + 'mm', 'padding': '0mm '+dim.marginRight + 'mm 0mm '+dim.marginLeft +'mm '});
-        $('#ar_publish_header').css('margin', '0mm -'+dim.marginRight + 'mm 0mm -' +dim.marginLeft+'mm');
-        $('div.ar_publish_body').css({'width': dim.width + 'mm', 'max-width': dim.width + 'mm', 'min-width': dim.width + 'mm'});
 
         // Iterate for each AR report and apply the dimensions, header,
         // footer, etc.
@@ -306,6 +292,9 @@ function AnalysisRequestPublishView() {
                 footer_html   = '<div class="page-footer">'+$(pgf).html()+'</div>';
                 $(this).find('.page-footer').remove();
             }
+
+            // The margins may have been adjusted, so we re-set the height here
+            dim.height = papersize[currentlayout].dimensions[1] - dim.marginTop - dim.marginBottom
 
             // Remove undesired and orphan page breaks
             $(this).find('.page-break').remove();
@@ -464,6 +453,24 @@ function AnalysisRequestPublishView() {
                 }
             });
         });
+
+        // Set the page width and height, and the margins here, afterwards,
+        // because in the loop above, some adjustments can be made.
+        $('#margin-top').val(dim.marginTop);
+        $('#margin-right').val(dim.marginRight);
+        $('#margin-bottom').val(dim.marginBottom);
+        $('#margin-left').val(dim.marginLeft);
+
+        var layout_style =
+            '@page { size:  ' + dim.size + ' ' + orientation + ' !important;' +
+            '        width:  ' + dim.width + 'mm !important;' +
+            '        margin: 0mm '+dim.marginRight+'mm 0mm '+dim.marginLeft+'mm !important;' +
+            '}';
+        $('#layout-style').html(layout_style);
+        $('#ar_publish_container').css({'width':dim.width + 'mm', 'padding': '0mm '+dim.marginRight + 'mm 0mm '+dim.marginLeft +'mm '});
+        $('#ar_publish_header').css('margin', '0mm -'+dim.marginRight + 'mm 0mm -' +dim.marginLeft+'mm');
+        $('div.ar_publish_body').css({'width': dim.width + 'mm', 'max-width': dim.width + 'mm', 'min-width': dim.width + 'mm'});
+
         // Remove manual page breaks
         $('.manual-page-break').remove();
     }
