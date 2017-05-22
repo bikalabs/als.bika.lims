@@ -1,16 +1,8 @@
-<tal:comment replace="nothing">
-    Print COA for a set of analysisrequests.
-
-    The filename starts with "multi" indicates this report is formatted
-    print multiple ARs.
-</tal:comment>
-
 <tal:report tal:define="num_ars_per_page python:5;
                         argroup python:view.getAnalysisRequestGroup();
                         arspage python:[argroup[i:i+num_ars_per_page] for i in range(0,len(argroup),num_ars_per_page)];
                         coanr python:view.next_certificate_number();">
 
-  <!-- Address and Lab info, displayed only on first page. -->
   <div id="section-info"
        tal:define="firstar         python:arspage[0][0];
                    analysisrequest python:view.getAnalysisRequest(firstar);
@@ -30,7 +22,6 @@
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
         <td>
-          <!-- Client -->
           <table>
             <tr>
               <th i18n:translate="" class="label">Client</th>
@@ -58,7 +49,6 @@
           </table>
         </td>
         <td>
-          <!-- Laboratory -->
           <table>
             <tr>
               <th i18n:translate="" class="label">
@@ -101,16 +91,13 @@
         <td tal:content="structure python:len(argroup)"/>
       </tr>
       <tr>
-        <th i18n:translate="" class="label">Certificate Number
-        </th>
+        <th i18n:translate="" class="label">Certificate Number</th>
         <td tal:content="structure coanr"/>
       </tr>
     </table>
 
     <hr size="1"/>
 
-
-    <!-- Discreeter section -->
     <div class="discreeter" id="discreeter-info">
       <div i18n:translate="">
         This report supersedes any previous report for the samples listed here.
@@ -152,8 +139,6 @@
                           contact         python:analysisrequest['obj'].getContact();
                           lab             python:portal.bika_setup.laboratory;
                           acc_logo        python:lab.getAccreditationBodyLogo();">
-
-      <!-- This element will be displayed on each page within the top margin area. -->
       <div id="section-header" class="page-header">
         <div id='lab-logo'>
           <div style="padding-bottom: 5px;">
@@ -172,8 +157,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Analysis Requests table -->
       <tal:def tal:define="analyses python:view.getAnaysisBasedTransposedCatMethMatrix(ars);
                            cat_titles python:sorted(analyses.keys());
                            ldlcol_width python: 7;
@@ -182,8 +165,6 @@
                            servicecol_width python:float(leftcol_width)/100*75 - 7;
                            unitcol_width python:leftcol_width-(servicecol_width+ldlcol_width);
                            arcol_width python:float(rightcol_width)/len(ars);">
-
-        <!-- AR Group headers -->
         <div class="table ar_table">
           <div class="row">
             <span class="th header_th"
@@ -219,14 +200,9 @@
 
         <tal:cat tal:repeat="cat_title cat_titles">
           <tal:meth tal:repeat="meth_title python:analyses[cat_title].keys()">
-            <!-- Service details for each result and results for each AR -->
-            <div>  <!-- This div prevents pages from splitting the header away from the table body -->
-              <div class="table catmeth_table">
-                <div class="catmeth_row">
-                  <div class="td catmeth_title" tal:content="python:'%s (%s)'%(cat_title, meth_title)" tal:condition="meth_title"/>
-                  <div class="td catmeth_title" tal:content="python:'%s'%cat_title" tal:condition="not: meth_title"/>
-                </div>
-              </div>
+            <div tal:attributes="class python:'no-break-wrapper %s %s'%(cat_title, meth_title)">
+              <div class="catmeth_row" tal:content="python:'%s (%s)'%(cat_title, meth_title)" tal:condition="meth_title"/>
+              <div class="catmeth_row" tal:content="python:'%s'%cat_title" tal:condition="not: meth_title"/>
               <div class="table ar_table">
                 <div class="row">
                   <span class="th" tal:attributes="style string:width:${servicecol_width}%">Service</span>
@@ -254,18 +230,15 @@
                       <tal:each_an
                               tal:define="this_an python:ar.get(_analysis_.id, None);
                                           state python:_analysis_.portal_workflow.getInfoFor(this_an, 'review_state') if this_an else '';">
-                        <!-- Results in valid analyses -->
                         <span class="td result"
                               tal:condition="python:state and state in ('verified', 'published')"
                               tal:attributes="style string:width:${arcol_width}%"
                               tal:content="structure python:this_an.getFormattedResult()"/>
-                        <!-- Analysis in wrong state -->
                         <span class="td result"
                               tal:condition="python:state and state not in ('verified', 'published')"
                               tal:attributes="style string:width:${arcol_width}%">
                           <img tal:attributes='src python:portal.absolute_url()+"/++resource++bika.lims.images/to_follow.png";' class="to_follow-ico"/>
                         </span>
-                        <!-- Analysis not in this AR -->
                         <span class="td result"
                               tal:condition="python:not state"
                               tal:attributes="style string:width:${arcol_width}%">
@@ -279,8 +252,6 @@
             </div>
           </tal:meth>
         </tal:cat>
-
-        <!-- Results Interpretation for all ARs in this argroup -->
         <tal:ri_ars repeat="ar ars">
           <tal:ri_def define="interps python:ar.getResultsInterpretationDepts();
                               uc python:ar.uid_catalog"

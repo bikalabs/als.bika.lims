@@ -101,6 +101,7 @@ function AnalysisRequestPublishView() {
                 $.ajax({
                     url: url,
                     type: 'POST',
+                    async: false,
                     data: { "publish":1,
                             "id":$(this).attr('id'),
                             "uid":$(this).attr('uid'),
@@ -271,7 +272,7 @@ function AnalysisRequestPublishView() {
                 header_height = parseFloat($(pgh).outerHeight(true));
                 if (header_height > mmTopx(dim.marginTop)) {
                     dim.marginTop = pxTomm(header_height) + 2;
-                    $('#margin-top').val(pxTomm(header_height));
+                    $('#margin-top').val(dim.marginTop);
                 }
                 header_html   = '<div class="page-header">'+$(pgh).html()+'</div>';
                 $(this).find('.page-header').remove();
@@ -287,7 +288,7 @@ function AnalysisRequestPublishView() {
                 footer_height = parseFloat($(pgf).outerHeight(true));
                 if (footer_height > mmTopx(dim.marginBottom)) {
                     dim.marginBottom = pxTomm(footer_height) + 2;
-                    $('#margin-bottom').val(pxTomm(header_height));
+                    $('#margin-bottom').val(dim.marginBottom);
                 }
                 footer_html   = '<div class="page-footer">'+$(pgf).html()+'</div>';
                 $(this).find('.page-footer').remove();

@@ -35,8 +35,7 @@
 }
 
 #section-info div {
-  padding-top:5px;
-  padding:0 5px;
+  padding:5px;
 }
 
 #section-info-heading {
@@ -86,17 +85,16 @@
 }
 
 .ar_table {
-    font-size: 70%;
+    font-size: 10pt;
     border-top:1px solid #cdcdcd;
     border-left:1px solid #cdcdcd;
 }
 .ar_table .header_th {
     font-weight:bold;
-    padding: 2px 2px 2px 0;
+    padding: 2px;
 }
 .ar_table .header_td {
     text-align: center;
-    padding:2px;
 }
 .ar_table .th {
     background: #eeeeee;
@@ -117,7 +115,7 @@
     color:#777;
     font-weight:normal !important;
     font-style:italic !important;
-    font-size:90%;
+    font-size:8px;
 }
 
 div.resultsinterpretation {
@@ -137,16 +135,12 @@ div.resultsinterpretation_heading {
    for the sake of table-less layout. */
 .table { display:table; table-layout:fixed; width:100%; }
 .row { display:table-row; width:100%; }
+
 .catmeth_row {
-    display:table-row;
     background: #bbbbbb;
     color: #000000;
     font-weight: bold;
-    padding-top:2px;
-    width:100% !important
-}
-.catmeth_table {
-    padding-top: 5px !important;
+    width:100% !important;
 }
 
 .th { display:table-cell; font-weight:bold; }

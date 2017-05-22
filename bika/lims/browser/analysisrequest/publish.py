@@ -823,6 +823,7 @@ class AnalysisRequestPublishView(BrowserView):
 
         results_html = self.localize_images(results_html)
         # Create the pdf report for the supplied HTML.
+        open('/tmp/2499.html', 'w').write(results_html)
         pdf_report = createPdf(results_html, False)
         # PDF written to debug file?
         if debug_mode:
