@@ -8,6 +8,7 @@ import csv
 from DateTime.DateTime import DateTime
 from Products.Archetypes.event import ObjectInitializedEvent
 from bika.lims import bikaMessageFactory as _
+from bika.lims.api import get_transitions_for, do_transition_for
 from bika.lims.browser import ulocalized_time
 from bika.lims.config import PROJECTNAME
 from bika.lims.content.bikaschema import BikaSchema
@@ -415,6 +416,14 @@ class ARImport(BaseFolder):
                 workflow.doActionFor(ar, 'sampling_workflow')
             else:
                 workflow.doActionFor(ar, 'no_sampling_workflow')
+
+            # If the Sampling Workflow field values are valid,
+            # and the SamplingWorkflow is enabled, we will
+            # automatically kick off the "sample" transition now
+            tids = [t['id'] for t in get_transitions_for(ar)]
+            if 'sample' in tids:
+                do_transition_for(ar, 'sample')
+
             progress_index = float(row_cnt) / len(gridrows) * 100
             progress = ProgressState(self.REQUEST, progress_index)
             notify(UpdateProgressEvent(progress))
