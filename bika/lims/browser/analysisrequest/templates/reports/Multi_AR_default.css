@@ -59,6 +59,11 @@
     vertical-align:middle;
 }
 
+.to_follow-ico {
+    height:1.1em;
+    vertical-align:middle;
+}
+
 #report #lab-logo {
   margin-bottom:4px !important;
 }
@@ -84,7 +89,6 @@
     font-size: 70%;
     border-top:1px solid #cdcdcd;
     border-left:1px solid #cdcdcd;
-    margin-top: 5px !important;
 }
 .ar_table .header_th {
     font-weight:bold;
@@ -145,6 +149,10 @@ div.resultsinterpretation_heading {
     padding-top:2px;
     width:100% !important
 }
+.catmeth_table {
+    margin-top: 5px !important;
+}
+
 .th { display:table-cell; font-weight:bold; }
 .td { display:table-cell; }
 /* this is where the colspan tricks works. */

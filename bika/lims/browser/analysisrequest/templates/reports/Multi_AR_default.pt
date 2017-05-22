@@ -219,7 +219,7 @@
           <tal:meth tal:repeat="meth_title python:analyses[cat_title].keys()">
             <!-- Service details for each result and results for each AR -->
             <div>  <!-- This div prevents pages from splitting the header away from the table body -->
-              <div class="table">
+              <div class="table catmeth_table">
                 <div class="catmeth_row">
                   <div class="td catmeth_title" tal:content="python:'%s (%s)'%(cat_title, meth_title)" tal:condition="meth_title"/>
                   <div class="td catmeth_title" tal:content="python:'%s'%cat_title" tal:condition="not: meth_title"/>
@@ -234,29 +234,42 @@
                     <span class="th" tal:attributes="style string:width:${arcol_width}%">Result</span>
                   </tal:ar>
                 </div>
-                <tal:analyses tal:repeat="analysis python:analyses[cat_title][meth_title]">
+                <tal:analyses tal:repeat="_analysis_ python:analyses[cat_title][meth_title]">
                   <div class="row">
                     <span class="td service_title" tal:attributes="style string:width:${servicecol_width}%">
-                      <span tal:content="python:analysis.getService().Title()"/>
+                      <span tal:content="python:_analysis_.getService().Title()"/>
                       <img tal:attributes='src python:portal.absolute_url()+"/++resource++bika.lims.images/accredited.png";'
-                           tal:condition="python:analysis.getService().getAccredited()"
+                           tal:condition="python:_analysis_.getService().getAccredited()"
                            class="accredited-ico"/>
                     </span>
                     <span class="td unit"
                           tal:attributes="style string:width:${unitcol_width}%"
-                          tal:content="python:analysis.getService().getUnit()"></span>
+                          tal:content="python:_analysis_.getService().getUnit()"></span>
                     <span class="td unit"
                           tal:attributes="style string:width:${ldlcol_width}%"
-                          tal:content="python:analysis.getService().getLowerDetectionLimit()"></span>
+                          tal:content="python:_analysis_.getService().getLowerDetectionLimit()"></span>
                     <tal:ar repeat="ar ars">
-                      <span class="td result"
-                            tal:condition="python:analysis.getFormattedResult()"
-                            tal:attributes="style string:width:${arcol_width}%"
-                            tal:content="structure python:analysis.getFormattedResult()"/>
-                      <span class="td result"
-                            tal:condition="python:not analysis.getFormattedResult()"
-                            tal:attributes="style string:width:${arcol_width}%"
-                            tal:content="-"/>
+                      <tal:each_an
+                              tal:define="this_an python:ar.get(_analysis_.id, None);
+                                          state python:_analysis_.portal_workflow.getInfoFor(this_an, 'review_state') if this_an else '';">
+                        <!-- Results in valid analyses -->
+                        <span class="td result"
+                              tal:condition="python:state and state in ('verified', 'published')"
+                              tal:attributes="style string:width:${arcol_width}%"
+                              tal:content="structure python:this_an.getFormattedResult()"/>
+                        <!-- Analysis in wrong state -->
+                        <span class="td result"
+                              tal:condition="python:state and state not in ('verified', 'published')"
+                              tal:attributes="style string:width:${arcol_width}%">
+                          <img tal:attributes='src python:portal.absolute_url()+"/++resource++bika.lims.images/to_follow.png";' class="to_follow-ico"/>
+                        </span>
+                        <!-- Analysis not in this AR -->
+                        <span class="td result"
+                              tal:condition="python:not state"
+                              tal:attributes="style string:width:${arcol_width}%">
+                          -
+                        </span>
+                      </tal:each_an>
                     </tal:ar>
                   </div>
                 </tal:analyses>

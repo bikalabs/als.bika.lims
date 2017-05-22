@@ -1153,5 +1153,8 @@ class AnalysisRequestPublishView(BrowserView):
                 if meth not in catmeths[cat]:
                     catmeths[cat][meth] = []
                 # Then add analysis to catmeths/cat/meth
-                catmeths[cat][meth].append(an)
+                titles = [a.getService().Title() for a in catmeths[cat][meth]]
+                if an.getService().Title() not in titles:
+                    catmeths[cat][meth].append(an)
+
         return catmeths
