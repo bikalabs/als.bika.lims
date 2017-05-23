@@ -28,12 +28,15 @@ class InstrumentTypesView(BikaListingView):
         self.catalog = 'bika_setup_catalog'
         self.contentFilter = {'portal_type': 'InstrumentType', 
                               'sort_on': 'sortable_title'}
-        self.context_actions = {_('Add'):
-                                {'url': 'createObject?type_name=InstrumentType',
-                                 'icon': '++resource++bika.lims.images/add.png'}}
+        self.context_actions = {
+            _('Add'):
+                {'url': 'createObject?type_name=InstrumentType',
+                 'icon': '++resource++bika.lims.images/add.png'}}
         self.title = self.context.translate(_("Instrument Types"))
         self.icon = "++resource++bika.lims.images/instrumenttype_big.png"
         self.description = ""
+        self.sort_on = 'Title'
+        self.sort_order = 'ascending'
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_column = True

@@ -22,6 +22,8 @@ class BikaSetupItemsView(BikaListingView):
         self.show_select_column = True
         self.icon = self.portal_url + "/++resource++bika.lims.images/" + iconfilename
         self.catalog = 'bika_setup_catalog'
+        self.sort_on = 'Title'
+        self.sort_order = 'ascending'
         self.contentFilter = {
             'portal_type': typename,
             'sort_on': 'sortable_title'

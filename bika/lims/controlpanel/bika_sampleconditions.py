@@ -31,6 +31,8 @@ class SampleConditionsView(BikaListingView):
         self.icon = self.portal_url + \
                     "/++resource++bika.lims.images/samplecondition_big.png"
         self.description = ""
+        self.sort_on = 'Title'
+        self.sort_order = 'ascending'
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_column = True

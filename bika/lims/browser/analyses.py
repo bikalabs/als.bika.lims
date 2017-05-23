@@ -48,6 +48,8 @@ class AnalysesView(BikaListingView):
         self.contentFilter['portal_type'] = 'Analysis'
         self.contentFilter['sort_on'] = 'sortable_title'
         self.context_actions = {}
+        self.sort_on = 'Title'
+        self.sort_order = 'ascending'
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_column = False
@@ -67,6 +69,7 @@ class AnalysesView(BikaListingView):
         self.columns = {
             'Service': {
                 'title': _('Analysis'),
+                'index': 'Title',
                 'sortable': False},
             'Partition': {
                 'title': _("Partition"),

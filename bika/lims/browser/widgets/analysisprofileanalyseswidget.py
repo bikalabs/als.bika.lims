@@ -29,6 +29,8 @@ class AnalysisProfileAnalysesView(BikaListingView):
         self.context_actions = {}
         self.base_url = self.context.absolute_url()
         self.view_url = self.base_url
+        self.sort_on = 'Title'
+        self.sort_order = 'ascending'
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_all_checkbox = False

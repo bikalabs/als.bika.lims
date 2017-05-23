@@ -39,6 +39,8 @@ class AnalysisRequestAnalysesView(BikaListingView):
         self.context_actions = {}
         self.icon = self.portal_url + "/++resource++bika.lims.images/analysisrequest_big.png"
         self.title = self.context.Title()
+        self.sort_on = 'Title'
+        self.sort_order = 'ascending'
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_column = True
