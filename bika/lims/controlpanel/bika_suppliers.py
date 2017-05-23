@@ -39,7 +39,7 @@ class SuppliersView(BikaListingView):
         self.show_select_column = True
         self.sort_on = 'getName'
         self.sort_order = 'ascending'
-        self.pagesize = 25
+        self.pagesize = 50
 
         self.columns = {
             'getName': {'title': _('getName'),

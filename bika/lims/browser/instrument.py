@@ -148,7 +148,7 @@ class InstrumentCalibrationsView(BikaListingView):
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_column = True
-        self.pagesize = 25
+        self.pagesize = 50
         self.form_id = "instrumentcalibrations"
         self.icon = self.portal_url + "/++resource++bika.lims.images/instrumentcalibration_big.png"
         self.title = self.context.translate(_("Instrument Calibrations"))
@@ -205,7 +205,7 @@ class InstrumentValidationsView(BikaListingView):
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_column = True
-        self.pagesize = 25
+        self.pagesize = 50
         self.form_id = "instrumentvalidations"
         self.icon = self.portal_url + "/++resource++bika.lims.images/instrumentvalidation_big.png"
         self.title = self.context.translate(_("Instrument Validations"))
@@ -264,7 +264,7 @@ class InstrumentScheduleView(BikaListingView):
         self.show_select_row = False
         self.show_select_column = True
         self.show_select_all_checkbox = False
-        self.pagesize = 25
+        self.pagesize = 50
 
         self.form_id = "instrumentschedule"
         self.icon = self.portal_url + "/++resource++bika.lims.images/instrumentschedule_big.png"

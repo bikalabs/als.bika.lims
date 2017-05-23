@@ -32,7 +32,7 @@ class BatchLabelsView(BikaListingView):
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_column = True
-        self.pagesize = 25
+        self.pagesize = 50
 
         self.columns = {
             'Title': {'title': _('Label'),
