@@ -28,15 +28,18 @@ class Parser(InstrumentResultsFileParser):
         sample_id = None
         for row in sheet.rows:
 
+            # If no keyword is present, this row is skipped.
+            if not len(row) < 7 or not isinstance(row[6], basestring):
+                continue
+            # keyword is stripped of non-word characters
+            keyword = re.sub(r"\W", "", row[6].value)
+
             # sampleid is only present in first row of each sample.
             # any rows above the first sample id are ignored.
             if row[1].value:
                 sample_id = row[1].value
             if not sample_id:
                 continue
-
-            # keyword is stripped of non-word characters
-            keyword = re.sub(r"\W", "", row[6].value)
 
             # result is floatable or error
             result = row[4].value
