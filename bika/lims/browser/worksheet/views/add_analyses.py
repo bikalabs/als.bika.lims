@@ -37,9 +37,14 @@ class AddAnalysesView(BikaListingView):
         # initial review state for first form display of the worksheet
         # add_analyses search view - first batch of analyses, latest first.
         self.contentFilter = {'portal_type': 'Analysis',
-                              'review_state':'sample_received',
-                              'worksheetanalysis_review_state':'unassigned',
-                              'cancellation_state':'active'}
+                              'review_state': 'sample_received',
+                              'worksheetanalysis_review_state': 'unassigned',
+                              'cancellation_state': 'active'}
+        # If an instrument is selected, restrict displayed analyses to those
+        # which are compatible.
+        instrument = context.getInstrument()
+        if instrument:
+            self.contentFilter['getAllowedInstrumentUIDs'] = instrument.UID()
         self.base_url = self.context.absolute_url()
         self.view_url = self.base_url + "/add_analyses"
         self.show_sort_column = False

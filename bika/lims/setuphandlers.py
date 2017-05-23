@@ -590,6 +590,10 @@ class BikaGenerator:
         addIndex(bac, 'getRetested', 'FieldIndex')
         addIndex(bac, 'getReferenceAnalysesGroupID', 'FieldIndex')
 
+        # This is how worksheets with an instrument selected, choose the
+        # correct instruments
+        addIndex(bac, 'getAllowedInstrumentUIDs', 'KeywordIndex')
+
         addColumn(bac, 'path')
         addColumn(bac, 'UID')
         addColumn(bac, 'id')
