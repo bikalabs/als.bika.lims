@@ -37,6 +37,8 @@ class SupplierReferenceSamplesView(ReferenceSamplesView):
         del self.columns['Supplier']
         for rs in self.review_states:
             rs['columns'] = [col for col in rs['columns'] if col != 'Supplier']
+        if 'disable_border' in self.request.other:
+            del (self.request.other['disable_border'])
 
 
 class ContactsView(BikaListingView):
