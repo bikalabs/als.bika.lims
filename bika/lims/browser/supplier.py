@@ -84,3 +84,4 @@ class ContactsView(BikaListingView):
                          'getMobilePhone',
                          'getFax']},
         ]
+
