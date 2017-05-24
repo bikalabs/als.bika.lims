@@ -308,8 +308,7 @@ class ReferenceSamplesView(BikaListingView):
                               'path':{"query": ["/"], "level" : 0 }, }
         self.context_actions = {}
         self.show_select_column = True
-        if not request.get('subclassed_SupplierReferenceSamplesView'):
-            request.set('disable_border', 1)
+        request.set('disable_border', 1)
 
         self.columns = {
             'ID': {
