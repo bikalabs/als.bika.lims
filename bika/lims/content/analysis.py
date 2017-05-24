@@ -877,6 +877,9 @@ class Analysis(BaseContent):
 
         return uids
 
+    def getAllowedInstrumentUIDs(self):
+        return self.getAllowedInstruments(onlyuids=True)
+
     def getDefaultMethod(self):
         """ Returns the default method for this Analysis
             according to its current instrument. If the Analysis hasn't
