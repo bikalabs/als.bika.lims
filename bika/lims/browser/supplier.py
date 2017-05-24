@@ -59,7 +59,6 @@ class ContactsView(BikaListingView):
         self.show_select_row = False
         self.show_select_column = True
         self.pagesize = 50
-        self.icon = self.portal_url + "/++resource++bika.lims.images/contact_big.png"
         self.icon = self.portal_url + \
                     "/++resource++bika.lims.images/contact_big.png"
         self.title = self.context.translate(_("Contacts"))
