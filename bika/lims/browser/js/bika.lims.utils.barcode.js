@@ -25,8 +25,10 @@ function BarcodeUtils() {
             var barHeight = $(this).attr('data-barHeight');
             var addQuietZone = $(this).attr('data-addQuietZone');
             var showHRI = $(this).attr('data-showHRI');
+            var output = $(this).attr('data-output');
             $(this).barcode(id, code,
                             {'barHeight': parseInt(barHeight),
+                             "output": output,
                              'addQuietZone': Boolean(addQuietZone),
                              'showHRI': Boolean(showHRI) });
             // We will handle the output overflow ourselves;
