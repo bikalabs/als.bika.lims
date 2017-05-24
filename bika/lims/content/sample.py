@@ -207,7 +207,7 @@ schema = BikaSchema.copy() + Schema((
                 'sample_registered': {'view': 'visible', 'edit': 'visible'},
                 'to_be_sampled': {'view': 'visible', 'edit': 'visible'},
                 'scheduled_sampling': {'view': 'visible', 'edit': 'visible'},
-                'sampled': {'view': 'visible', 'edit': 'invisible'},
+                'sampled': {'view': 'visible', 'edit': 'visible'},
                 'to_be_preserved': {'view': 'visible', 'edit': 'visible'},
                 'sample_due': {'view': 'visible', 'edit': 'visible'},
                 'sample_received': {'view': 'visible', 'edit': 'visible'},
