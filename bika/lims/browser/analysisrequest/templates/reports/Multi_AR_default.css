@@ -35,8 +35,7 @@
 }
 
 #section-info div {
-  margin-top:5px;
-  padding:0 5px;
+  padding:5px;
 }
 
 #section-info-heading {
@@ -46,7 +45,7 @@
 }
 
 #discreeter div{
-  margin-top:3px;
+  padding-top:3px;
   line-height: 125% !important;
 }
 
@@ -55,6 +54,11 @@
 }
 
 .accredited-ico {
+    height:1.1em;
+    vertical-align:middle;
+}
+
+.to_follow-ico {
     height:1.1em;
     vertical-align:middle;
 }
@@ -81,18 +85,16 @@
 }
 
 .ar_table {
-    font-size: 70%;
+    font-size: 10pt;
     border-top:1px solid #cdcdcd;
     border-left:1px solid #cdcdcd;
-    margin-top: 5px !important;
 }
 .ar_table .header_th {
     font-weight:bold;
-    padding: 2px 2px 2px 0;
+    padding: 2px;
 }
 .ar_table .header_td {
     text-align: center;
-    padding:2px;
 }
 .ar_table .th {
     background: #eeeeee;
@@ -106,10 +108,6 @@
     border-bottom:1px solid #cdcdcd;
     border-right:1px solid #cdcdcd;
 }
-.cat_title {
-    padding:2px 0px 2px 0px;
-    margin-top:7px;
-}
 
 .ar_table .unit,
 .ar_table .unit sub,
@@ -117,7 +115,7 @@
     color:#777;
     font-weight:normal !important;
     font-style:italic !important;
-    font-size:90%;
+    font-size:8px;
 }
 
 div.resultsinterpretation {
@@ -127,7 +125,7 @@ div.resultsinterpretation {
 div.resultsinterpretation_heading {
     background: #efefef;
     color: #333333;
-    margin-top:7px;
+    padding-top:7px;
     padding:2px 0px 2px 0px;
     font-size:1.2em;
 }
@@ -137,14 +135,14 @@ div.resultsinterpretation_heading {
    for the sake of table-less layout. */
 .table { display:table; table-layout:fixed; width:100%; }
 .row { display:table-row; width:100%; }
+
 .catmeth_row {
-    display:table-row;
     background: #bbbbbb;
     color: #000000;
     font-weight: bold;
-    padding-top:2px;
-    width:100% !important
+    width:100% !important;
 }
+
 .th { display:table-cell; font-weight:bold; }
 .td { display:table-cell; }
 /* this is where the colspan tricks works. */

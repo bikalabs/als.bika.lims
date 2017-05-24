@@ -823,6 +823,7 @@ class AnalysisRequestPublishView(BrowserView):
 
         results_html = self.localize_images(results_html)
         # Create the pdf report for the supplied HTML.
+        open('/tmp/2499.html', 'w').write(results_html)
         pdf_report = createPdf(results_html, False)
         # PDF written to debug file?
         if debug_mode:
@@ -1153,5 +1154,8 @@ class AnalysisRequestPublishView(BrowserView):
                 if meth not in catmeths[cat]:
                     catmeths[cat][meth] = []
                 # Then add analysis to catmeths/cat/meth
-                catmeths[cat][meth].append(an)
+                titles = [a.getService().Title() for a in catmeths[cat][meth]]
+                if an.getService().Title() not in titles:
+                    catmeths[cat][meth].append(an)
+
         return catmeths

@@ -13,12 +13,12 @@ function AnalysisRequestPublishView() {
         'A4': {
                 size: 'A4',
                 dimensions: [210, 297],
-                margins:    [20, 10, 20, 10] },
+                margins:    [20, 20, 20, 20] },
 
         'letter': {
                 size: 'letter',
                 dimensions: [216, 279],
-                margins:    [20, 10, 20, 10] },
+                margins:    [20, 20, 20, 20] },
     };
 
     /**
@@ -101,6 +101,7 @@ function AnalysisRequestPublishView() {
                 $.ajax({
                     url: url,
                     type: 'POST',
+                    async: false,
                     data: { "publish":1,
                             "id":$(this).attr('id'),
                             "uid":$(this).attr('uid'),
@@ -254,20 +255,6 @@ function AnalysisRequestPublishView() {
             height:       papersize[currentlayout].dimensions[1]-papersize[currentlayout].margins[0]-papersize[currentlayout].margins[2]
         };
 
-        $('#margin-top').val(dim.marginTop);
-        $('#margin-right').val(dim.marginRight);
-        $('#margin-bottom').val(dim.marginBottom);
-        $('#margin-left').val(dim.marginLeft);
-
-        var layout_style =
-            '@page { size:  ' + dim.size + ' ' + orientation + ' !important;' +
-            '        width:  ' + dim.width + 'mm !important;' +
-            '        margin: 0mm '+dim.marginRight+'mm 0mm '+dim.marginLeft+'mm !important;' +
-            '}';
-        $('#layout-style').html(layout_style);
-        $('#ar_publish_container').css({'width':dim.width + 'mm', 'padding': '0mm '+dim.marginRight + 'mm 0mm '+dim.marginLeft +'mm '});
-        $('#ar_publish_header').css('margin', '0mm -'+dim.marginRight + 'mm 0mm -' +dim.marginLeft+'mm');
-        $('div.ar_publish_body').css({'width': dim.width + 'mm', 'max-width': dim.width + 'mm', 'min-width': dim.width + 'mm'});
 
         // Iterate for each AR report and apply the dimensions, header,
         // footer, etc.
@@ -285,7 +272,7 @@ function AnalysisRequestPublishView() {
                 header_height = parseFloat($(pgh).outerHeight(true));
                 if (header_height > mmTopx(dim.marginTop)) {
                     dim.marginTop = pxTomm(header_height) + 2;
-                    $('#margin-top').val(pxTomm(header_height));
+                    $('#margin-top').val(dim.marginTop);
                 }
                 header_html   = '<div class="page-header">'+$(pgh).html()+'</div>';
                 $(this).find('.page-header').remove();
@@ -301,11 +288,14 @@ function AnalysisRequestPublishView() {
                 footer_height = parseFloat($(pgf).outerHeight(true));
                 if (footer_height > mmTopx(dim.marginBottom)) {
                     dim.marginBottom = pxTomm(footer_height) + 2;
-                    $('#margin-bottom').val(pxTomm(header_height));
+                    $('#margin-bottom').val(dim.marginBottom);
                 }
                 footer_html   = '<div class="page-footer">'+$(pgf).html()+'</div>';
                 $(this).find('.page-footer').remove();
             }
+
+            // The margins may have been adjusted, so we re-set the height here
+            dim.height = papersize[currentlayout].dimensions[1] - dim.marginTop - dim.marginBottom
 
             // Remove undesired and orphan page breaks
             $(this).find('.page-break').remove();
@@ -464,6 +454,24 @@ function AnalysisRequestPublishView() {
                 }
             });
         });
+
+        // Set the page width and height, and the margins here, afterwards,
+        // because in the loop above, some adjustments can be made.
+        $('#margin-top').val(dim.marginTop);
+        $('#margin-right').val(dim.marginRight);
+        $('#margin-bottom').val(dim.marginBottom);
+        $('#margin-left').val(dim.marginLeft);
+
+        var layout_style =
+            '@page { size:  ' + dim.size + ' ' + orientation + ' !important;' +
+            '        width:  ' + dim.width + 'mm !important;' +
+            '        margin: 0mm '+dim.marginRight+'mm 0mm '+dim.marginLeft+'mm !important;' +
+            '}';
+        $('#layout-style').html(layout_style);
+        $('#ar_publish_container').css({'width':dim.width + 'mm', 'padding': '0mm '+dim.marginRight + 'mm 0mm '+dim.marginLeft +'mm '});
+        $('#ar_publish_header').css('margin', '0mm -'+dim.marginRight + 'mm 0mm -' +dim.marginLeft+'mm');
+        $('div.ar_publish_body').css({'width': dim.width + 'mm', 'max-width': dim.width + 'mm', 'min-width': dim.width + 'mm'});
+
         // Remove manual page breaks
         $('.manual-page-break').remove();
     }
