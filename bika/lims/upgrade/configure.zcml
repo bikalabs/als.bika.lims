@@ -578,4 +578,12 @@
          handler="bika.lims.upgrade.to320.upgrade"
          sortkey="1"
          profile="bika.lims:default"/>
+
+ <genericsetup:upgradeStep
+         title="Upgrade to Bika LIMS 3.2.0.170524"
+         source="320"
+         destination="3.2.0.170524"
+         handler="bika.lims.upgrade.v3_2_0_170524.upgrade"
+         profile="bika.lims:default"/>
+
 </configure>
