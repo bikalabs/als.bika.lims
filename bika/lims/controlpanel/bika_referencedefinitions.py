@@ -36,10 +36,12 @@ class ReferenceDefinitionsView(BikaListingView):
         self.description = self.context.translate(_(
             "ReferenceDefinition represents a Reference Definition "
             "or sample type used for quality control testing"))
+        self.sort_on = 'Title'
+        self.sort_order = 'ascending'
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_column = True
-        self.pagesize = 25
+        self.pagesize = 50
 
         self.columns = {
             'Title': {'title': _('Title'),

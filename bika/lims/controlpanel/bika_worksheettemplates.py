@@ -37,10 +37,12 @@ class WorksheetTemplatesView(BikaListingView):
         self.title = self.context.translate(_("Worksheet Templates"))
         self.icon = self.portal_url + "/++resource++bika.lims.images/worksheettemplate_big.png"
         self.description = ""
+        self.sort_on = 'Title'
+        self.sort_order = 'ascending'
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_column = True
-        self.pagesize = 25
+        self.pagesize = 50
 
         self.columns = {
             'Title': {'title': _('Title'),

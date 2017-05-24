@@ -54,7 +54,7 @@ class FolderView(BikaListingView):
         self.show_select_row = False
         self.show_select_all_checkbox = True
         self.show_select_column = True
-        self.pagesize = 25
+        self.pagesize = 50
         self.restrict_results = False
 
         request.set('disable_border', 1)

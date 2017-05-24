@@ -25,6 +25,7 @@ from Products.CMFCore.utils import getToolByName
 import json
 import plone
 
+
 class SampleTypesView(BikaListingView):
     implements(IFolderContentsView, IViewView)
 
@@ -33,20 +34,23 @@ class SampleTypesView(BikaListingView):
         self.catalog = 'bika_setup_catalog'
         self.contentFilter = {'portal_type': 'SampleType',
                               'sort_on': 'sortable_title'}
-        self.context_actions = {_('Add'):
-                                {'url': 'createObject?type_name=SampleType',
-                                 'icon': '++resource++bika.lims.images/add.png'}}
+        self.context_actions = {
+            _('Add'): {'url': 'createObject?type_name=SampleType',
+                       'icon': '++resource++bika.lims.images/add.png'}}
         self.title = self.context.translate(_("Sample Types"))
-        self.icon = self.portal_url + "/++resource++bika.lims.images/sampletype_big.png"
+        self.icon = self.portal_url + \
+                    "/++resource++bika.lims.images/sampletype_big.png"
         self.description = ""
+        self.sort_on = 'Title'
+        self.sort_order = 'ascending'
         self.show_sort_column = False
         self.show_select_row = False
         self.show_select_column = True
-        self.pagesize = 25
+        self.pagesize = 50
 
         self.columns = {
             'Title': {'title': _('Sample Type'),
-                      'index': 'sortable_title',},
+                      'index': 'sortable_title'},
             'Description': {'title': _('Description'),
                             'index': 'description',
                             'toggle': True},
@@ -57,20 +61,20 @@ class SampleTypesView(BikaListingView):
             'getMinimumVolume': {'title': _('Minimum Volume'),
                                  'toggle': True},
             'RetentionPeriod': {'title': _('Retention Period'),
-                             'toggle': True},
+                                'toggle': True},
             'SampleMatrix': {'title': _('SampleMatrix'),
                              'toggle': True},
             'ContainerType': {'title': _('Default Container'),
-                             'toggle': True},
+                              'toggle': True},
             'getSamplePoints': {'title': _('Sample Points'),
-                             'toggle': True},
+                                'toggle': True},
         }
 
         self.review_states = [
-            {'id':'default',
+            {'id': 'default',
              'title': _('Active'),
              'contentFilter': {'inactive_state': 'active'},
-             'transitions': [{'id':'deactivate'}, ],
+             'transitions': [{'id': 'deactivate'}, ],
              'columns': ['Title',
                          'Description',
                          'getHazardous',
@@ -80,10 +84,10 @@ class SampleTypesView(BikaListingView):
                          'getSamplePoints',
                          'getPrefix',
                          'getMinimumVolume']},
-            {'id':'inactive',
+            {'id': 'inactive',
              'title': _('Dormant'),
              'contentFilter': {'inactive_state': 'inactive'},
-             'transitions': [{'id':'activate'}, ],
+             'transitions': [{'id': 'activate'}, ],
              'columns': ['Title',
                          'Description',
                          'getHazardous',
@@ -93,9 +97,9 @@ class SampleTypesView(BikaListingView):
                          'getSamplePoints',
                          'getPrefix',
                          'getMinimumVolume']},
-            {'id':'all',
+            {'id': 'all',
              'title': _('All'),
-             'contentFilter':{},
+             'contentFilter': {},
              'columns': ['Title',
                          'Description',
                          'getHazardous',
