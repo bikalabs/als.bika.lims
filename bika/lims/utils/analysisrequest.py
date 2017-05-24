@@ -193,8 +193,7 @@ def create_analysisrequest(context, request, values, analyses=None,
     # and the SamplingWorkflow is enabled, we will
     # automatically kick off the "sample" transition now
     tids = [t['id'] for t in get_transitions_for(ar)]
-    if 'sample' in tids:
-        #XXX XXX CAMPBELL come on now.  LIMS-2514.
+    if 'sample' in tids and ar.getSampler() and ar.getDateSampled():
         do_transition_for(ar, 'sample')
 
     # Return the newly created Analysis Request
