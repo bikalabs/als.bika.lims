@@ -5,7 +5,7 @@ from bika.lims import logger
 
 
 class UpgradeUtils(object):
-    def __init__(self, portal, pgthreshold=100):
+    def __init__(self, portal, pgthreshold=1000):
         self.portal = portal
         self.reindexcatalog = {}
         self.refreshcatalog = []
