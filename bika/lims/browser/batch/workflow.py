@@ -2,17 +2,45 @@
 #
 # Copyright 2011-2016 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
-
+import plone
+from Acquisition._Acquisition import aq_inner
 from DateTime import DateTime
 from Products.CMFCore.utils import getToolByName
 from bika.lims import bikaMessageFactory as _
-from bika.lims.browser.bika_listing import WorkflowAction
+from bika.lims.browser.client.workflow import ClientWorkflowAction
 from bika.lims.workflow import doActionFor
 
-class BatchWorkflowAction(WorkflowAction):
+class BatchWorkflowAction(ClientWorkflowAction):
     """This function is called to do the worflow actions on objects
     acted on in bika-listing views in batch context
     """
+
+    def __call__(self):
+        form = self.request.form
+        plone.protect.CheckAuthenticator(form)
+        self.context = aq_inner(self.context)
+
+        # use came_from to decide which UI action was clicked.
+        # "workflow_action" is the action name specified in the
+        # portal_workflow transition url.
+        came_from = "workflow_action"
+        action = form.get(came_from, '')
+        if not action and not form.get('bika_listing_filter_bar_submit', ''):
+            # workflow_action_button is the action name specified in
+            # the bika_listing_view table buttons.
+            came_from = "workflow_action_button"
+            action = form.get('workflow_action_id', '')
+            if not action:
+                if self.destination_url == "":
+                    self.destination_url = self.request.get_header(
+                        "referer", self.context.absolute_url())
+                self.request.response.redirect(self.destination_url)
+                return
+
+        if action == "sample":
+            self.workflow_action_sample()
+        else:
+            ClientWorkflowAction.__call__(self)
 
     def workflow_action_sample(self):
         workflow = getToolByName(self.context, 'portal_workflow')
@@ -33,35 +61,37 @@ class BatchWorkflowAction(WorkflowAction):
 
             # grab this object's Sampler and DateSampled from the form
             # (if the columns are available and edit controls exist)
-            if 'getSampler' in form and 'getDateSampled' in form:
-                try:
-                    Sampler = form['getSampler'][0][obj_uid].strip()
-                    DateSampled = form['getDateSampled'][0][obj_uid].strip()
-                except KeyError:
-                    continue
-                Sampler = Sampler and Sampler or ''
-                DateSampled = DateSampled and DateTime(DateSampled) or ''
-            else:
+            try:
+                sampler = form['getSampler'][0][obj_uid].strip()
+            except KeyError:
+                sampler = obj.getSampler()
+            try:
+                datesampled = form['getDateSampled'][0][obj_uid].strip()
+            except KeyError:
+                datesampled = obj.getDateSampled()
+            sampler = sampler if sampler else ''
+            datesampled = DateTime(datesampled) if datesampled else ''
+            if not all ([sampler, datesampled]):
                 continue
 
             # write them to the sample
-            sample.setSampler(Sampler)
-            sample.setDateSampled(DateSampled)
+            sample.setSampler(sampler)
+            sample.setDateSampled(datesampled)
             sample.reindexObject()
             ars = sample.getAnalysisRequests()
             # Analyses and AnalysisRequets have calculated fields
             # that are indexed; re-index all these objects.
             for ar in ars:
                 ar.reindexObject()
-                analyses = sample.getAnalyses({'review_state': 'to_be_sampled'})
+                analyses = sample.getAnalyses({'review_state':
+                                                   'to_be_sampled'})
                 for a in analyses:
                     a.getObject().reindexObject()
 
             # transition the object if both values are present
-            if Sampler and DateSampled:
+            if sampler and datesampled:
                 doActionFor(sample, "sample")
                 new_state = workflow.getInfoFor(sample, 'review_state')
-                doActionFor(ar, "sample")
                 transitioned[new_state].append(sample.Title())
 
         message = None
@@ -86,6 +116,6 @@ class BatchWorkflowAction(WorkflowAction):
         if not message:
             message = _('No changes made.')
             self.context.plone_utils.addPortalMessage(message, 'info')
-        self.destination_url = self.request.get_header("referer",
-                                                       self.context.absolute_url())
+        self.destination_url = self.request.get_header(
+            "referer", self.context.absolute_url())
         self.request.response.redirect(self.destination_url)
