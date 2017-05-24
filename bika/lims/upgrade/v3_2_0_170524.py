@@ -5,15 +5,9 @@
 from Acquisition import aq_inner
 from Acquisition import aq_parent
 
-from Products.CMFCore.utils import getToolByName
-from Products.ZCatalog.interfaces import ICatalogBrain
 from bika.lims import logger
-from bika.lims.catalog import CATALOG_ANALYSIS_LISTING
-from bika.lims.catalog import CATALOG_ANALYSIS_REQUEST_LISTING
-from bika.lims.catalog import CATALOG_WORKSHEET_LISTING
 from bika.lims.upgrade import upgradestep
 from bika.lims.upgrade.utils import UpgradeUtils
-from plone.api.portal import get_tool
 
 product = 'bika.lims'
 version = '3.2.0.170524'
