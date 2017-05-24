@@ -198,7 +198,7 @@ class ReferenceAnalysesView(AnalysesView):
             # bika.lims.graphics.controlchart.js
             format = "%Y-%m-%d %I:%M %p"
             cd = DT2dt(analysis.getResultCaptureDate()).strftime(format)
-            
+
             anrow = {'date': item['Captured'],
                      'min': smin,
                      'max': smax,
@@ -308,7 +308,8 @@ class ReferenceSamplesView(BikaListingView):
                               'path':{"query": ["/"], "level" : 0 }, }
         self.context_actions = {}
         self.show_select_column = True
-        request.set('disable_border', 1)
+        if not request.get('subclassed_SupplierReferenceSamplesView'):
+            request.set('disable_border', 1)
 
         self.columns = {
             'ID': {
