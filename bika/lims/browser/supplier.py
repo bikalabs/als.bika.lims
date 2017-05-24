@@ -27,6 +27,7 @@ class SupplierInstrumentsView(InstrumentsView):
 class SupplierReferenceSamplesView(ReferenceSamplesView):
 
     def __init__(self, context, request):
+        request.set('subclassed_SupplierReferenceSamplesView', True)
         super(SupplierReferenceSamplesView, self).__init__(context, request)
         self.contentFilter['path']['query'] = '/'.join(context.getPhysicalPath())
         self.context_actions = {_('Add'):
