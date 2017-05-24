@@ -421,7 +421,7 @@ class ARImport(BaseFolder):
             # and the SamplingWorkflow is enabled, we will
             # automatically kick off the "sample" transition now
             tids = [t['id'] for t in get_transitions_for(ar)]
-            if 'sample' in tids:
+            if 'sample' in tids and ar.getSampler() and ar.getDateSampled():
                 do_transition_for(ar, 'sample')
 
             progress_index = float(row_cnt) / len(gridrows) * 100
