@@ -16,7 +16,7 @@ from bika.lims.content.bikaschema import BikaSchema
 from bika.lims.interfaces import IWorksheet
 from bika.lims.permissions import EditWorksheet, ManageWorksheets
 from bika.lims.permissions import Verify as VerifyPermission
-from bika.lims.workflow import doActionFor
+from bika.lims.workflow import doActionFor, wasTransitionPerformed
 from bika.lims.workflow import skip
 from DateTime import DateTime
 from operator import itemgetter
@@ -756,10 +756,7 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
         """
         Checks if the specified user has enough privileges to verify the
         current WS. Apart from the roles, this function also checks if the
-        current user has enough privileges to verify all the analyses contained
-        in this Worksheet. Note that this function only returns if the
-        user can verify the worksheet according to his/her privileges
-        and the analyses contained (see isVerifiable function)
+        analyses in this worksheet have all been verified.
         :member: user to be tested
         :return: true or false
         """
@@ -768,10 +765,20 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
         allowed = api.user.has_permission(VerifyPermission, username=username)
         if not allowed:
             return False
-        # Check if the user is allowed to verify all the contained analyses
-        notallowed = [a for a in self.getAnalyses()
-                      if not a.isUserAllowedToVerify(member)]
-        return not notallowed
+
+        # Check if the analyses have all been verified
+        workflow = getToolByName(self, 'portal_workflow')
+        for a in self.getAnalyses(full_objects=True):
+            st = workflow.getInfoFor(a, 'cancellation_state', 'active')
+            if st == 'cancelled':
+                continue
+            st = workflow.getInfoFor(a, 'review_state')
+            if st in ['retracted', 'rejected']:
+                continue
+            if not wasTransitionPerformed(a, 'verify'):
+                return False
+
+        return True
 
     def guard_verify_transition(self):
         """

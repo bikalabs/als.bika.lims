@@ -68,7 +68,7 @@ from bika.lims.permissions import ManageInvoices
 from bika.lims.permissions import Verify as VerifyPermission
 
 # Bika Workflow
-from bika.lims.workflow import skip
+from bika.lims.workflow import skip, wasTransitionPerformed
 from bika.lims.workflow import doActionFor
 from bika.lims.workflow import getTransitionDate
 from bika.lims.workflow import isBasicTransitionAllowed
@@ -2630,13 +2630,7 @@ class AnalysisRequest(BaseFolder):
     def isVerifiable(self):
         """Checks it the current Analysis Request can be verified. This is, its
         not a cancelled Analysis Request and all the analyses that contains
-        are verifiable too. Note that verifying an Analysis Request is in fact,
-        the same as verifying all the analyses that contains. Therefore, the
-        'verified' state of an Analysis Request shouldn't be a 'real' state,
-        rather a kind-of computed state, based on the statuses of the analyses
-        it contains. This is why this function checks if the analyses
-        contained are verifiable, cause otherwise, the Analysis Request will
-        never be able to reach a 'verified' state.
+        are verified.
         :return: True or False
         """
         # Check if the analysis request is active
@@ -2645,31 +2639,18 @@ class AnalysisRequest(BaseFolder):
         if objstate == "cancelled":
             return False
 
-        # Check if the analysis request state is to_be_verified
-        review_state = workflow.getInfoFor(self, "review_state")
-        if review_state == 'to_be_verified':
-            # This means that all the analyses from this analysis request have
-            # already been transitioned to a 'verified' state, and so the
-            # analysis request itself
-            return True
-        else:
-            # Check if the analyses contained in this analysis request are
-            # verifiable. Only check those analyses not cancelled and that
-            # are not in a kind-of already verified state
-            canbeverified = True
-            omit = ['published', 'retracted', 'rejected', 'verified']
-            for a in self.getAnalyses(full_objects=True):
-                st = workflow.getInfoFor(a, 'cancellation_state', 'active')
-                if st == 'cancelled':
-                    continue
-                st = workflow.getInfoFor(a, 'review_state')
-                if st in omit:
-                    continue
-                # Can the analysis be verified?
-                if not a.isVerifiable(self):
-                    canbeverified = False
-                    break
-            return canbeverified
+        # Check if the analyses have all been verified
+        for a in self.getAnalyses(full_objects=True):
+            st = workflow.getInfoFor(a, 'cancellation_state', 'active')
+            if st == 'cancelled':
+                continue
+            st = workflow.getInfoFor(a, 'review_state')
+            if st in ['retracted', 'rejected']:
+                continue
+            if not wasTransitionPerformed(a, 'verify'):
+                return False
+
+        return True
 
     def isUserAllowedToVerify(self, member):
         """Checks if the specified user has enough privileges to verify the

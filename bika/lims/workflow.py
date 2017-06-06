@@ -2,24 +2,43 @@
 #
 # Copyright 2011-2016 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
-
-from bika.lims import enum
+from Products.CMFCore.WorkflowCore import WorkflowException
+from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.interfaces import IWorkflowChain
+from Products.CMFPlone.workflow import ToolWorkflowChain
 from bika.lims import PMF
+from bika.lims import enum
+from bika.lims import logger
 from bika.lims.browser import ulocalized_time
 from bika.lims.interfaces import IJSONReadExtender
 from bika.lims.jsonapi.v1 import get_include_fields
 from bika.lims.utils import changeWorkflowState
 from bika.lims.utils import t
-from bika.lims import logger
-from Products.CMFCore.interfaces import IContentish
-from Products.CMFCore.WorkflowCore import WorkflowException
-from Products.CMFPlone.interfaces import IWorkflowChain
-from Products.CMFPlone.workflow import ToolWorkflowChain
-from zope.component import adapts
+from plone import api
 from zope.interface import implementer
 from zope.interface import implements
-from zope.interface import Interface
-from plone import api
+
+
+def getReviewHistory(instance):
+    """Returns the review history for the instance in reverse order
+    :returns: the list of historic events as dicts
+    """
+    review_history = []
+    workflow = getToolByName(instance, 'portal_workflow')
+    review_history = list(workflow.getInfoFor(instance, 'review_history'))
+    # invert the list, so we always see the most recent matching event
+    return review_history
+
+
+def wasTransitionPerformed(instance, transition_id):
+    """Checks if the transition has already been performed to the object
+    Instance's workflow history is checked.
+    """
+    review_history = getReviewHistory(instance)
+    for event in review_history:
+        if event['action'] == transition_id:
+            return True
+    return False
 
 def skip(instance, action, peek=False, unskip=False):
     """Returns True if the transition is to be SKIPPED
