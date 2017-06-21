@@ -3,7 +3,7 @@
  */
 
 #report {
-    font: 8pt Arial, Verdana, serif;
+    font: 8pt Arial, Verdana, serif !important;
     width: 100% !important;
 }
 
@@ -85,7 +85,7 @@
 }
 
 .ar_table {
-    font-size: 10pt;
+    font-size: 6pt;
     border-top:1px solid #cdcdcd;
     border-left:1px solid #cdcdcd;
 }
@@ -112,10 +112,10 @@
 .ar_table .unit,
 .ar_table .unit sub,
 .ar_table .unit sup {
-    color:#777;
+    color:#444;
     font-weight:normal !important;
     font-style:italic !important;
-    font-size:8px;
+    font-size:5pt;
 }
 
 div.resultsinterpretation {
@@ -136,7 +136,7 @@ div.resultsinterpretation_heading {
 .table { display:table; table-layout:fixed; width:100%; }
 .row { display:table-row; width:100%; }
 
-.catmeth_row {
+.cat_row {
     background: #bbbbbb;
     color: #000000;
     font-weight: bold;
