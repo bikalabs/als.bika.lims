@@ -13,7 +13,7 @@
                           batch            python:analysisrequest['obj'].getBatch();
                           contact          python:analysisrequest['obj'].getContact();
                           lab              python:portal.bika_setup.laboratory;
-                          acc_logo         laboratory/accreditation_logo|nothing">
+                          acc_logo         python:lab.getAccreditationBodyLogo();">
 
     <div id="section-info">
 
