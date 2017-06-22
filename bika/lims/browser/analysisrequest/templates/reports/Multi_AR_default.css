@@ -109,6 +109,10 @@
     border-right:1px solid #cdcdcd;
 }
 
+.ar_table .result{
+    text-align:center;
+}
+
 .ar_table .unit,
 .ar_table .unit sub,
 .ar_table .unit sup {
@@ -116,6 +120,14 @@
     font-weight:normal !important;
     font-style:italic !important;
     font-size:5pt;
+}
+
+#report #section-signatures {
+    padding:10mm 0 5mm;
+}
+
+#report #section-signatures img {
+    height:75px
 }
 
 div.resultsinterpretation {
