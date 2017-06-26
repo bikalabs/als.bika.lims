@@ -288,7 +288,8 @@ function BikaListingTableView() {
 		// If ajax_categories are enabled, we need to go request items now.
 		var ajax_categories_enabled = $("input[name='ajax_categories']")
 		if (ajax_categories_enabled.length > 0 && placeholder.length > 0) {
-			var options = {}
+		    // We use $.query.keys so that all GET parameters are included here
+			var options = $.query.keys
 			options['ajax_category_expand'] = 1
 			options['cat'] = cat_title
 			options['form_id'] = form_id
