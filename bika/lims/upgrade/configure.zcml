@@ -586,4 +586,11 @@
          handler="bika.lims.upgrade.v3_2_0_170524.upgrade"
          profile="bika.lims:default"/>
 
+ <genericsetup:upgradeStep
+         title="Upgrade to Bika LIMS 3.2.0.170524"
+         source="3.2.0.170524"
+         destination="3.2.0.170630"
+         handler="bika.lims.upgrade.v3_2_0_170630.upgrade"
+         profile="bika.lims:default"/>
+
 </configure>
