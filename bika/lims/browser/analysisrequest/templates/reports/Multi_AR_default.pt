@@ -220,14 +220,14 @@
                     tal:content="python:ar.getSample().getSampleType().Title()"/>
             </tal:ar>
           </div>
-          <div class="row">
+          <div class="row" tal:condition="python:context.bika_setup.getSamplingWorkflowEnabled()">
             <span class="th header_th"
                   tal:attributes="style string:width:${leftcol_width}%"
                   i18n:translate="">Date Sampled</span>
             <tal:ar repeat="ar ars">
               <span class="td header_td"
                     tal:attributes="style string:width:${arcol_width}%"
-                    tal:content="python:ar.getSample().getDateSampled()"/>
+                    tal:content="python:ar.getSample().getDateSampled().Date()"/>
             </tal:ar>
           </div>
           <div class="row">
