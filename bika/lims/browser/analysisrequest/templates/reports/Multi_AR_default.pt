@@ -17,7 +17,7 @@
 
     <div id="section-info">
 
-      <div id="section-coa-heading">
+      <div id="section-info-heading">
         <h1 i18n:translate="">CERTIFICATE OF ANALYSIS</h1>
       </div>
       <hr size="1"/>
@@ -79,6 +79,7 @@
           </td>
         </tr>
       </table>
+
       <hr size="1"/>
 
       <table width="100%" cellpadding="0" cellspacing="0" id="section-report-detail">
@@ -130,10 +131,6 @@
 
     </div>
 
-    <tal:comment replace="nothing">
-      Break before first AR section.
-      Subsequent AR sections have page breaks after each one.
-    </tal:comment>
     <div class="manual-page-break"></div>
 
     <tal:page_iter repeat="ars arspage">
@@ -169,7 +166,7 @@
                            arcol_width      python:float(rightcol_width)/len(ars);">
 
         <!-- AR Group headers -->
-        <div class="table ar_table">
+        <div id="ar_group_headers" class="table ar_table">
           <div class="row">
             <span class="th header_th"
                   tal:attributes="style string:width:${leftcol_width}%;;border-top:1px solid #cdcdcd;"
@@ -244,9 +241,9 @@
 
         <!-- Category header for each category -->
         <tal:category tal:repeat="cat_title cat_titles">
-          <div class="cat_title" tal:content="cat_title"/>
+          <div tal:attributes="id python:'cat_title_'+cat_title" class="cat_title" tal:content="cat_title"/>
           <!-- Service details for each result and results for each AR -->
-          <div class="table ar_table">
+          <div tal:attributes="id python:'cat_ars_'+cat_title" class="table ar_table">
             <div class="row">
               <span class="th"
                     tal:attributes="style string:width:${servicecol_width}%">Service</span>
@@ -334,12 +331,12 @@
                   tal:repeat="manager mngr_ids"
                   class="manager-info">
                 <tal:manager tal:define="rownum     repeat/manager/number;
-                                                         dept       python:managers[manager];
-                                                         email      python:managers[manager]['email'];
-                                                         jobtitle   python:managers[manager]['job_title'];
-                                                         phone      python:managers[manager]['phone'];
-                                                         department python:managers[manager]['departments'];
-                                                         signature  python:managers[manager]['signature'];">
+                                         dept       python:managers[manager];
+                                         email      python:managers[manager]['email'];
+                                         jobtitle   python:managers[manager]['job_title'];
+                                         phone      python:managers[manager]['phone'];
+                                         department python:managers[manager]['departments'];
+                                         signature  python:managers[manager]['signature'];">
 
                   <img tal:condition="signature" tal:attributes="src string:${signature}"/>
                   <br/>

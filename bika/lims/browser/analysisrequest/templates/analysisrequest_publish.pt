@@ -265,6 +265,5 @@
             </tal:multiarreport>
         </div>
     </div>
-    <div id="my_mm" style="height:1mm;display:none"></div>
 </body>
 </html>
