@@ -27,6 +27,10 @@ def upgrade(tool):
 
     logger.info('Upgrading {0}: {1} -> {2}'.format(product, ufrom, version))
 
+    setup = portal.portal_setup
+
+    # Added a 'skins' layer to als.lims for overriding bika.lims resources
+    setup.runImportStepFromProfile('profile-als.lims:default', 'skins')
 
     # Refresh affected catalogs
     ut.refreshCatalogs()
