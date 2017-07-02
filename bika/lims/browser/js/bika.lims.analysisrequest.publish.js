@@ -193,7 +193,7 @@
             paddingTopFoot = pageHeight - elTopPos;
             manualbreak = div.hasClass('manual-page-break');
             restartcount = manualbreak && div.hasClass('restart-page-count');
-            aboveBreakHtml = '<div style="clear:both;padding-top:' + pxTomm(paddingTopFoot) + 'mm"></div>';
+            aboveBreakHtml = '<div style="clear:both;margin-top:' + pxTomm(paddingTopFoot) + 'mm"></div>';
             pageBreak = '<div class="page-break' + (restartcount ? ' restart-page-count' : '') + '" data-pagenum="' + pagenum + '"></div>';
             $(aboveBreakHtml + footer_html + pageBreak + header_html).insertBefore(div);
             elTopOffset = div.position().top;
@@ -211,7 +211,7 @@
         });
         if (elCurrent !== null) {
           paddingTopFoot = pageHeight - accumHeight;
-          aboveBreakHtml = '<div style="clear:both;padding-top:' + pxTomm(paddingTopFoot) + 'mm"></div>';
+          aboveBreakHtml = '<div style="clear:both;margin-top:' + pxTomm(paddingTopFoot) + 'mm"></div>';
           pageBreak = '<div class="page-break" data-pagenum="' + pagenum + '"></div>';
           pagecounts.push(pagenum);
           $(aboveBreakHtml + footer_html + pageBreak).insertAfter($(elCurrent));
