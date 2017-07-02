@@ -85,7 +85,7 @@ class AnalysisRequestPublishView(BrowserView):
         val = api.portal.get_registry_record(key) + 1
         api.portal.set_registry_record(key, val)
         year = str(time.localtime(time.time())[0])[-2:]
-        return "COA%s-%05d"%(year, int(val))
+        return "COA%s-%05d" % (year, int(val))
 
     def current_certificate_number(self):
         """Return the last written ID from the registry
@@ -93,21 +93,21 @@ class AnalysisRequestPublishView(BrowserView):
         key = 'bika.lims.current_coa_number'
         val = api.portal.get_registry_record(key)
         year = str(time.localtime(time.time())[0])[-2:]
-        return "COA%s-%05d"%(year, int(val))
+        return "COA%s-%05d" % (year, int(val))
 
     def __call__(self):
         if self.context.portal_type == 'AnalysisRequest':
             self._ars = [self.context]
         elif self.context.portal_type == 'AnalysisRequestsFolder' \
-            and self.request.get('items',''):
+                and self.request.get('items', ''):
             uids = self.request.get('items').split(',')
             uc = getToolByName(self.context, 'uid_catalog')
             self._ars = sorted([obj.getObject() for obj in uc(UID=uids)],
                                key=itemgetter('id'))
         else:
-            #Do nothing
+            # Do nothing
             self.destination_url = self.request.get_header("referer",
-                                   self.context.absolute_url())
+                                                           self.context.absolute_url())
 
         # Group ARs by client
         groups = {}
@@ -165,7 +165,7 @@ class AnalysisRequestPublishView(BrowserView):
             returns the current analysis request
         """
         return self._ar_data(analysisrequest) if analysisrequest \
-                else self._ar_data(self._ars[self._current_ar_index])
+            else self._ar_data(self._ars[self._current_ar_index])
 
     def getAnalysisRequestGroup(self):
         """ Returns the current analysis request group to be managed
@@ -215,7 +215,9 @@ class AnalysisRequestPublishView(BrowserView):
         except:
             tbex = traceback.format_exc()
             arid = self._ars[self._current_ar_index].id
-            reptemplate = "<div class='error-report'>%s - %s '%s':<pre>%s</pre></div>" % (arid, _("Unable to load the template"), embedt, tbex)
+            reptemplate = "<div class='error-report'>%s - %s " \
+                          "'%s':<pre>%s</pre></div>" % (
+            arid, _("Unable to load the template"), embedt, tbex)
         self._nextAnalysisRequest()
         return reptemplate
 
@@ -230,7 +232,9 @@ class AnalysisRequestPublishView(BrowserView):
             embedt, reptemplate = self._renderTemplate()
         except:
             tbex = traceback.format_exc()
-            reptemplate = "<div class='error-report'>%s '%s':<pre>%s</pre></div>" % (_("Unable to load the template"), embedt, tbex)
+            reptemplate = "<div class='error-report'>%s " \
+                          "'%s':<pre>%s</pre></div>" % (
+            _("Unable to load the template"), embedt, tbex)
         self._nextAnalysisRequestGroup()
         return reptemplate
 
@@ -278,10 +282,10 @@ class AnalysisRequestPublishView(BrowserView):
 
     def explode_data(self, data, padding=''):
         out = ''
-        for k,v in data.items():
+        for k, v in data.items():
             if type(v) is dict:
                 pad = '%s&nbsp;&nbsp;&nbsp;&nbsp;' % padding
-                exploded = self.explode_data(v,pad)
+                exploded = self.explode_data(v, pad)
                 out = "%s<br/>%s'%s':{%s}" % (out, padding, str(k), exploded)
             elif type(v) is list:
                 out = "%s<br/>%s'%s':[]" % (out, padding, str(k))
@@ -304,11 +308,13 @@ class AnalysisRequestPublishView(BrowserView):
                 'composite': ar.getComposite(),
                 'report_drymatter': ar.getReportDryMatter(),
                 'invoice_exclude': ar.getInvoiceExclude(),
-                'date_received': self.ulocalized_time(ar.getDateReceived(), long_format=1),
+                'date_received': self.ulocalized_time(ar.getDateReceived(),
+                                                      long_format=1),
                 'member_discount': ar.getMemberDiscount(),
                 'date_sampled': self.ulocalized_time(
                     ar.getDateSampled(), long_format=1),
-                'date_published': self.ulocalized_time(DateTime(), long_format=1),
+                'date_published': self.ulocalized_time(DateTime(),
+                                                       long_format=1),
                 'invoiced': ar.getInvoiced(),
                 'late': ar.getLate(),
                 'subtotal': ar.getSubtotal(),
@@ -321,20 +327,23 @@ class AnalysisRequestPublishView(BrowserView):
                 'prepublish': False,
                 'child_analysisrequest': None,
                 'parent_analysisrequest': None,
-                'resultsinterpretation':ar.getResultsInterpretation()}
+                'resultsinterpretation': ar.getResultsInterpretation()}
 
         # Sub-objects
         excludearuids.append(ar.UID())
         puid = ar.getRawParentAnalysisRequest()
         if puid and puid not in excludearuids:
-            data['parent_analysisrequest'] = self._ar_data(ar.getParentAnalysisRequest(), excludearuids)
+            data['parent_analysisrequest'] = self._ar_data(
+                ar.getParentAnalysisRequest(), excludearuids)
         cuid = ar.getRawChildAnalysisRequest()
         if cuid and cuid not in excludearuids:
-            data['child_analysisrequest'] = self._ar_data(ar.getChildAnalysisRequest(), excludearuids)
+            data['child_analysisrequest'] = self._ar_data(
+                ar.getChildAnalysisRequest(), excludearuids)
 
         wf = getToolByName(ar, 'portal_workflow')
         allowed_states = ['verified', 'published']
-        data['prepublish'] = wf.getInfoFor(ar, 'review_state') not in allowed_states
+        data['prepublish'] = wf.getInfoFor(ar,
+                                           'review_state') not in allowed_states
 
         data['contact'] = self._contact_data(ar)
         data['client'] = self._client_data(ar)
@@ -342,13 +351,22 @@ class AnalysisRequestPublishView(BrowserView):
         data['batch'] = self._batch_data(ar)
         data['specifications'] = self._specs_data(ar)
         data['analyses'] = self._analyses_data(ar, ['verified', 'published'])
-        data['qcanalyses'] = self._qcanalyses_data(ar, ['verified', 'published'])
-        data['points_of_capture'] = sorted(set([an['point_of_capture'] for an in data['analyses']]))
-        data['categories'] = sorted(set([an['category'] for an in data['analyses']]))
-        data['haspreviousresults'] = len([an['previous_results'] for an in data['analyses'] if an['previous_results']]) > 0
-        data['hasblanks'] = len([an['reftype'] for an in data['qcanalyses'] if an['reftype'] == 'b']) > 0
-        data['hascontrols'] = len([an['reftype'] for an in data['qcanalyses'] if an['reftype'] == 'c']) > 0
-        data['hasduplicates'] = len([an['reftype'] for an in data['qcanalyses'] if an['reftype'] == 'd']) > 0
+        data['qcanalyses'] = self._qcanalyses_data(ar,
+                                                   ['verified', 'published'])
+        data['points_of_capture'] = sorted(
+            set([an['point_of_capture'] for an in data['analyses']]))
+        data['categories'] = sorted(
+            set([an['category'] for an in data['analyses']]))
+        data['haspreviousresults'] = len(
+            [an['previous_results'] for an in data['analyses'] if
+             an['previous_results']]) > 0
+        data['hasblanks'] = len([an['reftype'] for an in data['qcanalyses'] if
+                                 an['reftype'] == 'b']) > 0
+        data['hascontrols'] = len([an['reftype'] for an in data['qcanalyses'] if
+                                   an['reftype'] == 'c']) > 0
+        data['hasduplicates'] = len(
+            [an['reftype'] for an in data['qcanalyses'] if
+             an['reftype'] == 'd']) > 0
 
         # Categorize analyses
         data['categorized_analyses'] = {}
@@ -364,7 +382,8 @@ class AnalysisRequestPublishView(BrowserView):
 
             # Group by department too
             anobj = an['obj']
-            dept = anobj.getService().getDepartment() if anobj.getService() else None
+            dept = anobj.getService().getDepartment() if anobj.getService() \
+                else None
             if dept:
                 dept = dept.UID()
                 dep = data['department_analyses'].get(dept, {})
@@ -397,7 +416,7 @@ class AnalysisRequestPublishView(BrowserView):
                           'url': portal.absolute_url()}
         data['laboratory'] = self._lab_data()
 
-        #results interpretation
+        # results interpretation
         ri = {}
         if (ar.getResultsInterpretationByDepartment(None)):
             ri[''] = ar.getResultsInterpretationByDepartment(None)
@@ -423,7 +442,8 @@ class AnalysisRequestPublishView(BrowserView):
 
             uids = batch.Schema()['BatchLabels'].getAccessor(batch)()
             uc = getToolByName(self.context, 'uid_catalog')
-            data['labels'] = [to_utf8(p.getObject().Title()) for p in uc(UID=uids)]
+            data['labels'] = [to_utf8(p.getObject().Title()) for p in
+                              uc(UID=uids)]
 
         return data
 
@@ -444,7 +464,7 @@ class AnalysisRequestPublishView(BrowserView):
                     'date_disposal': sample.getDisposalDate(),
                     'date_disposed': sample.getDateDisposed(),
                     'adhoc': sample.getAdHoc(),
-                    'remarks': sample.getRemarks() }
+                    'remarks': sample.getRemarks()}
         return data
 
     def _sampler_data(self, sample=None):
@@ -464,7 +484,8 @@ class AnalysisRequestPublishView(BrowserView):
             cfullname = c.getFullname() if c else None
             cemail = c.getEmailAddress() if c else None
             data = {'id': member.id,
-                    'fullname': to_utf8(cfullname) if cfullname else to_utf8(mfullname),
+                    'fullname': to_utf8(cfullname) if cfullname else to_utf8(
+                        mfullname),
                     'email': cemail if cemail else memail,
                     'business_phone': c.getBusinessPhone() if c else '',
                     'business_fax': c.getBusinessFax() if c else '',
@@ -472,8 +493,10 @@ class AnalysisRequestPublishView(BrowserView):
                     'mobile_phone': c.getMobilePhone() if c else '',
                     'job_title': to_utf8(c.getJobTitle()) if c else '',
                     'department': to_utf8(c.getDepartment()) if c else '',
-                    'physical_address': to_utf8(c.getPhysicalAddress()) if c else '',
-                    'postal_address': to_utf8(c.getPostalAddress()) if c else '',
+                    'physical_address': to_utf8(
+                        c.getPhysicalAddress()) if c else '',
+                    'postal_address': to_utf8(
+                        c.getPostalAddress()) if c else '',
                     'home_page': to_utf8(mhomepage)}
         return data
 
@@ -601,8 +624,8 @@ class AnalysisRequestPublishView(BrowserView):
             if batch:
                 keyword = an.getKeyword()
                 bars = [bar for bar in batch.getAnalysisRequests() \
-                            if an.aq_parent.UID() != bar.UID() \
-                            and keyword in bar]
+                        if an.aq_parent.UID() != bar.UID() \
+                        and keyword in bar]
                 for bar in bars:
                     pan = bar[keyword]
                     pan_state = workflow.getInfoFor(pan, 'review_state')
@@ -610,8 +633,11 @@ class AnalysisRequestPublishView(BrowserView):
                         pandict = self._analysis_data(pan)
                         andict['previous'].append(pandict)
 
-                andict['previous'] = sorted(andict['previous'], key=itemgetter("capture_date"))
-                andict['previous_results'] = ", ".join([str(p['formatted_result']) for p in andict['previous'][-5:]])
+                andict['previous'] = sorted(andict['previous'],
+                                            key=itemgetter("capture_date"))
+                andict['previous_results'] = ", ".join(
+                    [str(p['formatted_result']) for p in
+                     andict['previous'][-5:]])
 
             analyses.append(andict)
         return analyses
@@ -628,7 +654,8 @@ class AnalysisRequestPublishView(BrowserView):
                   'keyword': keyword,
                   'scientific_name': service.getScientificName(),
                   'accredited': service.getAccredited(),
-                  'point_of_capture': to_utf8(POINTS_OF_CAPTURE.getValue(service.getPointOfCapture())),
+                  'point_of_capture': to_utf8(
+                      POINTS_OF_CAPTURE.getValue(service.getPointOfCapture())),
                   'category': to_utf8(service.getCategoryTitle()),
                   'result': analysis.getResult(),
                   'isnumber': isnumber(analysis.getResult()),
@@ -645,8 +672,8 @@ class AnalysisRequestPublishView(BrowserView):
                   'outofrange': False,
                   'type': analysis.portal_type,
                   'reftype': analysis.getReferenceType() \
-                            if hasattr(analysis, 'getReferenceType')
-                            else None,
+                      if hasattr(analysis, 'getReferenceType')
+                  else None,
                   'worksheet': None,
                   'specs': {},
                   'formatted_specs': ''}
@@ -656,10 +683,11 @@ class AnalysisRequestPublishView(BrowserView):
 
         ws = analysis.getBackReferences('WorksheetAnalysis')
         andict['worksheet'] = ws[0].id if ws and len(ws) > 0 else None
-        andict['worksheet_url'] = ws[0].absolute_url if ws and len(ws) > 0 else None
+        andict['worksheet_url'] = ws[0].absolute_url if ws and len(
+            ws) > 0 else None
         andict['refsample'] = analysis.getSample().id \
-                            if analysis.portal_type == 'Analysis' \
-                            else '%s - %s' % (analysis.aq_parent.id, analysis.aq_parent.Title())
+            if analysis.portal_type == 'Analysis' \
+            else '%s - %s' % (analysis.aq_parent.id, analysis.aq_parent.Title())
 
         if analysis.portal_type == 'ReferenceAnalysis':
             # The analysis is a Control or Blank. We might use the
@@ -675,7 +703,9 @@ class AnalysisRequestPublishView(BrowserView):
 
         andict['specs'] = specs
         scinot = self.context.bika_setup.getScientificNotationReport()
-        fresult =  analysis.getFormattedResult(specs=specs, sciformat=int(scinot), decimalmark=decimalmark)
+        fresult = analysis.getFormattedResult(specs=specs,
+                                              sciformat=int(scinot),
+                                              decimalmark=decimalmark)
 
         # We don't use here cgi.encode because results fields must be rendered
         # using the 'structure' wildcard. The reason is that the result can be
@@ -694,18 +724,22 @@ class AnalysisRequestPublishView(BrowserView):
         elif specs.get('max', None):
             fs = '< %s' % specs['max']
         andict['formatted_specs'] = formatDecimalMark(fs, decimalmark)
-        andict['formatted_uncertainty'] = format_uncertainty(analysis, analysis.getResult(), decimalmark=decimalmark, sciformat=int(scinot))
+        andict['formatted_uncertainty'] = format_uncertainty(analysis,
+                                                             analysis.getResult(),
+                                                             decimalmark=decimalmark,
+                                                             sciformat=int(
+                                                                 scinot))
 
         # Out of range?
         if specs:
-            adapters = getAdapters((analysis, ), IResultOutOfRange)
+            adapters = getAdapters((analysis,), IResultOutOfRange)
             bsc = getToolByName(self.context, "bika_setup_catalog")
             for name, adapter in adapters:
                 ret = adapter(specification=specs)
                 if ret and ret['out_of_range']:
                     andict['outofrange'] = True
                     break
-        self._cache['_analysis_data'][analysis.UID()]  = andict
+        self._cache['_analysis_data'][analysis.UID()] = andict
         return andict
 
     def _qcanalyses_data(self, ar, analysis_states=['verified', 'published']):
@@ -724,7 +758,8 @@ class AnalysisRequestPublishView(BrowserView):
             andict['previous_results'] = ""
 
             analyses.append(andict)
-        analyses.sort(lambda x, y: cmp(x.get('title').lower(), y.get('title').lower()))
+        analyses.sort(
+            lambda x, y: cmp(x.get('title').lower(), y.get('title').lower()))
         self._cache['_qcanalyses_data'][ar.UID()] = analyses
         return analyses
 
@@ -779,7 +814,9 @@ class AnalysisRequestPublishView(BrowserView):
         style = self.request.form.get('style')
         uids = self.request.form.get('uid').split(':')
         template = self.request.form.get('template', '')
-        reporthtml = "<html><head>%s</head><body><div id='report'>%s</body></html>" % (style, html)
+        reporthtml = "<html><head>%s</head><body><div " \
+                     "id='report'>%s</body></html>" % (
+        style, html)
         publishedars = []
         if 'multi_' in template.lower():
             publishedars = self.publishFromHTML(
@@ -797,11 +834,11 @@ class AnalysisRequestPublishView(BrowserView):
         """
         path = resource_filename('bika.lims', 'skins/bika/logo_print.png')
         html = re.sub(r"""http.*logo_print[^'"]+""",
-                       "file://" + path, html)
+                      "file://" + path, html)
 
         path = resource_filename('bika.lims', 'browser/images/accredited.png')
         html = re.sub(r"""http.*accredited[^'"]+""",
-                       "file://" + path, html)
+                      "file://" + path, html)
 
         return html
 
@@ -871,7 +908,7 @@ class AnalysisRequestPublishView(BrowserView):
         for ar in ars:
             resp = ar.getResponsible()
             if 'dict' in resp and resp['dict']:
-                for mngrid,mngr in resp['dict'].items():
+                for mngrid, mngr in resp['dict'].items():
                     if mngr['email'] not in [m['email'] for m in mngrs]:
                         mngrs.append(mngr)
         for mngr in mngrs:
@@ -898,7 +935,7 @@ class AnalysisRequestPublishView(BrowserView):
         mime_msg['Subject'] = "Published results for %s" % \
                               ",".join([ar.Title() for ar in ars])
         mime_msg['From'] = formataddr(
-        (encode_header(lab.getName()), lab.getEmailAddress()))
+            (encode_header(lab.getName()), lab.getEmailAddress()))
         mime_msg.preamble = 'This is a multi-part MIME message.'
         msg_txt = MIMEText(results_html, _subtype='html')
         mime_msg.attach(msg_txt)
@@ -936,37 +973,55 @@ class AnalysisRequestPublishView(BrowserView):
             analyses.extend(ar.getAnalyses(full_objects=True))
         #
         fieldnames = [
-            "LRN",
-            "Date",
-            "Constituent",
-            "Value",
-            "Product Description",
-            "Orig site"]
+            'Client Batch ID',
+            'Client Sample ID',
+            'Sample ID',
+            'Analysis Request ID',
+            'Sample Type',
+            'Sample Point',
+            "Date/Time Sampled",
+            'Analysis Service',
+            'Method',
+            'LOR',
+            'Unit',
+            'Value',
+        ]
         #
         output = StringIO.StringIO()
         dw = csv.DictWriter(output, fieldnames=fieldnames)
         dw.writerow(dict((fn, fn) for fn in fieldnames))
         #
         for analysis in analyses:
+            service = analysis.getService()
+            method = analysis.getMethod().Title() \
+                if analysis.getMethod() else ''
             ar = analysis.aq_parent
-            sample = ar.getSample()
-            sid = sample.getClientSampleID()
-            if not sid:
-                sid = sample.getId()
-            point = sample.getSamplePoint().Title() \
-                if sample.getSamplePoint() else ''
+            batchid = ar.getBatch().getBatchID() if ar.getBatch() else ''
             date = analysis.getResultCaptureDate()
             date = self.ulocalized_time(date, long_format=True)
+            sample = ar.getSample()
+            csid = sample.getClientSampleID()
+            sid = sample.getId()
+            point = sample.getSamplePoint().Title() \
+                if sample.getSamplePoint() else ''
             row = {
-                "LRN": sid,
-                "Date": date,
-                "Constituent": analysis.getService().Title(),
-                "Value": analysis.getResult(),
-                "Product Description": sample.getSampleType().Title(),
-                "Orig site": point,
+                'Client Batch ID': batchid,
+                'Client Sample ID': csid,
+                'Sample ID': sid,
+                'Analysis Request ID': ar.getId(),
+                'Sample Type': sample.getSampleType().Title(),
+                'Sample Point': point,
+                "Date/Time Sampled": date,
+                'Analysis Service': service.Title(),
+                'Method': method,
+                'LOR': service.getLowerDetectionLimit(),
+                'Unit': service.getUnit(),
+                'Value': analysis.getResult(),
             }
             dw.writerow(row)
-        return output.getvalue()
+        retval = output.getvalue()
+        import pdb;pdb.set_trace();pass
+        return retval
 
     def publish(self):
         """ Publish the AR report/s. Generates a results pdf file
@@ -982,7 +1037,8 @@ class AnalysisRequestPublishView(BrowserView):
         if len(self._ars) > 1:
             published_ars = []
             for ar in self._ars:
-                arpub = AnalysisRequestPublishView(ar, self.request, publish=True)
+                arpub = AnalysisRequestPublishView(ar, self.request,
+                                                   publish=True)
                 ar = arpub.publish()
                 published_ars.extend(ar)
             published_ars = [par.id for par in published_ars]
@@ -1062,16 +1118,18 @@ class AnalysisRequestPublishView(BrowserView):
             line_items.append(li)
         if crs:
             crs.sort()
-            li = t(_('Refs: ${references}', mapping={'references':', '.join(crs)}))
+            li = t(_('Refs: ${references}',
+                     mapping={'references': ', '.join(crs)}))
             line_items.append(li)
         if css:
             css.sort()
-            li = t(_('Samples: ${samples}', mapping={'samples': ', '.join(css)}))
+            li = t(
+                _('Samples: ${samples}', mapping={'samples': ', '.join(css)}))
             line_items.append(li)
         tot_line = ' '.join(line_items)
         if tot_line:
             subject = t(_('Analysis results for ${subject_parts}',
-                          mapping={'subject_parts':tot_line}))
+                          mapping={'subject_parts': tot_line}))
             if blanks_found:
                 subject += (' ' + t(_('and others')))
         else:
@@ -1081,9 +1139,12 @@ class AnalysisRequestPublishView(BrowserView):
     def sorted_by_sort_key(self, category_keys):
         """ Sort categories via catalog lookup on title. """
         bsc = getToolByName(self.context, "bika_setup_catalog")
-        analysis_categories = bsc(portal_type="AnalysisCategory", sort_on="sortable_title")
-        sort_keys = dict([(b.Title, "{:04}".format(a)) for a, b in enumerate(analysis_categories)])
-        return sorted(category_keys, key=lambda title, sk=sort_keys: sk.get(title))
+        analysis_categories = bsc(portal_type="AnalysisCategory",
+                                  sort_on="sortable_title")
+        sort_keys = dict([(b.Title, "{:04}".format(a)) for a, b in
+                          enumerate(analysis_categories)])
+        return sorted(category_keys,
+                      key=lambda title, sk=sort_keys: sk.get(title))
 
     def getAnalysisBasedTransposedMatrix(self, ars):
         """ Returns a dict with the following structure:
@@ -1133,5 +1194,5 @@ class AnalysisRequestPublishView(BrowserView):
                 else:
                     d = analyses[cat][service.title]
                     d['ars'][ar.id] = an.getFormattedResult()
-                    analyses[cat][service.title]=d
+                    analyses[cat][service.title] = d
         return analyses
