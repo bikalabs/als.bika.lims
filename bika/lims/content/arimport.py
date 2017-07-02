@@ -783,22 +783,10 @@ class ARImport(BaseFolder):
             self.error("%s: value is invalid (%s)." % (
                 'Client ID', self.getClientID()))
 
-        existing_arimports = pc(portal_type='ARImport',
-                                review_state=['valid', 'imported'])
-        # Verify Client Order Number
-        for arimport in existing_arimports:
-            if arimport.UID == self.UID() \
-                    or not arimport.getClientOrderNumber():
-                continue
-            arimport = arimport.getObject()
-
-            if arimport.getClientOrderNumber() == self.getClientOrderNumber():
-                self.error('%s: already used by existing ARImport.' %
-                           'ClientOrderNumber')
-                break
-
+        existing = pc(portal_type='ARImport',
+                      review_state=['valid', 'imported'])
         # Verify Client Reference
-        for arimport in existing_arimports:
+        for arimport in existing:
             if arimport.UID == self.UID() \
                     or not arimport.getClientReference():
                 continue
