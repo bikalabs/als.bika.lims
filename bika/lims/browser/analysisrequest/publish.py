@@ -217,7 +217,8 @@ class AnalysisRequestPublishView(BrowserView):
             arid = self._ars[self._current_ar_index].id
             reptemplate = "<div class='error-report'>%s - %s " \
                           "'%s':<pre>%s</pre></div>" % (
-            arid, _("Unable to load the template"), embedt, tbex)
+                              arid, _("Unable to load the template"), embedt,
+                              tbex)
         self._nextAnalysisRequest()
         return reptemplate
 
@@ -234,7 +235,7 @@ class AnalysisRequestPublishView(BrowserView):
             tbex = traceback.format_exc()
             reptemplate = "<div class='error-report'>%s " \
                           "'%s':<pre>%s</pre></div>" % (
-            _("Unable to load the template"), embedt, tbex)
+                              _("Unable to load the template"), embedt, tbex)
         self._nextAnalysisRequestGroup()
         return reptemplate
 
@@ -816,7 +817,7 @@ class AnalysisRequestPublishView(BrowserView):
         template = self.request.form.get('template', '')
         reporthtml = "<html><head>%s</head><body><div " \
                      "id='report'>%s</body></html>" % (
-        style, html)
+                         style, html)
         publishedars = []
         if 'multi_' in template.lower():
             publishedars = self.publishFromHTML(
@@ -867,6 +868,9 @@ class AnalysisRequestPublishView(BrowserView):
                 ', '.join([ar.Title() for ar in ars]), pdf_fn))
             open(pdf_fn, 'wb').write(pdf_report)
 
+        # ALS hack.  Create the CSV they desire here now
+        csvdata = self.create_als_csv(ars)
+
         for ar in ars:
             # Generate in each relevant AR, a new ARReport
             reportid = ar.generateUniqueId('ARReport')
@@ -875,9 +879,21 @@ class AnalysisRequestPublishView(BrowserView):
                 AnalysisRequest=ar.UID(),
                 Pdf=pdf_report,
                 Html=results_html,
+                CSV=csvdata,
             )
             report.unmarkCreationFlag()
             renameAfterCreation(report)
+
+            # Set blob properties for fields containing file data
+            fld = report.getField('Pdf')
+            fld.get(report).setFilename(
+                '_'.join([ar.Title() for ar in ars]) + ".pdf")
+            fld.get(report).setContentType('application/pdf')
+            fld = report.getField('CSV')
+            fld.get(report).setFilename(
+                '_'.join([ar.Title() for ar in ars]) + ".csv")
+            fld.get(report).setContentType('text/csv')
+
             # Modify the workflow state of each AR that's been published
             status = wf.getInfoFor(ar, 'review_state')
             transitions = {'verified': 'publish', 'published': 'republish'}
@@ -945,8 +961,6 @@ class AnalysisRequestPublishView(BrowserView):
         fn = "_".join([ar.Title() for ar in ars])
         attachPdf(mime_msg, pdf_report, fn)
 
-        # ALS hack.  Create the CSV they desire here now
-        csvdata = self.create_als_csv(ars)
         # Attach to email
         part = MIMEBase('text', "csv")
         fn = self.current_certificate_number()
@@ -1020,7 +1034,6 @@ class AnalysisRequestPublishView(BrowserView):
             }
             dw.writerow(row)
         retval = output.getvalue()
-        import pdb;pdb.set_trace();pass
         return retval
 
     def publish(self):

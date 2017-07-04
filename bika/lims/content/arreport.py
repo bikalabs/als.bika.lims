@@ -10,7 +10,7 @@
 from AccessControl import ClassSecurityInfo
 from Products.ATExtensions.ateapi import RecordsField
 from Products.Archetypes import atapi
-from Products.Archetypes.public import ReferenceField, FileField, \
+from Products.Archetypes.public import ReferenceField, \
         StringField, Schema, BaseFolder
 from plone.app.blob.field import BlobField
 from Products.Archetypes.references import HoldingReference
@@ -27,6 +27,8 @@ schema = BikaSchema.copy() + Schema((
     BlobField('Pdf',
     ),
     StringField('Html',
+    ),
+    BlobField('CSV',
     ),
     StringField('SMS',
     ),
