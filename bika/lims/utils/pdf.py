@@ -84,12 +84,11 @@ def localize_images(html):
     (and currently occupied) zeoclient, hanging it.  All images hosted via
     URLs that refer to the Plone site, must be converted to local file paths.
 
-    This function only replaces images that can be resolved using traversal
-    from the root of the Plone site.  Other images should be handled
-    manually by the calling code, for example:
-
-        path = resource_filename('bika.lims', 'skins/bika/logo_print.png')
-        html = re.sub(r'''http.*logo_print[^'"]+''', "file://" + path, html)
+    This function modifies the URL of all images that can be resolved using 
+    traversal from the root of the Plone site (eg, Image or File fields).
+    It also discovers images in 'bika' skins folder and modifies their URLs.
+    
+    Other images may need to be handled manually.
 
     Returns a list of files which were created, and a modified copy
     of html where all remote URL's have been replaced with file:///...
@@ -99,27 +98,35 @@ def localize_images(html):
 
     # get site URL for traversal
     portal = getSite()
+    skins = portal.portal_skins
     portal_url = portal.absolute_url().split("?")[0]
 
-    # All other images should be traversable.
+    # all src="" attributes
     for match in re.finditer("""src.*\=.*(http[^'"]*)""", _html, re.I):
         url = match.group(1)
+        filename = url.split("/")[-1]
         if '++' in url:
-            filename = url.split("/")[-1]
+            # Resource directories
             outfilename = resource_filename(
                 'bika.lims', 'browser/images/' + filename)
+        elif filename in skins['bika']:
+            # portal_skins
+            outfilename = skins['bika'][filename].filename
         else:
+            # File/Image/Attachment fieldx
             att_path = url.replace(portal_url + "/", "").encode('utf-8')
             attachment = portal.unrestrictedTraverse(att_path)
             if hasattr(attachment, 'getAttachmentFile'):
                 attachment = attachment.getAttachmentFile()
+
             filename = attachment.filename
-            data = str(attachment.data)
             extension = "." + filename.split(".")[-1]
             outfile, outfilename = tempfile.mkstemp(suffix=extension)
             outfile = open(outfilename, 'wb')
+            data = str(attachment.data)
             outfile.write(data)
             outfile.close()
             cleanup.append(outfilename)
+
         _html = _html.replace(url, "file://" + outfilename)
     return cleanup, _html
