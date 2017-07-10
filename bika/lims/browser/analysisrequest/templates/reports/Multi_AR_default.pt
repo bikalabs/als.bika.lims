@@ -160,9 +160,10 @@
                            cat_titles       python:sorted(transposed.keys());
                            leftcol_width    python:50 + divmod(50, len(ars))[1];
                            rightcol_width   python:100 - leftcol_width;
-                           methodcol_width  python:float(leftcol_width)/100*27;
-                           servicecol_width python:float(leftcol_width)/100*57;
-                           unitcol_width    python:leftcol_width-(methodcol_width+servicecol_width);
+                           ldlcol_width     python:float(leftcol_width)/100*11;
+                           methodcol_width  python:float(leftcol_width)/100*24;
+                           servicecol_width python:float(leftcol_width)/100*50;
+                           unitcol_width    python:leftcol_width - (ldlcol_width + methodcol_width + servicecol_width);
                            arcol_width      python:float(rightcol_width)/len(ars);">
 
         <!-- AR Group headers -->
@@ -224,7 +225,7 @@
             <tal:ar repeat="ar ars">
               <span class="td header_td"
                     tal:attributes="style string:width:${arcol_width}%"
-                    tal:content="python:ar.getSample().getDateSampled().Date()"/>
+                    tal:content="python:ar.getSample().getDateSampled().Date() if ar.getSample().getDateSampled() else ''"/>
             </tal:ar>
           </div>
           <div class="row">
@@ -245,14 +246,12 @@
           <!-- Service details for each result and results for each AR -->
           <div tal:attributes="id python:'cat_ars_'+cat_title" class="table ar_table">
             <div class="row">
-              <span class="th"
-                    tal:attributes="style string:width:${servicecol_width}%">Service</span>
-              <span class="th"
-                    tal:attributes="style string:width:${methodcol_width}%">Method</span>
-              <span class="th"
-                    tal:attributes="style string:width:${unitcol_width}%">Unit</span>
+              <span class="th service" tal:attributes="style string:width:${servicecol_width}%">Service</span>
+              <span class="th method" tal:attributes="style string:width:${methodcol_width}%">Method</span>
+              <span class="th unit" tal:attributes="style string:width:${unitcol_width}%">Unit</span>
+              <span class="th ldl" tal:attributes="style string:width:${ldlcol_width}%">LOR</span>
               <tal:ar repeat="ar ars">
-                <span class="th"
+                <span class="th result"
                       tal:attributes="style string:width:${arcol_width}%">Result</span>
               </tal:ar>
             </div>
@@ -274,6 +273,9 @@
                 <span class="td unit"
                       tal:attributes="style string:width:${unitcol_width}%"
                       tal:content="python:service.getUnit()"/>
+                <span class="td ldl"
+                      tal:attributes="style string:width:${ldlcol_width}%"
+                      tal:content="python:service.getLowerDetectionLimit()"/>
                 <tal:ar repeat="ar ars">
                   <tal:each_an
                       tal:define="this_an python:ar.get(service.getKeyword(), None);

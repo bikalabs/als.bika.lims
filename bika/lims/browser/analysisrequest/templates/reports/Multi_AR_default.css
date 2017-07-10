@@ -116,10 +116,17 @@
 .ar_table .unit,
 .ar_table .unit sub,
 .ar_table .unit sup {
-    color:#444;
+    color:#333;
     font-weight:normal !important;
     font-style:italic !important;
-    font-size:5pt;
+    font-size:6pt;
+}
+
+.ar_table .ldl {
+    color:#333;
+    font-weight:normal !important;
+    font-style:italic !important;
+    font-size:6pt;
 }
 
 #report #section-signatures {
@@ -156,6 +163,7 @@ div.resultsinterpretation_heading {
 }
 
 .th { display:table-cell; font-weight:bold; }
+.th.result { text-align:center; }
 .td { display:table-cell; }
 /* this is where the colspan tricks works. */
 /* below is for visual recognition test purposes only. */
