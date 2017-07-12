@@ -5,23 +5,22 @@
 # Copyright 2011-2016 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
+import glob
+import os
+import traceback
+
 from DateTime import DateTime
-from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
 from Products.CMFCore.utils import getToolByName
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from zope.component import getAdapters
-
-from bika.lims import bikaMessageFactory as _, t
+from bika.lims import bikaMessageFactory as _
 from bika.lims import logger
 from bika.lims.browser import BrowserView
 from bika.lims.config import POINTS_OF_CAPTURE
 from bika.lims.interfaces import IResultOutOfRange
-from bika.lims.utils import to_utf8, formatDecimalMark, format_supsub
+from bika.lims.utils import formatDecimalMark, format_supsub, to_utf8
 from bika.lims.utils.analysis import format_uncertainty
-
-import glob, os, sys, traceback
-import App
-import Globals
+from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
+from zope.component import getAdapters
 
 
 class PrintView(BrowserView):
@@ -40,11 +39,10 @@ class PrintView(BrowserView):
     _current_ws_index = 0
     _worksheets = []
 
-
     def __init__(self, context, request):
-        super(PrintView, self).__init__(context, request)
-        self._worksheets = [self.context]
-
+        BrowserView.__init__(self, context, request)
+        self.context = context
+        self.request = request
 
     def __call__(self):
         """ Entry point of PrintView.
@@ -62,24 +60,23 @@ class PrintView(BrowserView):
             self._worksheets = [self.context]
 
         elif self.context.portal_type == 'WorksheetFolder' \
-            and self.request.get('items', ''):
+                and self.request.get('items', ''):
             uids = self.request.get('items').split(',')
             uc = getToolByName(self.context, 'uid_catalog')
             self._worksheets = [obj.getObject() for obj in uc(UID=uids)]
 
         else:
             # Warn and redirect to referer
-            logger.warning('PrintView: type not allowed: %s' %
-                            self.context.portal_type)
-            self.destination_url = self.request.get_header("referer",
-                                   self.context.absolute_url())
+            logger.warning(
+                'PrintView: type not allowed: %s' % self.context.portal_type)
+            self.destination_url = self.request.get_header(
+                "referer", self.context.absolute_url())
 
         # Generate PDF?
         if self.request.form.get('pdf', '0') == '1':
             return self._flush_pdf()
         else:
             return self.template()
-
 
     def getWSTemplates(self):
         """ Returns a DisplayList with the available templates found in
@@ -92,16 +89,17 @@ class PrintView(BrowserView):
         out = []
         for template in templates:
             out.append({'id': template, 'title': template[:-3]})
-        for templates_resource in iterDirectoriesOfType(self._TEMPLATES_ADDON_DIR):
+        for templates_resource in iterDirectoriesOfType(
+                self._TEMPLATES_ADDON_DIR):
             prefix = templates_resource.__name__
-            templates = [tpl for tpl in templates_resource.listDirectory() if tpl.endswith('.pt')]
+            templates = [tpl for tpl in templates_resource.listDirectory() if
+                         tpl.endswith('.pt')]
             for template in templates:
                 out.append({
                     'id': '{0}:{1}'.format(prefix, template),
                     'title': '{0} ({1})'.format(template[:-3], prefix),
                 })
         return out
-
 
     def renderWSTemplate(self):
         """ Returns the current worksheet rendered with the template
@@ -112,19 +110,21 @@ class PrintView(BrowserView):
         embedt = self.request.get('template', self._DEFAULT_TEMPLATE)
         if embedt.find(':') >= 0:
             prefix, embedt = embedt.split(':')
-            templates_dir = queryResourceDirectory(self._TEMPLATES_ADDON_DIR, prefix).directory
+            templates_dir = queryResourceDirectory(
+                self._TEMPLATES_ADDON_DIR, prefix).directory
         embed = ViewPageTemplateFile(os.path.join(templates_dir, embedt))
-        reptemplate = ""
+        # noinspection PyBroadException
         try:
             reptemplate = embed(self)
         except:
             tbex = traceback.format_exc()
             wsid = self._worksheets[self._current_ws_index].id
-            reptemplate = "<div class='error-print'>%s - %s '%s':<pre>%s</pre></div>" % (wsid, _("Unable to load the template"), embedt, tbex)
+            reptemplate = \
+                "<div class='error-print'>%s - %s '%s':<pre>%s</pre></div>" % (
+                    wsid, _("Unable to load the template"), embedt, tbex)
         if self._current_ws_index < len(self._worksheets):
             self._current_ws_index += 1
         return reptemplate
-
 
     def getCSS(self):
         """ Returns the css style to be used for the current template.
@@ -148,18 +148,15 @@ class PrintView(BrowserView):
                 content = content_file.read()
         return content
 
-
     def getNumColumns(self):
         """ Returns the number of columns to display
         """
         return int(self.request.get('numcols', self._DEFAULT_NUMCOLS))
 
-
     def getWorksheets(self):
         """ Returns the list of worksheets to be printed
         """
-        return self._worksheets;
-
+        return self._worksheets
 
     def getWorksheet(self):
         """ Returns the current worksheet from the list. Returns None when
@@ -170,7 +167,6 @@ class PrintView(BrowserView):
             ws = self._ws_data(self._worksheets[self._current_ws_index])
         return ws
 
-
     def splitList(self, elements, chunksnum):
         """ Splits a list to a n lists with chunksnum number of elements
             each one.
@@ -179,12 +175,12 @@ class PrintView(BrowserView):
             [[3,4,5,6],[7,8,9]]
         """
         if len(elements) < chunksnum:
-            return [elements];
-        groups=zip(*[elements[i::chunksnum] for i in range(chunksnum)])
-        if len(groups)*chunksnum < len(elements):
-            groups.extend([elements[-(len(elements)-len(groups)*chunksnum):]])
+            return [elements]
+        groups = zip(*[elements[i::chunksnum] for i in range(chunksnum)])
+        if len(groups) * chunksnum < len(elements):
+            groups.extend(
+                [elements[-(len(elements) - len(groups) * chunksnum):]])
         return groups
-
 
     def _lab_data(self):
         """ Returns a dictionary that represents the lab object
@@ -193,27 +189,28 @@ class PrintView(BrowserView):
         """
         portal = self.context.portal_url.getPortalObject()
         lab = self.context.bika_setup.laboratory
-        lab_address = lab.getPostalAddress() \
-                        or lab.getBillingAddress() \
-                        or lab.getPhysicalAddress()
-        if lab_address:
-            _keys = ['address', 'city', 'state', 'zip', 'country']
-            _list = ["<div>%s</div>" % lab_address.get(v) for v in _keys
-                     if lab_address.get(v)]
-            lab_address = "".join(_list)
+        add = lab.getPhysicalAddress()
+        add = lab.getPostalAddress() if lab.getPostalAddress() else add
+        add = lab.getBillingAddress() if lab.getBillingAddress() else add
+
+        if add:
+            _keys = ['add', 'city', 'state', 'zip', 'country']
+            _list = ["<div>%s</div>" % add.get(v) for v in _keys
+                     if add.get(v)]
+            add = "".join(_list)
         else:
-            lab_address = ''
+            add = ''
 
         return {'obj': lab,
                 'title': to_utf8(lab.Title()),
                 'url': to_utf8(lab.getLabURL()),
-                'address': to_utf8(lab_address),
+                'address': to_utf8(add),
                 'confidence': lab.getConfidence(),
                 'accredited': lab.getLaboratoryAccredited(),
                 'accreditation_body': to_utf8(lab.getAccreditationBody()),
                 'accreditation_logo': lab.getAccreditationBodyLogo(),
-                'logo': "%s/logo_print.png" % portal.absolute_url()}
-
+                'logo': "%s/logo_print.png" % portal.absolute_url(),
+                }
 
     def _ws_data(self, ws):
         """ Creates an ws dict, accessible from the view and from each
@@ -222,19 +219,20 @@ class PrintView(BrowserView):
                 ars, createdby, analyst, printedby, analyses_titles,
                 portal, laboratory
         """
-        data = {'obj': ws,
-                'id': ws.id,
-                'url': ws.absolute_url(),
-                'template_title': ws.getWorksheetTemplateTitle(),
-                'remarks': ws.getRemarks(),
-                'date_printed': self.ulocalized_time(DateTime(), long_format=1),
-                'date_created': self.ulocalized_time(ws.created(), long_format=1)}
+        data = {
+            'obj': ws,
+            'id': ws.id,
+            'url': ws.absolute_url(),
+            'template_title': ws.getWorksheetTemplateTitle(),
+            'remarks': ws.getRemarks(),
+            'date_printed': self.ulocalized_time(DateTime(), long_format=1),
+            'date_created': self.ulocalized_time(ws.created(), long_format=1),
+            'ars': self._analyses_data(ws),
+            'createdby': self._createdby_data(ws),
+            'analyst': self._analyst_data(ws),
+            'printedby': self._printedby_data(ws)}
 
         # Sub-objects
-        data['ars'] = self._analyses_data(ws)
-        data['createdby'] = self._createdby_data(ws)
-        data['analyst'] = self._analyst_data(ws)
-        data['printedby'] = self._printedby_data(ws)
         ans = []
         for ar in data['ars']:
             ans.extend([an['title'] for an in ar['analyses']])
@@ -245,7 +243,6 @@ class PrintView(BrowserView):
                           'url': portal.absolute_url()}
         data['laboratory'] = self._lab_data()
         return data
-
 
     def _createdby_data(self, ws):
         """ Returns a dict that represents the user who created the ws
@@ -261,11 +258,10 @@ class PrintView(BrowserView):
             worksheet.
             Keys: username, fullname, email
         """
-        username = ws.getAnalyst();
+        username = ws.getAnalyst()
         return {'username': username,
                 'fullname': to_utf8(self.user_fullname(username)),
                 'email': to_utf8(self.user_email(username))}
-
 
     def _printedby_data(self, ws):
         """ Returns a dict that represents the user who prints the ws
@@ -292,34 +288,16 @@ class PrintView(BrowserView):
         """ Returns a list of dicts. Each dict represents an analysis
             assigned to the worksheet
         """
-        ans = ws.getAnalyses()
+        analyses = ws.getAnalyses()
         layout = ws.getLayout()
-        an_count = len(ans)
-        pos_count = 0
-        prev_pos = 0
-        requestids = []
-        ars = {}
-        samples = {}
-        clients = {}
-        for an in ans:
-            # Build the analysis-specific dict
-            if an.portal_type == "DuplicateAnalysis":
-                andict = self._analysis_data(an.getAnalysis())
-                andict['id'] = an.getReferenceAnalysesGroupID();
-                andict['obj'] = an;
-                andict['type'] = "DuplicateAnalysis"
-                andict['reftype'] = 'd'
-            else:
-                andict = self._analysis_data(an)
+        pos_count, prev_pos, ars = 0, 0, {}
+
+        for an in analyses:
+            andict = self._analysis_data(an)
 
             # Analysis position
-            pos = [slot['position'] for slot in layout \
-                if slot['analysis_uid'] == an.UID()][0]
-            # compensate for possible bad data (dbw#104)
-            if type(pos) in (list, tuple) and pos[0] == 'new':
-                pos = prev_pos
-            pos = int(pos)
-            prev_pos = pos
+            pos = int([slot['position'] for slot in layout
+                       if slot['analysis_uid'] == an.UID()][0])
 
             # This will allow to sort automatically all the analyses,
             # also if they have the same initial position.
@@ -329,15 +307,15 @@ class PrintView(BrowserView):
 
             # Look for the analysis request, client and sample info and
             # group the analyses per Analysis Request
-            reqid = andict['request_id']
             if an.portal_type in ("ReferenceAnalysis", "DuplicateAnalysis"):
                 reqid = an.getReferenceAnalysesGroupID()
+            else:
+                reqid = andict['request_id']
 
             if reqid not in ars:
                 arobj = an.aq_parent
                 if an.portal_type == "DuplicateAnalysis":
                     arobj = an.getAnalysis().aq_parent
-
                 ar = self._ar_data(arobj)
                 ar['client'] = self._client_data(arobj.aq_parent)
                 ar['sample'] = self._sample_data(an.getSample())
@@ -350,15 +328,16 @@ class PrintView(BrowserView):
 
             else:
                 ar = ars[reqid]
-                if (andict['tmp_position'] < ar['tmp_position']):
-                    ar['tmp_position'] = andict['tmp_position'];
+                if andict['tmp_position'] < ar['tmp_position']:
+                    ar['tmp_position'] = andict['tmp_position']
                     ar['position'] = andict['position']
 
             # Sort analyses by position
-            ans = ar['analyses']
-            ans.append(andict)
-            ans.sort(lambda x, y: cmp(x.get('tmp_position'), y.get('tmp_position')))
-            ar['analyses'] = ans
+            analyses = ar['analyses']
+            analyses.append(andict)
+            analyses.sort(
+                lambda x, y: cmp(x.get('tmp_position'), y.get('tmp_position')))
+            ar['analyses'] = analyses
             ars[reqid] = ar
 
         ars = [ar for ar in ars.itervalues()]
@@ -370,40 +349,54 @@ class PrintView(BrowserView):
     def _analysis_data(self, analysis):
         """ Returns a dict that represents the analysis
         """
-        decimalmark = analysis.aq_parent.aq_parent.getDecimalMark()
-        keyword = analysis.getKeyword()
-        service = analysis.getService()
-        andict = {'obj': analysis,
-                  'id': analysis.id,
-                  'title': analysis.Title(),
-                  'keyword': keyword,
-                  'scientific_name': service.getScientificName(),
-                  'accredited': service.getAccredited(),
-                  'point_of_capture': to_utf8(POINTS_OF_CAPTURE.getValue(service.getPointOfCapture())),
-                  'category': to_utf8(service.getCategoryTitle()),
-                  'result': analysis.getResult(),
-                  'unit': to_utf8(service.getUnit()),
-                  'formatted_unit': format_supsub(to_utf8(service.getUnit())),
-                  'capture_date': analysis.getResultCaptureDate(),
-                  'request_id': analysis.aq_parent.getId(),
-                  'formatted_result': '',
-                  'uncertainty': analysis.getUncertainty(),
-                  'formatted_uncertainty': '',
-                  'retested': analysis.getRetested(),
-                  'remarks': to_utf8(analysis.getRemarks()),
-                  'resultdm': to_utf8(analysis.getResultDM()),
-                  'outofrange': False,
-                  'type': analysis.portal_type,
-                  'reftype': analysis.getReferenceType() \
-                            if hasattr(analysis, 'getReferenceType')
-                            else None,
-                  'worksheet': None,
-                  'specs': {},
-                  'formatted_specs': ''}
+        # Build the analysis-specific dict for Duplicate, by resolving
+        # the src first:
+        if analysis.portal_type == "DuplicateAnalysis":
+            andict = self._analysis_data(analysis.getAnalysis())
+            andict['id'] = analysis.getReferenceAnalysesGroupID()
+            andict['obj'] = analysis
+            andict['type'] = "DuplicateAnalysis"
+            andict['reftype'] = 'd'
+            return andict
 
-        andict['refsample'] = analysis.getSample().id \
-                            if analysis.portal_type == 'Analysis' \
-                            else '%s - %s' % (analysis.aq_parent.id, analysis.aq_parent.Title())
+        # Any analysis that's not a duplicate, continues here:
+        decimalmark = analysis.aq_parent.aq_parent.getDecimalMark()
+        service = analysis.getService()
+        poc = POINTS_OF_CAPTURE.getValue(service.getPointOfCapture())
+        reftype = analysis.getReferenceType() \
+            if hasattr(analysis, 'getReferenceType') \
+            else None
+        refsample = analysis.getSample().id \
+            if analysis.portal_type == 'Analysis' \
+            else '{} - {}'.format(analysis.aq_parent.id,
+                                  analysis.aq_parent.Title())
+        andict = {
+            'obj': analysis,
+            'id': analysis.id,
+            'title': analysis.Title(),
+            'keyword': analysis.getKeyword(),
+            'scientific_name': service.getScientificName(),
+            'accredited': service.getAccredited(),
+            'point_of_capture': to_utf8(poc),
+            'category': to_utf8(service.getCategoryTitle()),
+            'result': analysis.getResult(),
+            'unit': to_utf8(service.getUnit()),
+            'formatted_unit': format_supsub(to_utf8(service.getUnit())),
+            'capture_date': analysis.getResultCaptureDate(),
+            'request_id': analysis.aq_parent.getId(),
+            'formatted_result': '',
+            'uncertainty': analysis.getUncertainty(),
+            'formatted_uncertainty': '',
+            'retested': analysis.getRetested(),
+            'remarks': to_utf8(analysis.getRemarks()),
+            'resultdm': to_utf8(analysis.getResultDM()),
+            'outofrange': False,
+            'type': analysis.portal_type,
+            'reftype': reftype,
+            'refsample': refsample,
+            'worksheet': None,
+            'specs': {},
+            'formatted_specs': ''}
 
         # Which analysis specs must be used?
         # Try first with those defined at AR Publish Specs level
@@ -421,7 +414,8 @@ class PrintView(BrowserView):
 
         andict['specs'] = specs
         scinot = self.context.bika_setup.getScientificNotationReport()
-        andict['formatted_result'] = analysis.getFormattedResult(specs=specs, sciformat=int(scinot), decimalmark=decimalmark)
+        andict['formatted_result'] = analysis.getFormattedResult(
+            specs=specs, sciformat=int(scinot), decimalmark=decimalmark)
 
         fs = ''
         if specs.get('min', None) and specs.get('max', None):
@@ -431,11 +425,13 @@ class PrintView(BrowserView):
         elif specs.get('max', None):
             fs = '< %s' % specs['max']
         andict['formatted_specs'] = formatDecimalMark(fs, decimalmark)
-        andict['formatted_uncertainty'] = format_uncertainty(analysis, analysis.getResult(), decimalmark=decimalmark, sciformat=int(scinot))
+        andict['formatted_uncertainty'] = format_uncertainty(
+            analysis, analysis.getResult(), decimalmark=decimalmark,
+            sciformat=int(scinot))
 
         # Out of range?
         if specs:
-            adapters = getAdapters((analysis, ), IResultOutOfRange)
+            adapters = getAdapters((analysis,), IResultOutOfRange)
             bsc = getToolByName(self.context, "bika_setup_catalog")
             for name, adapter in adapters:
                 ret = adapter(specification=specs)
@@ -511,7 +507,7 @@ class PrintView(BrowserView):
                         ar.getDateReceived(), long_format=0),
                     'date_sampled': self.ulocalized_time(
                         ar.getDateSampled(), long_format=True),
-                    'url': ar.absolute_url(),}
+                    'url': ar.absolute_url(), }
         elif ar.portal_type == "ReferenceSample":
             return {'obj': ar,
                     'id': ar.id,
@@ -519,14 +515,13 @@ class PrintView(BrowserView):
                         ar.getDateReceived(), long_format=0),
                     'date_sampled': self.ulocalized_time(
                         ar.getDateSampled(), long_format=True),
-                    'url': ar.absolute_url(),}
+                    'url': ar.absolute_url(), }
         else:
             return {'obj': ar,
                     'id': ar.id,
                     'date_received': "",
                     'date_sampled': "",
-                    'url': ar.absolute_url(),}
-
+                    'url': ar.absolute_url(), }
 
     def _client_data(self, client):
         """ Returns a dict that represents the client specified
@@ -540,8 +535,7 @@ class PrintView(BrowserView):
             data['name'] = to_utf8(client.getName())
         return data
 
-
-    def _flush_pdf():
+    def _flush_pdf(self):
         """ Generates a PDF using the current layout as the template and
             returns the chunk of bytes.
         """
