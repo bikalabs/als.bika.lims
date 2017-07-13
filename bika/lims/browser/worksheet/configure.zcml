@@ -2,6 +2,7 @@
     xmlns="http://namespaces.zope.org/zope"
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:plone="http://namespaces.plone.org/plone"
     i18n_domain="bika">
 
 
@@ -161,5 +162,13 @@
       for="bika.lims.interfaces.IWorksheet"
       factory="bika.lims.adapters.priorityicons.PriorityIcons"
     />
+
+  <!-- Default worksheet print templates -->
+  <plone:static
+      directory="templates/print"
+      type="worksheets"
+      name="bika.lims"
+  />
+
 
 </configure>

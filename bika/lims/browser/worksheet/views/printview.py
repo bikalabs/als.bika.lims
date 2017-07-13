@@ -31,7 +31,7 @@ class PrintView(BrowserView):
     """
 
     template = ViewPageTemplateFile("../templates/print.pt")
-    _DEFAULT_TEMPLATE = 'ar_by_column.pt'
+    _DEFAULT_TEMPLATE = 'bika.lims:ar_by_column.pt'
     _DEFAULT_NUMCOLS = 4
     _TEMPLATES_DIR = '../templates/print'
     # Add-on folder to look for templates
@@ -80,19 +80,13 @@ class PrintView(BrowserView):
 
     def getWSTemplates(self):
         """ Returns a DisplayList with the available templates found in
-            templates/worksheets
+            ResourceDirectories where type=='worksheet' and name == 'prefix',
+            so that template IDs are "prefix:filename.pt"
         """
-        this_dir = os.path.dirname(os.path.abspath(__file__))
-        templates_dir = os.path.join(this_dir, self._TEMPLATES_DIR)
-        tempath = '%s/%s' % (templates_dir, '*.pt')
-        templates = [t.split('/')[-1] for t in glob.glob(tempath)]
         out = []
-        for template in templates:
-            out.append({'id': template, 'title': template[:-3]})
-        for templates_resource in iterDirectoriesOfType(
-                self._TEMPLATES_ADDON_DIR):
-            prefix = templates_resource.__name__
-            templates = [tpl for tpl in templates_resource.listDirectory() if
+        for directory in iterDirectoriesOfType(self._TEMPLATES_ADDON_DIR):
+            prefix = directory.__name__
+            templates = [tpl for tpl in directory.listDirectory() if
                          tpl.endswith('.pt')]
             for template in templates:
                 out.append({
@@ -106,13 +100,12 @@ class PrintView(BrowserView):
             specified in the request (param 'template').
             Moves the iterator to the next worksheet available.
         """
-        templates_dir = self._TEMPLATES_DIR
+        import pdb;pdb.set_trace();pass
         embedt = self.request.get('template', self._DEFAULT_TEMPLATE)
-        if embedt.find(':') >= 0:
-            prefix, embedt = embedt.split(':')
-            templates_dir = queryResourceDirectory(
-                self._TEMPLATES_ADDON_DIR, prefix).directory
-        embed = ViewPageTemplateFile(os.path.join(templates_dir, embedt))
+        prefix, templatename = embedt.split(':')
+        templates_dir = queryResourceDirectory(
+            self._TEMPLATES_ADDON_DIR, prefix).directory
+        embed = ViewPageTemplateFile(os.path.join(templates_dir, templatename))
         # noinspection PyBroadException
         try:
             reptemplate = embed(self)
@@ -121,7 +114,7 @@ class PrintView(BrowserView):
             wsid = self._worksheets[self._current_ws_index].id
             reptemplate = \
                 "<div class='error-print'>%s - %s '%s':<pre>%s</pre></div>" % (
-                    wsid, _("Unable to load the template"), embedt, tbex)
+                    wsid, _("Unable to load the template"), templatename, tbex)
         if self._current_ws_index < len(self._worksheets):
             self._current_ws_index += 1
         return reptemplate
