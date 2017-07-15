@@ -5,7 +5,6 @@
 # Copyright 2011-2016 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
-import glob
 import os
 import traceback
 
@@ -100,7 +99,6 @@ class PrintView(BrowserView):
             specified in the request (param 'template').
             Moves the iterator to the next worksheet available.
         """
-        import pdb;pdb.set_trace();pass
         embedt = self.request.get('template', self._DEFAULT_TEMPLATE)
         prefix, templatename = embedt.split(':')
         templates_dir = queryResourceDirectory(
@@ -127,18 +125,11 @@ class PrintView(BrowserView):
         """
         template = self.request.get('template', self._DEFAULT_TEMPLATE)
         content = ''
-        if template.find(':') >= 0:
-            prefix, template = template.split(':')
-            resource = queryResourceDirectory(self._TEMPLATES_ADDON_DIR, prefix)
-            css = '{0}.css'.format(template[:-3])
-            if css in resource.listDirectory():
-                content = resource.readFile(css)
-        else:
-            this_dir = os.path.dirname(os.path.abspath(__file__))
-            templates_dir = os.path.join(this_dir, self._TEMPLATES_DIR)
-            path = '%s/%s.css' % (templates_dir, template[:-3])
-            with open(path, 'r') as content_file:
-                content = content_file.read()
+        prefix, filename = template.split(':')
+        resource = queryResourceDirectory(self._TEMPLATES_ADDON_DIR, prefix)
+        css = '{0}.css'.format(filename[:-3])
+        if css in resource.listDirectory():
+            content = resource.readFile(css)
         return content
 
     def getNumColumns(self):

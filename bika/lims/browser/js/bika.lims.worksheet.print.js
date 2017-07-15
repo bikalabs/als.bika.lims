@@ -26,6 +26,7 @@ function WorksheetPrintView() {
 
         $('#print_button').click(function(e) {
             e.preventDefault();
+            $('#ajax-spinner').remove();
             window.print();
         });
 
