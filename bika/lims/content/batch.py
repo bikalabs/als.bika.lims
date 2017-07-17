@@ -220,7 +220,8 @@ class Batch(ATFolder):
     def Title(self):
         """ Return the Batch ID if title is not defined """
         titlefield = self.Schema().getField('title')
-        if titlefield.widget.visible:
+        titlevalue = titlefield.get(self)
+        if titlefield.widget.visible and titlevalue:
             return safe_unicode(self.title).encode('utf-8')
         else:
             return safe_unicode(self.id).encode('utf-8')
