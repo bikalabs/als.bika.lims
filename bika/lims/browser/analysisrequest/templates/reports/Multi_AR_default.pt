@@ -22,9 +22,9 @@
       </div>
       <hr size="1"/>
 
-      <table width="100%" cellpadding="0" cellspacing="0" id="section-address-heading">
+      <table cellpadding="0" cellspacing="0" id="section-address-heading">
         <tr>
-          <td>
+          <td class="client-address">
             <table>
               <tr>
                 <th i18n:translate="" class="label">Client</th>
@@ -52,7 +52,7 @@
               </tr>
             </table>
           </td>
-          <td>
+          <td class="lab-address">
             <table>
               <tr>
                 <th i18n:translate="" class="label">Laboratory

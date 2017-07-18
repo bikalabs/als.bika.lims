@@ -44,6 +44,18 @@
     vertical-align:middle;
 }
 
+#section-address-heading {
+    width:100%
+}
+
+#section-address-heading > .client-address {
+    width:60%
+}
+
+#section-address-heading > .lab-address {
+    width:40%
+}
+
 #discreeter div{
   padding-top:3px;
   line-height: 125% !important;
