@@ -309,17 +309,19 @@
           <tal:ri_def define="interps python:ar.getResultsInterpretationDepts();
                               uc python:ar.uid_catalog"
                       condition="interps">
-            <div tal:repeat="interp interps" class="resultsinterpretation">
-              <div class="resultsinterpretation_heading"
-                   tal:condition="python:interp['uid'] == 'general'">
-                General results interpretation for
-                <span tal:replace="python:ar.id"/>
+            <tal:x tal:repeat="interp interps">
+              <div tal:condition="python:interp.get('richtext', False)" class="resultsinterpretation">
+                <div class="resultsinterpretation_heading"
+                     tal:condition="python:interp['uid'] == 'general'">
+                  General results interpretation for
+                  <span tal:replace="python:ar.id"/>
+                </div>
+                <div class="resultsinterpretation_heading"
+                     tal:condition="python:interp['uid'] != 'general'"
+                     tal:content="python:'Interpreted results for %s (%s)'%(ar.id, uc(UID=interp['uid'])[0].title)"/>
+                <span tal:content="structure python:interp.get('richtext', '')"/>
               </div>
-              <div class="resultsinterpretation_heading"
-                   tal:condition="python:interp['uid'] != 'general'"
-                   tal:content="python:'Interpreted results for %s (%s)'%(ar.id, uc(UID=interp['uid'])[0].title)"/>
-              <span tal:content="structure python:interp['richtext']"/>
-            </div>
+            </tal:x>
           </tal:ri_def>
         </tal:ri_ars>
 
