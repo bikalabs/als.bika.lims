@@ -151,14 +151,24 @@
 
 div.resultsinterpretation {
     border: 1px solid #cdcdcd;
+    border-top: 10px solid #ffffff;
 }
 
 div.resultsinterpretation_heading {
+    background: #cdcdcd;
+    color: #333333;
+    padding:7px 0px 2px 0px;
+    font-size:1.2em;
+    font-weight:bold;
+    border-bottom:1px solid #cdcdcd;
+}
+
+div.resultsinterpretation_dept_heading {
     background: #efefef;
     color: #333333;
-    padding-top:7px;
-    padding:2px 0px 2px 0px;
-    font-size:1.2em;
+    padding:7px 0px 2px 0px;
+    font-weight:bold;
+    border-bottom:1px solid #cdcdcd;
 }
 
 

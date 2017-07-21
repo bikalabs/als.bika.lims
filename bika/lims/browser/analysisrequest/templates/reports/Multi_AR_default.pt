@@ -305,25 +305,31 @@
         </tal:category>
 
         <!-- Results Interpretation for all ARs in this argroup -->
-        <tal:ri_ars repeat="ar ars">
-          <tal:ri_def define="interps python:ar.getResultsInterpretationDepts();
-                              uc python:ar.uid_catalog"
-                      condition="interps">
-            <tal:x tal:repeat="interp interps">
-              <div tal:condition="python:interp.get('richtext', False)" class="resultsinterpretation">
-                <div class="resultsinterpretation_heading"
-                     tal:condition="python:interp['uid'] == 'general'">
-                  General results interpretation for
-                  <span tal:replace="python:ar.id"/>
-                </div>
-                <div class="resultsinterpretation_heading"
-                     tal:condition="python:interp['uid'] != 'general'"
-                     tal:content="python:'Interpreted results for %s (%s)'%(ar.id, uc(UID=interp['uid'])[0].title)"/>
-                <span tal:content="structure python:interp.get('richtext', '')"/>
-              </div>
-            </tal:x>
-          </tal:ri_def>
-        </tal:ri_ars>
+        <tal:resultsinterpretation repeat="ar ars">
+          <div class="resultsinterpretation"
+               condition="python:ar.getResultsInterpretationDepts()">
+            <div class="resultsinterpretation_heading">
+              Results interpretation for <span tal:replace="python:ar.id"/>
+            </div>
+            <!-- 'general' -->
+            <tal:general tal:define="ips python:[i for i in ar.getResultsInterpretationDepts() if i.get('uid') == 'general'];
+                                     ip python:ips[0] if ips else None"
+                         tal:condition="python:ip and ip.get('richtext', False)">
+              <span tal:content="structure python:ip['richtext']"/>
+            </tal:general>
+            <!-- not 'general' -->
+            <tal:not_general tal:define="ips python:[i for i in ar.getResultsInterpretationDepts() if i.get('uid') != 'general'];"
+                             tal:condition="ips">
+              <tal:dept_loop tal:repeat="ip ips">
+                <tal:dept_inner tal:condition="python:ip and ip.get('richtext', False)">
+                  <div class="resultsinterpretation_dept_heading"
+                       tal:content="python:ar.uid_catalog(UID=ip['uid'])[0].getObject().Title()"/>
+                  <span tal:content="structure python:ip['richtext']"/>
+                </tal:dept_inner>
+              </tal:dept_loop>
+            </tal:not_general>
+          </div>
+        </tal:resultsinterpretation>
 
         <!-- Signatures section for departments of all analyses in this group -->
         <div id="section-signatures">
