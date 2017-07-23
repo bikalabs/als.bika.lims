@@ -242,7 +242,9 @@
 
         <!-- Category header for each category -->
         <tal:category tal:repeat="cat_title cat_titles">
-          <div tal:attributes="id python:'cat_title_'+cat_title" class="cat_title" tal:content="cat_title"/>
+          <div tal:attributes="id python:'cat_title_'+cat_title"
+               tal:content="cat_title"
+               class="cat_title"/>
           <!-- Service details for each result and results for each AR -->
           <div tal:attributes="id python:'cat_ars_'+cat_title" class="table ar_table">
             <div class="row">
@@ -305,9 +307,9 @@
         </tal:category>
 
         <!-- Results Interpretation for all ARs in this argroup -->
-        <tal:resultsinterpretation repeat="ar ars">
+        <tal:resultsinterpretation tal:repeat="ar ars">
           <div class="resultsinterpretation"
-               condition="python:ar.getResultsInterpretationDepts()">
+               tal:condition="python:ar.getResultsInterpretationDepts()">
             <div class="resultsinterpretation_heading">
               Results interpretation for <span tal:replace="python:ar.id"/>
             </div>

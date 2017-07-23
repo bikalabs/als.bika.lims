@@ -141,6 +141,14 @@
     font-size:6pt;
 }
 
+.cat_title {
+    background: #cdcdcd;
+    color: #333333;
+    padding:2px 0px 2px 0px;
+    font-weight: bold;
+    width:100% !important;
+}
+
 #report #section-signatures {
     padding:10mm 0 5mm;
 }
@@ -157,18 +165,17 @@ div.resultsinterpretation {
 div.resultsinterpretation_heading {
     background: #cdcdcd;
     color: #333333;
-    padding:7px 0px 2px 0px;
-    font-size:1.2em;
+    padding:2px 0px 2px 0px;
     font-weight:bold;
     border-bottom:1px solid #cdcdcd;
 }
 
 div.resultsinterpretation_dept_heading {
-    background: #efefef;
+    background: #ffffff;
     color: #333333;
-    padding:7px 0px 2px 0px;
+    padding:2px 0px 2px 0px;
     font-weight:bold;
-    border-bottom:1px solid #cdcdcd;
+    border:1px solid #cdcdcd;
 }
 
 
@@ -176,13 +183,6 @@ div.resultsinterpretation_dept_heading {
    for the sake of table-less layout. */
 .table { display:table; table-layout:fixed; width:100%; }
 .row { display:table-row; width:100%; }
-
-.cat_row {
-    background: #bbbbbb;
-    color: #000000;
-    font-weight: bold;
-    width:100% !important;
-}
 
 .th { display:table-cell; font-weight:bold; }
 .th.result { text-align:center; }
