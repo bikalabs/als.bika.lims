@@ -134,42 +134,60 @@ window.AnalysisRequestPublishView = ->
             marginTop: papersize.margins[0]
             marginRight: papersize.margins[1]
             marginBottom: papersize.margins[2]
+            # first page
+            firstMarginBottom: papersize.margins[2]
             marginLeft: papersize.margins[3]
             width: papersize.dimensions[0] - (papersize.margins[1]) - (papersize.margins[3])
             height: papersize.dimensions[1] - (papersize.margins[0]) - (papersize.margins[2])
+            # first page
+            firstHeight: papersize.dimensions[1] - (papersize.margins[0]) - (papersize.margins[2])
 
         # Iterate over AR reports and apply the dimensions, header, footer, etc.
         $('div.ar_publish_body').each (i) ->
             arbody = $(this)
 
             # Note that if the header of the report is taller than the
-            # margin, the margin will be increased.
+            # margin, the margin is increased
             header_html = '<div class="page-header"></div>'
-            header_height = $(header_html).outerHeight(true)
+            height = $(header_html).outerHeight(true)
             if arbody.find('.page-header').length > 0
                 pgh = arbody.find('.page-header').first()
-                header_height = parseFloat($(pgh).outerHeight(true))
-                if header_height > mmTopx(dim.marginTop)
-                    dim.marginTop = pxTomm(header_height) + 2
+                height = parseFloat($(pgh).outerHeight(true))
+                if height > mmTopx(dim.marginBottom)
+                    dim.marginBottom = pxTomm(height) + 2
+                    dim.height = papersize.dimensions[1] - (dim.marginTop) - (dim.marginBottom)
                     $('#margin-top').val dim.marginTop
                 header_html = '<div class="page-header">' + $(pgh).html() + '</div>'
                 arbody.find('.page-header').remove()
 
             # Note that if the footer of the report is taller than the
-            # margin, the footer height will be increased
+            # margin, the margin is increased
             footer_html = '<div class="page-footer"></div>'
-            footer_height = $(footer_html).outerHeight(true)
+            height = $(footer_html).outerHeight(true)
             if arbody.find('.page-footer').length > 0
                 pgf = arbody.find('.page-footer').first()
-                footer_height = parseFloat($(pgf).outerHeight(true))
-                if footer_height > mmTopx(dim.marginBottom)
-                    dim.marginBottom = pxTomm(footer_height) + 2
+                height = parseFloat($(pgf).outerHeight(true))
+                if height > mmTopx(dim.marginBottom)
+                    dim.marginBottom = pxTomm(height) + 2
+                    dim.height = papersize.dimensions[1] - (dim.marginTop) - (dim.marginBottom)
                     $('#margin-bottom').val dim.marginBottom
                 footer_html = '<div class="page-footer">' + $(pgf).html() + '</div>'
                 arbody.find('.page-footer').remove()
 
-            # The margins may have been adjusted, so we re-set the height here
-            dim.height = papersize.dimensions[1] - (dim.marginTop) - (dim.marginBottom)
+            # Maybe a different footer is defined for the first page:
+            # If it does not fit the margin, the first page margin is increased
+            first_footer_html = '<div class="first-page-footer"></div>'
+            height = $(first_footer_html).outerHeight(true)
+            if arbody.find('.first-page-footer').length > 0
+                pgf = arbody.find('.first-page-footer').first()
+                height = parseFloat($(pgf).outerHeight(true))
+                if height > mmTopx(dim.firstMarginBottom)
+                    dim.firstMarginBottom = pxTomm(height) + 2
+                    dim.firstHeight = papersize.dimensions[1] - (dim.marginTop) - (dim.firstMarginBottom)
+                first_footer_html = '<div class="first-page-footer">' + $(pgf).html() + '</div>'
+                arbody.find('.first-page-footer').remove()
+            else
+                first_footer_html = footer_html
 
             # Remove undesired and orphan page breaks
             arbody.find('.page-break').remove()
@@ -182,7 +200,6 @@ window.AnalysisRequestPublishView = ->
             # starts relative to the top of the window. Used later to
             # calculate when a page-break is needed.
             elTopOffset = arbody.position().top
-            pageHeight = mmTopx(dim.height)
             elCurrent = null
             accumHeight = 0
             pagenum = 1
@@ -193,6 +210,10 @@ window.AnalysisRequestPublishView = ->
             # and footer as well as pagination count as required.
             arbody.children('div:visible').each (z) ->
                 div = $(this)
+                if pagenum == 1
+                    pageHeight = mmTopx(dim.firstHeight)
+                else
+                    pageHeight = mmTopx(dim.height)
                 elTopPos = div.position().top - elTopOffset
                 elHeight = parseFloat(div.outerHeight(true))
                 accumHeight = elTopPos + elHeight
@@ -216,7 +237,11 @@ window.AnalysisRequestPublishView = ->
                     restartcount = manualbreak and div.hasClass('restart-page-count')
                     aboveBreakHtml = '<div style="clear:both;padding-top:' + pxTomm(paddingTopFoot) + 'mm"></div>'
                     pageBreak = '<div class="page-break' + (if restartcount then ' restart-page-count' else '') + '" data-pagenum="' + pagenum + '"></div>'
-                    $(aboveBreakHtml + footer_html + pageBreak + header_html).insertBefore div
+                    if pagenum == 1
+                        foot = first_footer_html
+                    else
+                        foot = footer_html
+                    $(aboveBreakHtml + foot + pageBreak + header_html).insertBefore div
                     elTopOffset = div.position().top
                     if manualbreak
                         div.hide()
@@ -231,6 +256,7 @@ window.AnalysisRequestPublishView = ->
 
             # Document end-footer
             if elCurrent != null
+                pageHeight = mmTopx(dim.height)
                 paddingTopFoot = pageHeight - accumHeight
                 aboveBreakHtml = '<div style="clear:both;padding-top:' + pxTomm(paddingTopFoot) + 'mm"></div>'
                 pageBreak = '<div class="page-break" data-pagenum="' + pagenum + '"></div>'
@@ -260,6 +286,16 @@ window.AnalysisRequestPublishView = ->
             $(this).find('div.page-footer').each ->
                 $(this).css
                     height: dim.marginBottom + 'mm'
+                    margin: 0
+                    padding: 0
+                $(this).parent().after this
+                return
+
+            # First page may have a different margin to compensate for
+            # first-page-footer.
+            $(this).find('div.first-page-footer').each ->
+                $(this).css
+                    height: dim.firstMarginBottom + 'mm'
                     margin: 0
                     padding: 0
                 $(this).parent().after this

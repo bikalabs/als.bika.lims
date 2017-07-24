@@ -333,44 +333,63 @@
           </div>
         </tal:resultsinterpretation>
 
-        <!-- Signatures section for departments of all analyses in this group -->
-        <div id="section-signatures">
-          <table>
-            <tr>
-              <td tal:define="mngr_info analysisrequest/managers;
-                                            mngr_ids python:mngr_info['ids'];
-                                            managers python:mngr_info['dict'];"
-                  tal:repeat="manager mngr_ids"
-                  class="manager-info">
-                <tal:manager tal:define="rownum     repeat/manager/number;
-                                         dept       python:managers[manager];
-                                         email      python:managers[manager]['email'];
-                                         jobtitle   python:managers[manager]['job_title'];
-                                         phone      python:managers[manager]['phone'];
-                                         department python:managers[manager]['departments'];
-                                         signature  python:managers[manager]['signature'];">
-
-                  <img tal:condition="signature" tal:attributes="src string:${signature}"/>
-                  <br/>
-                  <span class="manager-fullname" tal:content="python:managers[manager]['name']"/>
-                  <br tal:condition="jobtitle">
-                  <span class="manager-jobtitle" tal:condition="jobtitle" tal:content="jobtitle"/>
-                  <br tal:condition="email"/>
-                  <span class="manager-email" tal:condition="email">
-                    <a tal:attributes="href string:mailto:${email}" tal:content="email"/>
-                  </span>
-                  <br tal:condition="phone"/>
-                  <span class="manager-phone" tal:content="phone" tal:condition="phone"/>
-                  <br/>
-                  <span class="manager-department" tal:content="department"/>
-                  <span tal:condition="python: rownum % 3 == 0" tal:replace="structure python:'</tr>'"/>
-                </tal:manager>
-              </td>
-            </tr>
-          </table>
-        </div>
-
       </tal:def>
+
+
+      <!--
+           First-Page footer
+           A div element with the class "first-page-footer" will be placed in the
+           bottom of the first page of the report.  The normal footer will not be
+           rendered, so all footer info for the first page must be represented here.
+
+           Page numbering
+           For the number of page, use the "page-current-num" class.
+           It will probably always return "1".
+           For the total count, use the "page-total-count" class.
+         -->
+      <div class="first-page-footer">
+        <table>
+          <tr>
+            <td colspan="2">
+              <!-- Signatures section for departments of all analyses in this group -->
+              <tal:sigs tal:define="mngr_info analysisrequest/managers;
+                                      mngr_ids python:mngr_info['ids'];
+                                      managers python:mngr_info['dict'];"
+                        tal:repeat="manager mngr_ids">
+                <div id="section-signatures"
+                     tal:define="rownum     repeat/manager/number;
+                                 dept       python:managers[manager];
+                                 email      python:managers[manager]['email'];
+                                 jobtitle   python:managers[manager]['job_title'];
+                                 phone      python:managers[manager]['phone'];
+                                 department python:managers[manager]['departments'];
+                                 signature  python:managers[manager]['signature'];">
+                  <table>
+                    <td class="manager-info">
+                      <span class="manager-fullname" tal:content="python:managers[manager]['name']"/>
+                      <span class="manager-jobtitle" tal:condition="jobtitle" tal:content="jobtitle"/>
+                      <span class="manager-email" tal:condition="email">
+                        <a tal:attributes="href string:mailto:${email}" tal:content="email"/>
+                      </span>
+                      <span class="manager-phone" tal:content="phone" tal:condition="phone"/>
+                      <span class="manager-department" tal:content="department"/>
+                      <span tal:condition="python: rownum % 3 == 0" tal:replace="structure python:'</tr>'"/>
+                    </td>
+                  </table>
+                </div>
+              </tal:sigs>
+            </td>
+          </tr>
+          <tr>
+            <td class="footer-discreeter">
+              <div class="page-number">Page
+                <span class="page-current-num"></span> of
+                <span class="page-total-count"></span></div>
+            </td>
+            <td align="right" tal:content="coanr"></td>
+          </tr>
+        </table>
+      </div>
 
       <!--
            Page footer

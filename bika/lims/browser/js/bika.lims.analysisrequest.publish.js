@@ -129,38 +129,55 @@
         marginTop: papersize.margins[0],
         marginRight: papersize.margins[1],
         marginBottom: papersize.margins[2],
+        firstMarginBottom: papersize.margins[2],
         marginLeft: papersize.margins[3],
         width: papersize.dimensions[0] - papersize.margins[1] - papersize.margins[3],
-        height: papersize.dimensions[1] - papersize.margins[0] - papersize.margins[2]
+        height: papersize.dimensions[1] - papersize.margins[0] - papersize.margins[2],
+        firstHeight: papersize.dimensions[1] - papersize.margins[0] - papersize.margins[2]
       };
       $('div.ar_publish_body').each(function(i) {
-        var aboveBreakHtml, accumHeight, arbody, elCurrent, elTopOffset, footer_height, footer_html, header_height, header_html, paddingTopFoot, pageBreak, pageHeight, pagecntidx, pagecounts, pagenum, pgf, pgh, split_at;
+        var aboveBreakHtml, accumHeight, arbody, elCurrent, elTopOffset, first_footer_html, footer_html, header_html, height, paddingTopFoot, pageBreak, pageHeight, pagecntidx, pagecounts, pagenum, pgf, pgh, split_at;
         arbody = $(this);
         header_html = '<div class="page-header"></div>';
-        header_height = $(header_html).outerHeight(true);
+        height = $(header_html).outerHeight(true);
         if (arbody.find('.page-header').length > 0) {
           pgh = arbody.find('.page-header').first();
-          header_height = parseFloat($(pgh).outerHeight(true));
-          if (header_height > mmTopx(dim.marginTop)) {
-            dim.marginTop = pxTomm(header_height) + 2;
+          height = parseFloat($(pgh).outerHeight(true));
+          if (height > mmTopx(dim.marginBottom)) {
+            dim.marginBottom = pxTomm(height) + 2;
+            dim.height = papersize.dimensions[1] - dim.marginTop - dim.marginBottom;
             $('#margin-top').val(dim.marginTop);
           }
           header_html = '<div class="page-header">' + $(pgh).html() + '</div>';
           arbody.find('.page-header').remove();
         }
         footer_html = '<div class="page-footer"></div>';
-        footer_height = $(footer_html).outerHeight(true);
+        height = $(footer_html).outerHeight(true);
         if (arbody.find('.page-footer').length > 0) {
           pgf = arbody.find('.page-footer').first();
-          footer_height = parseFloat($(pgf).outerHeight(true));
-          if (footer_height > mmTopx(dim.marginBottom)) {
-            dim.marginBottom = pxTomm(footer_height) + 2;
+          height = parseFloat($(pgf).outerHeight(true));
+          if (height > mmTopx(dim.marginBottom)) {
+            dim.marginBottom = pxTomm(height) + 2;
+            dim.height = papersize.dimensions[1] - dim.marginTop - dim.marginBottom;
             $('#margin-bottom').val(dim.marginBottom);
           }
           footer_html = '<div class="page-footer">' + $(pgf).html() + '</div>';
           arbody.find('.page-footer').remove();
         }
-        dim.height = papersize.dimensions[1] - dim.marginTop - dim.marginBottom;
+        first_footer_html = '<div class="first-page-footer"></div>';
+        height = $(first_footer_html).outerHeight(true);
+        if (arbody.find('.first-page-footer').length > 0) {
+          pgf = arbody.find('.first-page-footer').first();
+          height = parseFloat($(pgf).outerHeight(true));
+          if (height > mmTopx(dim.firstMarginBottom)) {
+            dim.firstMarginBottom = pxTomm(height) + 2;
+            dim.firstHeight = papersize.dimensions[1] - dim.marginTop - dim.firstMarginBottom;
+          }
+          first_footer_html = '<div class="first-page-footer">' + $(pgf).html() + '</div>';
+          arbody.find('.first-page-footer').remove();
+        } else {
+          first_footer_html = footer_html;
+        }
         arbody.find('.page-break').remove();
         if (arbody.find('div').last().hasClass('manual-page-break')) {
           arbody.find('div').last().remove();
@@ -169,14 +186,18 @@
           arbody.find('div').first().remove();
         }
         elTopOffset = arbody.position().top;
-        pageHeight = mmTopx(dim.height);
         elCurrent = null;
         accumHeight = 0;
         pagenum = 1;
         pagecounts = Array();
         arbody.children('div:visible').each(function(z) {
-          var aboveBreakHtml, div, elHeight, elTopPos, manualbreak, paddingTopFoot, pageBreak, restartcount;
+          var aboveBreakHtml, div, elHeight, elTopPos, foot, manualbreak, paddingTopFoot, pageBreak, pageHeight, restartcount;
           div = $(this);
+          if (pagenum === 1) {
+            pageHeight = mmTopx(dim.firstHeight);
+          } else {
+            pageHeight = mmTopx(dim.height);
+          }
           elTopPos = div.position().top - elTopOffset;
           elHeight = parseFloat(div.outerHeight(true));
           accumHeight = elTopPos + elHeight;
@@ -193,9 +214,14 @@
             paddingTopFoot = pageHeight - elTopPos;
             manualbreak = div.hasClass('manual-page-break');
             restartcount = manualbreak && div.hasClass('restart-page-count');
-            aboveBreakHtml = '<div style="clear:both;margin-top:' + pxTomm(paddingTopFoot) + 'mm"></div>';
+            aboveBreakHtml = '<div style="clear:both;padding-top:' + pxTomm(paddingTopFoot) + 'mm"></div>';
             pageBreak = '<div class="page-break' + (restartcount ? ' restart-page-count' : '') + '" data-pagenum="' + pagenum + '"></div>';
-            $(aboveBreakHtml + footer_html + pageBreak + header_html).insertBefore(div);
+            if (pagenum === 1) {
+              foot = first_footer_html;
+            } else {
+              foot = footer_html;
+            }
+            $(aboveBreakHtml + foot + pageBreak + header_html).insertBefore(div);
             elTopOffset = div.position().top;
             if (manualbreak) {
               div.hide();
@@ -210,8 +236,9 @@
           elCurrent = div;
         });
         if (elCurrent !== null) {
+          pageHeight = mmTopx(dim.height);
           paddingTopFoot = pageHeight - accumHeight;
-          aboveBreakHtml = '<div style="clear:both;margin-top:' + pxTomm(paddingTopFoot) + 'mm"></div>';
+          aboveBreakHtml = '<div style="clear:both;padding-top:' + pxTomm(paddingTopFoot) + 'mm"></div>';
           pageBreak = '<div class="page-break" data-pagenum="' + pagenum + '"></div>';
           pagecounts.push(pagenum);
           $(aboveBreakHtml + footer_html + pageBreak).insertAfter($(elCurrent));
@@ -236,6 +263,14 @@
         $(this).find('div.page-footer').each(function() {
           $(this).css({
             height: dim.marginBottom + 'mm',
+            margin: 0,
+            padding: 0
+          });
+          $(this).parent().after(this);
+        });
+        $(this).find('div.first-page-footer').each(function() {
+          $(this).css({
+            height: dim.firstMarginBottom + 'mm',
             margin: 0,
             padding: 0
           });
