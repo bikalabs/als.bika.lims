@@ -101,40 +101,45 @@
     border-top:1px solid #cdcdcd;
     border-left:1px solid #cdcdcd;
 }
-.ar_table .header_th {
+.header_th {
     font-weight:bold;
-    padding: 2px;
+    padding: 1px;
+    /* each column adds some border pixels, but the header column has no
+       borders and must compensate here
+    */
+    padding-right:8px !important;
 }
-.ar_table .header_td {
+.header_td {
     text-align: center;
+    padding:1px;
 }
-.ar_table .th {
+.th {
     background: #eeeeee;
     color: #444444;
     padding:1px;
     border-bottom:1px solid #cdcdcd;
     border-right:1px solid #cdcdcd;
 }
-.ar_table .td {
+.td {
     padding:1px;
     border-bottom:1px solid #cdcdcd;
     border-right:1px solid #cdcdcd;
 }
 
-.ar_table .result{
+.result{
     text-align:center;
 }
 
-.ar_table .unit,
-.ar_table .unit sub,
-.ar_table .unit sup {
+.unit,
+.unit sub,
+.unit sup {
     color:#333;
     font-weight:normal !important;
     font-style:italic !important;
     font-size:6pt;
 }
 
-.ar_table .ldl {
+.ldl {
     color:#333;
     font-weight:normal !important;
     font-style:italic !important;
