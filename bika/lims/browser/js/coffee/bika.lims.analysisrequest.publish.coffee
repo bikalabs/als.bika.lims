@@ -154,7 +154,7 @@ window.AnalysisRequestPublishView = ->
                 pgh = arbody.find('.page-header').first()
                 height = parseFloat($(pgh).outerHeight(true))
                 if height > mmTopx(dim.marginBottom)
-                    dim.marginBottom = pxTomm(height) + 2
+                    dim.marginBottom = pxTomm(height) + 6
                     dim.height = papersize.dimensions[1] - (dim.marginTop) - (dim.marginBottom)
                     $('#margin-top').val dim.marginTop
                 header_html = '<div class="page-header">' + $(pgh).html() + '</div>'
@@ -168,7 +168,7 @@ window.AnalysisRequestPublishView = ->
                 pgf = arbody.find('.page-footer').first()
                 height = parseFloat($(pgf).outerHeight(true))
                 if height > mmTopx(dim.marginBottom)
-                    dim.marginBottom = pxTomm(height) + 2
+                    dim.marginBottom = pxTomm(height) + 6
                     dim.height = papersize.dimensions[1] - (dim.marginTop) - (dim.marginBottom)
                     $('#margin-bottom').val dim.marginBottom
                 footer_html = '<div class="page-footer">' + $(pgf).html() + '</div>'
@@ -182,7 +182,7 @@ window.AnalysisRequestPublishView = ->
                 pgf = arbody.find('.first-page-footer').first()
                 height = parseFloat($(pgf).outerHeight(true))
                 if height > mmTopx(dim.firstMarginBottom)
-                    dim.firstMarginBottom = pxTomm(height) + 2
+                    dim.firstMarginBottom = pxTomm(height) + 6
                     dim.firstHeight = papersize.dimensions[1] - (dim.marginTop) - (dim.firstMarginBottom)
                 first_footer_html = '<div class="first-page-footer">' + $(pgf).html() + '</div>'
                 arbody.find('.first-page-footer').remove()

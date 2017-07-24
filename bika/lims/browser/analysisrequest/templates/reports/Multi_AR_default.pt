@@ -314,7 +314,7 @@
               Results interpretation for <span tal:replace="python:ar.id"/>
             </div>
             <!-- 'general' -->
-            <tal:general tal:define="ips python:[i for i in ar.getResultsInterpretationDepts() if i.get('uid') == 'general'];
+            <tal:general ta.l:define="ips python:[i for i in ar.getResultsInterpretationDepts() if i.get('uid') == 'general'];
                                      ip python:ips[0] if ips else None"
                          tal:condition="python:ip and ip.get('richtext', False)">
               <span tal:content="structure python:ip['richtext']"/>
