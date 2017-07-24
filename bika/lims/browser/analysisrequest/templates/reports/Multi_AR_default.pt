@@ -348,38 +348,34 @@
            For the total count, use the "page-total-count" class.
          -->
       <div class="first-page-footer">
+        <div class="signatories_header">
+          Signatories
+        </div>
+        <div class="signatories_discreeter">
+          This document has been electronically signed by the authorized signatories
+          indicated below. Electronic signing has been carried out in compliance with
+          procedures specified in 21 CFG part 11.
+        </div>
+
+        <table class="signatories" cellspacing="0" cellpadding="0"
+               tal:define="mngr_info analysisrequest/managers;
+                           mngr_ids python:mngr_info['ids'];
+                           managers python:mngr_info['dict'];">
+          <tal:manager tal:repeat="manager mngr_ids">
+            <tr>
+              <th>Name</th>
+              <th>Position</th>
+              <th>Accreditation Category</th>
+            </tr>
+            <tr>
+              <td class="manager-fullname" tal:content="python:managers[manager]['name']"/>
+              <td class="manager-jobtitle" tal:content="python:managers[manager]['job_title']"/>
+              <td class="manager-department" tal:content="python:managers[manager]['departments']"/>
+            </tr>
+          </tal:manager>
+        </table>
+
         <table>
-          <tr>
-            <td colspan="2">
-              <!-- Signatures section for departments of all analyses in this group -->
-              <tal:sigs tal:define="mngr_info analysisrequest/managers;
-                                      mngr_ids python:mngr_info['ids'];
-                                      managers python:mngr_info['dict'];"
-                        tal:repeat="manager mngr_ids">
-                <div id="section-signatures"
-                     tal:define="rownum     repeat/manager/number;
-                                 dept       python:managers[manager];
-                                 email      python:managers[manager]['email'];
-                                 jobtitle   python:managers[manager]['job_title'];
-                                 phone      python:managers[manager]['phone'];
-                                 department python:managers[manager]['departments'];
-                                 signature  python:managers[manager]['signature'];">
-                  <table>
-                    <td class="manager-info">
-                      <span class="manager-fullname" tal:content="python:managers[manager]['name']"/>
-                      <span class="manager-jobtitle" tal:condition="jobtitle" tal:content="jobtitle"/>
-                      <span class="manager-email" tal:condition="email">
-                        <a tal:attributes="href string:mailto:${email}" tal:content="email"/>
-                      </span>
-                      <span class="manager-phone" tal:content="phone" tal:condition="phone"/>
-                      <span class="manager-department" tal:content="department"/>
-                      <span tal:condition="python: rownum % 3 == 0" tal:replace="structure python:'</tr>'"/>
-                    </td>
-                  </table>
-                </div>
-              </tal:sigs>
-            </td>
-          </tr>
           <tr>
             <td class="footer-discreeter">
               <div class="page-number">Page

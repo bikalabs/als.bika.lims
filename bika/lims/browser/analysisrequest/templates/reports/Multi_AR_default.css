@@ -90,6 +90,11 @@
     font-weight:bold;
     color:#d40000;
 }
+
+#report .first-page-footer table {
+    padding: 5px 0;
+    width: 100%;
+}
 #report .page-footer table {
     border-top: 1px solid #aaaaaa;
     padding: 5px 0;
@@ -154,12 +159,29 @@
     width:100% !important;
 }
 
-#report #section-signatures {
-    padding:10mm 0 5mm;
+.signatories_header {
+    color: #333333;
+    padding:2px;
+    font-weight: bold;
+    font-size:1.2em;
+    width:100% !important;
 }
 
-#report #section-signatures img {
-    height:75px
+.signatories_discreeter {
+    padding:2px;
+    line-height: 110% !important;
+    color:#333;
+    font-size:82%;
+}
+
+table.signatories {
+    font-size: 1.2em;
+    border: 1px solid #cdcdcd;
+}
+table.signatories th {
+    border-bottom: 1px solid #cdcdcd;
+    text-align:left;
+    font-size: .9em;
 }
 
 div.resultsinterpretation {
@@ -182,7 +204,6 @@ div.resultsinterpretation_dept_heading {
     font-weight:bold;
     border:1px solid #cdcdcd;
 }
-
 
 /* this is to reproduce table-like structure
    for the sake of table-less layout. */
