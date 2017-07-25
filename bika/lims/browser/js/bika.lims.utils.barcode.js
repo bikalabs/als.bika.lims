@@ -22,13 +22,17 @@ function BarcodeUtils() {
         $('.barcode').each(function() {
             var id = $(this).attr('data-id');
             var code = $(this).attr('data-code');
-            var barHeight = $(this).attr('data-barHeight');
-            var addQuietZone = $(this).attr('data-addQuietZone');
-            var showHRI = $(this).attr('data-showHRI');
-            var output = $(this).attr('data-output');
+            var barHeight = $(this).attr('data-barHeight') ? $(this).attr('data-barHeight') : 50;
+            var barWidth = $(this).attr('data-barWidth') ? $(this).attr('data-barWidth') : 1;
+            var fontSize = $(this).attr('data-fontSize') ? $(this).attr('data-fontSize') : 1;
+            var addQuietZone = $(this).attr('data-addQuietZone') ? $(this).attr('data-addQuietZone') : "false";
+            var showHRI = $(this).attr('data-showHRI') ? $(this).attr('data-showHRI') : "false";
+            var output = $(this).attr('data-output') ? $(this).attr('data-output') : 'css';
             $(this).barcode(id, code,
                             {'barHeight': parseInt(barHeight),
-                             "output": output,
+                             'barWidth': parseInt(barWidth),
+                             'fontSize': parseInt(fontSize),
+                             'output': output,
                              'addQuietZone': Boolean(addQuietZone),
                              'showHRI': Boolean(showHRI) });
             // We will handle the output overflow ourselves;
