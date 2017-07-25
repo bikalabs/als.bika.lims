@@ -2487,6 +2487,17 @@ class AnalysisRequest(BaseFolder):
     def getSamplers(self):
         return getUsers(self, ['LabManager', 'Sampler'])
 
+    def getDateAnalysisCommenced(self):
+        """Return the date of the earliest result capture of all analyses.
+        """
+        analyses = self.getAnalyses(full_objects=True)
+        earliest = DateTime()
+        for a in analyses:
+            date = a.getResultCaptureDate()
+            if date < earliest:
+                earliest = date
+        return earliest
+
     def getPreparationWorkflows(self):
         """Return a list of sample preparation workflows.  These are identified
         by scanning all workflow IDs for those beginning with "sampleprep".

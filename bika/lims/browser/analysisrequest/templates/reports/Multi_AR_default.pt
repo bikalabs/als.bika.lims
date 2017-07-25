@@ -238,6 +238,16 @@
                     tal:content="python:ar.getDateReceived().Date()"/>
             </tal:ar>
           </div>
+          <div class="row">
+            <span class="th header_th"
+                  tal:attributes="style string:width:${leftcol_width}%"
+                  i18n:translate="">Date Analysis Commenced</span>
+            <tal:ar repeat="ar ars">
+              <span class="td header_td"
+                    tal:attributes="style string:width:${arcol_width}%"
+                    tal:content="python:ar.getDateAnalysisCommenced().Date() if ar.getDateAnalysisCommenced() else ''"/>
+            </tal:ar>
+          </div>
         </div>
 
         <!-- Category header for each category -->
