@@ -744,7 +744,7 @@ class ARImport(BaseFolder):
             return value
         if field.type == 'reference':
             value = str(value).strip()
-            brains = self.lookup(field.allowed_types, Title=value)
+            brains = self.lookup(field.allowed_types, title=value)
             if not brains:
                 brains = self.lookup(field.allowed_types, UID=value)
             if not brains:
