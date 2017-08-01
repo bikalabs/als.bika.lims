@@ -242,9 +242,9 @@ function AnalysisServiceEditView() {
                 $(instr_fd).fadeIn('slow');
 
                 // Disable the default method selector
-                $(method_sel).focus(function(e) {
-                    $(this).blur();
-                });
+//                $(method_sel).focus(function(e) {
+//                    $(this).blur();
+//                });
 
                 // Disable the default calculation selector
                 $(calc_sel).focus(function(e) {
