@@ -212,7 +212,7 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
         # should set the formatting correctly
         # @zylinx
         # result argument is a string, formatted in decimal notation
-        formatted = str("%%.%sf" % prec) % result
+        formatted = str("%%.%sf" % prec) % float(result)
     return formatted
 
 def format_uncertainty(analysis, result, decimalmark='.', sciformat=1):
