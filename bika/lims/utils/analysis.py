@@ -121,11 +121,9 @@ def format_numeric_result(analysis, result, decimalmark='.', sciformat=1):
     return formatted
 
 def get_significant_digits(numeric_value):
-    """
-    Returns the precision for a given floatable value.
-    If value is None or not floatable, returns None.
-    Will return positive values if the result is below 1 and will
-    return 0 values if the result is above or equal to 1.
+    """Returns the precision for a given floatable value. If value is None or 
+    not floatable, returns None. Will return positive values if the result is 
+    below 1 and will return 0 values if the result is above or equal to 1.
     :param numeric_value: the value to get the precision from
     :return: the numeric_value's precision
             Examples:
@@ -167,6 +165,7 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
     # So, if sig_digits is > 0, the power must be expressed in negative
     # Eg.
     #      result=0.0012345, threshold=3, sig_digit=3 -> 1.2345e-3=1.2345·10-³
+    prec = precision if precision and precision > 0 else 0
     sci = sig_digits >= threshold and abs(threshold) > 0 and sig_digits <= precision
     sign = '-' if sig_digits > 0 else ''
     if sig_digits == 0 and abs(threshold) > 0 and abs(int(float(result))) > 0:
@@ -178,7 +177,6 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
     formatted = ''
     if sci:
         # First, cut the extra decimals according to the precision
-        prec = precision if precision and precision > 0 else 0
         # result argument is a string, formatted in decimal notation
         result = float(result)
         nresult = str("%%.%sf" % prec) % result
@@ -213,7 +211,8 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
         # Decimal notation.  The rounding applied by round_numeric_result
         # should set the formatting correctly
         # @zylinx
-        formatted = result
+        # result argument is a string, formatted in decimal notation
+        formatted = str("%%.%sf" % prec) % result
     return formatted
 
 def format_uncertainty(analysis, result, decimalmark='.', sciformat=1):
