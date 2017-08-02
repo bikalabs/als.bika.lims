@@ -436,10 +436,10 @@ function AnalysisServiceEditView() {
                      $.each(data.methods, function(index, value) {
                          var uid = value.uid;
                          var title = value.title;
-                         console.debug("Adding Method " + title + " to the Selection");
-                         var option = '<option value="'+uid+'">'+title+'</option>';
+                         sel = uid == $(method_sel).attr('data-default') ? ' selected="selected"' : '';
+                         var option = '<option value="'+uid+'"'+sel+'>'+title+'</option>';
+                         console.debug("Adding Method " + option + " to the Selection");
                          $(method_sel).append(option);
-                         $(method_sel).val(uid);
                      });
                 } else {
                     // Oooopps. The instrument has no method assigned
@@ -540,10 +540,10 @@ function AnalysisServiceEditView() {
                 $.each(data.methods, function(index, value) {
                     var uid = value.uid;
                     var title = value.title;
-                    console.debug("Adding Method " + title + " to the Selection");
-                    var option = '<option value="'+uid+'">'+title+'</option>';
+                    sel = uid == $(method_sel).attr('data-default') ? ' selected="selected"' : '';
+                    var option = '<option value="'+uid+'"'+sel+'>'+title+'</option>';
+                     console.debug("Adding Method " + option + " to the Selection");
                     $(method_sel).append(option);
-                    $(method_sel).val(uid);
                 });
             } else {
                 // Oooopps. The instrument has no method assigned
