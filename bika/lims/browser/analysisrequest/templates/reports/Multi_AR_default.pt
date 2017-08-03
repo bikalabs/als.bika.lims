@@ -147,6 +147,7 @@
                 </td>
                 <td style="text-align:right !important;">
                   <img tal:condition="acc_logo"
+                       style="height:35px;"
                        tal:attributes="src python:acc_logo.absolute_url()"/>
                 </td>
               </tr>
@@ -251,7 +252,7 @@
         </div>
 
         <!-- Category header for each category -->
-        <tal:category tal:repeat="cat_title cat_titles">
+        <div tal:repeat="cat_title cat_titles">
           <div tal:attributes="id python:'cat_title_'+cat_title"
                tal:content="cat_title"
                class="cat_title"/>
@@ -314,7 +315,7 @@
               </div>
             </tal:cat_analyses>
           </div>
-        </tal:category>
+        </div>
 
         <!-- Results Interpretation for all ARs in this argroup -->
         <tal:resultsinterpretation tal:repeat="ar ars">
@@ -364,19 +365,19 @@
         <div class="signatories_discreeter">
           This document has been electronically signed by the authorized signatories
           indicated below. Electronic signing has been carried out in compliance with
-          procedures specified in 21 CFG part 11.
+          procedures specified in 21 CFR part 11.
         </div>
 
         <table class="signatories" cellspacing="0" cellpadding="0"
                tal:define="mngr_info analysisrequest/managers;
                            mngr_ids python:mngr_info['ids'];
                            managers python:mngr_info['dict'];">
+          <tr>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Accreditation Category</th>
+          </tr>
           <tal:manager tal:repeat="manager mngr_ids">
-            <tr>
-              <th>Name</th>
-              <th>Position</th>
-              <th>Accreditation Category</th>
-            </tr>
             <tr>
               <td class="manager-fullname" tal:content="python:managers[manager]['name']"/>
               <td class="manager-jobtitle" tal:content="python:managers[manager]['job_title']"/>

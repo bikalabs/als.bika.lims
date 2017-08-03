@@ -118,18 +118,6 @@
     text-align: center;
     padding:1px;
 }
-.th {
-    background: #eeeeee;
-    color: #444444;
-    padding:1px;
-    border-bottom:1px solid #cdcdcd;
-    border-right:1px solid #cdcdcd;
-}
-.td {
-    padding:1px;
-    border-bottom:1px solid #cdcdcd;
-    border-right:1px solid #cdcdcd;
-}
 
 .result{
     text-align:center;
@@ -157,6 +145,7 @@
     padding:2px 0px 2px 0px;
     font-weight: bold;
     width:100% !important;
+    border-right:1px solid #cdcdcd;
 }
 
 .signatories_header {
@@ -210,9 +199,22 @@ div.resultsinterpretation_dept_heading {
 .table { display:table; table-layout:fixed; width:100%; }
 .row { display:table-row; width:100%; }
 
-.th { display:table-cell; font-weight:bold; }
+.th {
+    display:table-cell;
+    font-weight:bold;
+    background: #eeeeee;
+    color: #444444;
+    padding:1px;
+    border-bottom:1px solid #cdcdcd;
+    border-right:1px solid #cdcdcd;
+}
 .th.result { text-align:center; }
-.td { display:table-cell; }
+.td {
+    display:table-cell;
+    padding:1px;
+    border-bottom:1px solid #cdcdcd;
+    border-right:1px solid #cdcdcd;
+}
 /* this is where the colspan tricks works. */
 /* below is for visual recognition test purposes only. */
 .red { background:red; }
