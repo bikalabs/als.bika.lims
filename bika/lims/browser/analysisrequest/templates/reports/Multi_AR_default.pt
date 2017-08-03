@@ -298,11 +298,11 @@
                           tal:condition="python:state and state in ('verified', 'published')"
                           tal:attributes="style string:width:${arcol_width}%"
                           tal:content="structure python:this_an.getFormattedResult()"/>
-                    <!-- Analysis in wrong state -->
+                    <!-- Analysis in wrong state (hourglass 8987)-->
                     <span class="td result"
                           tal:condition="python:state and state not in ('verified', 'published')"
                           tal:attributes="style string:width:${arcol_width}%">
-                      <img tal:attributes='src python:portal.absolute_url()+"/++resource++bika.lims.images/to_follow.png";' class="to_follow-ico"/>
+                      &#8987;
                     </span>
                     <!-- Analysis not in this AR -->
                     <span class="td result"
