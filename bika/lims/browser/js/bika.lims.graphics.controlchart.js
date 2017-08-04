@@ -258,7 +258,7 @@ function ControlChart() {
                             .style("font-size", "10px")
                             .attr("x", x(d.x_axis) - 10)
                             .attr("y", y(d.y_axis) - 10)
-                            .text(d.y_axis+that.ylabel);
+                            .text(d.formattedresult+" "+that.ylabel);
                 }).on("click",  function() {
                     d3.select(this)
                         .attr("fill", "#4682b4")
@@ -269,7 +269,7 @@ function ControlChart() {
                             .style("font-size", "10px")
                             .attr("x", x(d.x_axis) - 10)
                             .attr("y", y(d.y_axis) - 10)
-                            .text(d.y_axis+that.ylabel);
+                            .text(d.formattedresult+" "+that.ylabel);
                 });
         });
 
