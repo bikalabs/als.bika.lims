@@ -136,7 +136,7 @@ function ControlChart() {
     this.draw = function(canvas) {
         var width = $(canvas).innerWidth() - 20;
         var height = $(canvas).innerHeight() - 20;
-        var margin = {top: 20, right: 20, bottom: 30, left: 30},
+        var margin = {top: 20, right: 20, bottom: 30, left: 45},
         width = width - margin.left - margin.right,
         height = height - margin.top - margin.bottom;
 
@@ -219,8 +219,9 @@ function ControlChart() {
             .append("text")
                 .attr("transform", "rotate(-90)")
                 .attr("y", 6)
-                .attr("dy", ".71em")
-                .style("text-anchor", "end")
+                .attr("dy", "-2.90em")
+                .attr("x", -125)
+                .style("text-anchor", "middle")
                 .text(that.ylabel);
 
         svg.append("path")
