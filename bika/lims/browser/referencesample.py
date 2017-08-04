@@ -167,12 +167,17 @@ class ReferenceAnalysesView(AnalysesView):
         item['Service'] = service.Title()
         item['Captured'] = self.ulocalized_time(obj.getResultCaptureDate())
         brefs = obj.getBackReferences("WorksheetAnalysis")
-        item['Worksheet'] = brefs and brefs[0].Title() or ''
+        ws = brefs[0] if brefs else ''
+        item['Worksheet'] = ws and ws.Title() or ''
         # The following item keywords are required for the
         # JSON return value below, which is used to render graphs.
         # they are not actually used in the table rendering.
         item['Keyword'] = service.getKeyword()
         item['Unit'] = service.getUnit()
+
+        if ws:
+            item['replace']['Worksheet'] = \
+                "<a href='%s'>%s</a>" % (ws.absolute_url(), ws.Title())
 
         self.addToJSON(obj, service, item)
         return item
@@ -196,6 +201,7 @@ class ReferenceAnalysesView(AnalysesView):
             error = float(specs.get('error', 0))
             target = float(specs.get('result', 0))
             result = float(item['Result'])
+            formattedresult = item['obj'].getFormattedResult()
             error_amount = ((target / 100) * error) if target > 0 else 0
             upper = smax + error_amount
             lower = smin - error_amount
@@ -215,6 +221,7 @@ class ReferenceAnalysesView(AnalysesView):
                      'upper': upper,
                      'lower': lower,
                      'result': result,
+                     'formattedresult': formattedresult,
                      'unit': item['Unit'],
                      'id': item['uid']}
             anrows.append(anrow)
