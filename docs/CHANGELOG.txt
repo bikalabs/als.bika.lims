@@ -9,6 +9,10 @@
 **Other Changes**
 
 - Bika LIMS JSON API v2
+3.2.1rc1 (unreleased)
+---------------------
+
+- no changes yet
 
 
 3.2.1b3 (2017-08-07)
