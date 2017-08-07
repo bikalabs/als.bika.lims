@@ -32,7 +32,6 @@ from zope.interface import implements
 import json
 
 from .view import AnalysisRequestViewView    # view first.
-from .add import AnalysisRequestAddView
 from .invoice import InvoicePrintView
 from .invoice import InvoiceView
 from invoice import InvoiceCreate
@@ -43,6 +42,11 @@ from .published_results import AnalysisRequestPublishedResults
 from .results_not_requested import AnalysisRequestResultsNotRequestedView
 from .workflow import AnalysisRequestWorkflowAction
 from .analysisrequests import AnalysisRequestsView
+
+# New AR Add form
+from .add2 import AnalysisRequestAddView  # noqa: F401
+from .add2 import AnalysisRequestManageView  # noqa: F401
+from .add2 import ajaxAnalysisRequestAddView  # noqa: F401
 
 
 class ResultOutOfRange(object):
