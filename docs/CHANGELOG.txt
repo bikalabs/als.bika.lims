@@ -1,4 +1,4 @@
-3.2.1b3 (unreleased)
+3.2.1b3 (2017-08-07)
 --------------------
 
 - Issue-1995 : CC contacts not saving during AR creation
