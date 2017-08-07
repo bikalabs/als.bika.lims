@@ -85,10 +85,10 @@ class LoadSetupData(BrowserView):
                     print traceback.format_exc()
                     print "Error while loading ", path
 
-        elif 'setupfile' in form and 'file' in form and form['file'] and 'projectname' in form and form['projectname']:
+        elif 'setupfile' in form and 'import_file' in form and form['import_file'] and 'projectname' in form and form['projectname']:
                 self.dataset_project = form['projectname']
-                tmp = tempfile.mktemp()
-                file_content = form['file'].read()
+                tmp = "{}.xlsx".format(tempfile.mktemp())
+                file_content = form['import_file'].read()
                 open(tmp, 'wb').write(file_content)
                 workbook = load_workbook(filename=tmp)  # , use_iterators=True)
                 self.dataset_name = 'uploaded'
