@@ -1,5 +1,7 @@
 3.3.0 (unreleased)
 ------------------
+3.2.1b3 (2017-08-07)
+--------------------
 
 - Issue-2132: Reorderable Attachments for Reports
 - Issue-2129: Migrate Attachments to blobs
