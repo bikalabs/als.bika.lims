@@ -1,6 +1,10 @@
 3.2.1b3 (unreleased)
 --------------------
 
+- Issue-1995 : CC contacts not saving during AR creation
+- Issue-1969: Copy AR functionality from the "analysisrequests" view raises an error
+- Issue-1968: Copy AR functionality not working
+- LIMS-2596: AR and Sample view fields that need to stay editable
 - Issue-2128: Infinite Recursion on Report Publication
 - Issue-2095: Permission of getAccreditationBodyLogo
 - Issue-2065: Sort order on all landing pages are broken
@@ -11,6 +15,10 @@
 - Issue-2011: Client Folder Listing Table decreases Bika LIMS performance and is unusable for many Clients
 - Issue-2068: Member Discount is always applied on adding new ARs
 - Issue-2052: Computed Sample Field "SampleTypeUID" does not check if a SampleType is set
+
+**Other Changes**
+
+- Complete Rework of the AR Add View
 
 
 3.2.1b2 (2017-05-27)
