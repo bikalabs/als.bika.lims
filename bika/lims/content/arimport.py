@@ -335,10 +335,10 @@ class ARImport(BaseFolder):
                 return user_ids[0]
             if len(user_ids) > 1:
                 #raise ValueError('Sampler %s is ambiguous' % import_user)
-                return None
+                return ''
             #Otherwise
             #raise ValueError('Sampler %s not found' % import_user)
-            return None
+            return ''
 
         bsc = getToolByName(self, 'bika_setup_catalog')
         workflow = getToolByName(self, 'portal_workflow')
@@ -371,6 +371,7 @@ class ARImport(BaseFolder):
                 workflow.doActionFor(sample, 'no_sampling_workflow')
             part = _createObjectByType('SamplePartition', sample, 'part-1')
             part.unmarkCreationFlag()
+            renameAfterCreation(part)
             if swe:
                 workflow.doActionFor(part, 'sampling_workflow')
             else:

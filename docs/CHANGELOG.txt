@@ -1,6 +1,7 @@
 3.4.0 (unreleased)
 ------------------
 
+- Issue-2162: Added renameAfterCreation to partition creation in ARImport
 - Laboratory Supervisor field on the Laboratory(Bika Setup - Laboratory Information)
 - Laboratory License ID field on the Laboratory(Bika Setup - Laboratory Information)
 - Add instrument Agilent-Masshunter
