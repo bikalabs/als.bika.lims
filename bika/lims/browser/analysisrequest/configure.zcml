@@ -4,6 +4,56 @@
     xmlns:i18n="http://namespaces.zope.org/i18n"
     i18n_domain="bika">
 
+    <!-- AR Add 2 -->
+    <browser:page
+        for="*"
+        name="ar_add_manage"
+        class="bika.lims.browser.analysisrequest.AnalysisRequestManageView"
+        permission="bika.lims.ManageBika"
+        layer="bika.lims.interfaces.IBikaLIMS"
+        />
+
+    <browser:page
+        for="bika.lims.interfaces.IClient"
+        name="ar_add"
+        class="bika.lims.browser.analysisrequest.AnalysisRequestAddView"
+        permission="bika.lims.ManageAnalysisRequests"
+        layer="bika.lims.interfaces.IBikaLIMS"
+        />
+
+    <browser:page
+        for="bika.lims.interfaces.IAnalysisRequest"
+        name="ar_add"
+        class="bika.lims.browser.analysisrequest.AnalysisRequestAddView"
+        permission="bika.lims.ManageAnalysisRequests"
+        layer="bika.lims.interfaces.IBikaLIMS"
+        />
+
+    <browser:page
+        for="bika.lims.interfaces.IAnalysisRequestsFolder"
+        name="ar_add"
+        class="bika.lims.browser.analysisrequest.AnalysisRequestAddView"
+        permission="bika.lims.ManageAnalysisRequests"
+        layer="bika.lims.interfaces.IBikaLIMS"
+        />
+
+    <browser:page
+        for="bika.lims.interfaces.IBatch"
+        name="ar_add"
+        class="bika.lims.browser.analysisrequest.AnalysisRequestAddView"
+        permission="bika.lims.ManageAnalysisRequests"
+        layer="bika.lims.interfaces.IBikaLIMS"
+        />
+
+    <browser:page
+        for="*"
+        name="ajax_ar_add"
+        class="bika.lims.browser.analysisrequest.ajaxAnalysisRequestAddView"
+        permission="zope.Public"
+        layer="bika.lims.interfaces.IBikaLIMS"
+        />
+    <!-- /AR Add 2 -->
+
     <adapter
       factory="bika.lims.browser.analysisrequest.ClientContactVocabularyFactory"
       provides="bika.lims.interfaces.IDisplayListVocabulary"
@@ -82,14 +132,6 @@
       name="arresultsinterpretation_save"
       class="bika.lims.browser.analysisrequest.resultsinterpretation.Save"
       permission="zope.Public"
-      layer="bika.lims.interfaces.IBikaLIMS"
-    />
-
-    <browser:page
-      for="bika.lims.interfaces.IAnalysisRequest"
-      name="ar_add"
-      class="bika.lims.browser.analysisrequest.AnalysisRequestAddView"
-      permission="bika.lims.ManageAnalysisRequests"
       layer="bika.lims.interfaces.IBikaLIMS"
     />
 
