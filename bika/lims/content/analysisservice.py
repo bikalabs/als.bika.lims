@@ -307,38 +307,33 @@ schema = BikaSchema.copy() + Schema((
                  ),
     ),
 
-    FixedPointField(
+    # LDL and UDL are StringField, because the value entered must
+    # be rendered as-is on the COA.
+    StringField(
         'LowerDetectionLimit',
         schemata="Analysis",
-        default='0.0',
-        precision=7,
+        default='0',
         widget=DecimalWidget(
             label=_("Lower Detection Limit (LDL)"),
-            description=_("The Lower Detection Limit is "
-                          "the lowest value to which the "
-                          "measured parameter can be "
-                          "measured using the specified "
-                          "testing methodology. Results "
-                          "entered which are less than "
-                          "this value will be reported "
-                          "as < LDL")
+            description=_(
+                "The Lower Detection Limit is the lowest value to which the "
+                "measured parameter can be measured using the specified "
+                "testing methodology. Results entered which are less than "
+                "this value will be reported as < LDL")
         ),
     ),
 
-    FixedPointField(
+    StringField(
         'UpperDetectionLimit',
         schemata="Analysis",
-        default='1000000000.0',
-        precision=7,
+        default='1000000000',
         widget=DecimalWidget(
             label=_("Upper Detection Limit (UDL)"),
-            description=_("The Upper Detection Limit is the "
-                          "highest value to which the "
-                          "measured parameter can be measured "
-                          "using the specified testing "
-                          "methodology. Results entered "
-                          "which are greater than this value "
-                          "will be reported as > UDL")
+            description=_(
+                "The Upper Detection Limit is the highest value to which the "
+                "measured parameter can be measured using the specified "
+                "testing methodology. Results entered which are greater than "
+                "this value will be reported as > UDL")
         ),
     ),
 
@@ -1439,23 +1434,27 @@ class AnalysisService(BaseContent, HistoryAwareMixin):
 
     def getLowerDetectionLimit(self):
         """Returns the Lower Detection Limit for this service as a
-           floatable
+           number, either floatable or string, depending on the actual
+           field value
         """
         ldl = self.Schema().getField('LowerDetectionLimit').get(self)
         try:
-            return float(ldl)
-        except ValueError:
-            return 0
+            ldl = float(ldl) if "." in ldl else int(ldl)
+        except (ValueError, TypeError):
+            ldl = 0
+        return ldl
 
     def getUpperDetectionLimit(self):
         """Returns the Upper Detection Limit for this service as a
-           floatable
+           number, either floatable or string, depending on the actual
+           field value
         """
         udl = self.Schema().getField('UpperDetectionLimit').get(self)
         try:
-            return float(udl)
-        except ValueError:
-            return 0
+            udl = float(udl) if "." in udl else int(udl)
+        except (ValueError, TypeError):
+            udl = 0
+        return udl
 
     def getPrecision(self, result=None):
         """Returns the precision for the Analysis Service. If the
