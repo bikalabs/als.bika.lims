@@ -1437,10 +1437,14 @@ class AnalysisService(BaseContent, HistoryAwareMixin):
            number, either floatable or string, depending on the actual
            field value
         """
-        ldl = self.Schema().getField('LowerDetectionLimit').get(self)
+        ldl = self.getField('LowerDetectionLimit').get(self)
+        # For history-aware older versions, field value may not be migrated
+        if isinstance(ldl, tuple):
+            ldl = "{}.{}".format(*ldl)
         try:
             ldl = float(ldl) if "." in ldl else int(ldl)
         except (ValueError, TypeError):
+            ldl = float(ldl) if "." in ldl else int(ldl)
             ldl = 0
         return ldl
 
@@ -1449,10 +1453,14 @@ class AnalysisService(BaseContent, HistoryAwareMixin):
            number, either floatable or string, depending on the actual
            field value
         """
-        udl = self.Schema().getField('UpperDetectionLimit').get(self)
+        udl = self.getField('UpperDetectionLimit').get(self)
+        # For history-aware older versions, field value may not be migrated
+        if isinstance(udl, tuple):
+            udl = "{}.{}".format(*udl)
         try:
             udl = float(udl) if "." in udl else int(udl)
         except (ValueError, TypeError):
+            udl = float(udl) if "." in udl else int(udl)
             udl = 0
         return udl
 
