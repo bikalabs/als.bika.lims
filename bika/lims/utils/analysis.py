@@ -114,9 +114,8 @@ def format_numeric_result(analysis, result, decimalmark='.', sciformat=1):
     # Get the default precision for scientific notation
     threshold = service.getExponentialFormatPrecision()
     precision = analysis.getPrecision(result)
-    rounded_result = round_numeric_result(analysis, result)
     formatted = _format_decimal_or_sci(
-        rounded_result, precision, threshold, sciformat)
+        analysis, result, precision, threshold, sciformat)
     formatted = formatDecimalMark(formatted, decimalmark)
     return formatted
 
@@ -145,7 +144,7 @@ def get_significant_digits(numeric_value):
     significant_digit = int(math.floor(math.log10(abs(numeric_value))))
     return 0 if significant_digit > 0 else abs(significant_digit)
 
-def _format_decimal_or_sci(result, precision, threshold, sciformat):
+def _format_decimal_or_sci(analysis, result, precision, threshold, sciformat):
     # Current result's precision is above the threshold?
     sig_digits = get_significant_digits(result)
 
@@ -212,7 +211,7 @@ def _format_decimal_or_sci(result, precision, threshold, sciformat):
         # should set the formatting correctly
         # @zylinx
         # result argument is a string, formatted in decimal notation
-        formatted = str("%%.%sf" % prec) % float(result)
+        formatted = round_numeric_result(analysis, result)
     return formatted
 
 def format_uncertainty(analysis, result, decimalmark='.', sciformat=1):
@@ -300,7 +299,7 @@ def format_uncertainty(analysis, result, decimalmark='.', sciformat=1):
     # Get the default precision for scientific notation
     threshold = service.getExponentialFormatPrecision()
     precision = analysis.getPrecision(result)
-    formatted = _format_decimal_or_sci(uncertainty, precision,
+    formatted = _format_decimal_or_sci(analysis, uncertainty, precision,
                                        threshold, sciformat)
     return formatDecimalMark(formatted, decimalmark)
 
