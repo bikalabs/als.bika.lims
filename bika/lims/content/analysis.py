@@ -69,6 +69,19 @@ from bika.lims.utils.analysis import get_significant_digits
 from bika.lims.workflow import getTransitionActor
 from bika.lims.workflow import skip
 
+from bika.lims import api
+from plone.memoize.volatile import cache
+from plone.memoize.volatile import DontCache
+
+
+def cache_key(method, self):
+    creation_flag = self.checkCreationFlag()
+    if creation_flag:
+        raise DontCache
+    uid = api.get_uid(self)
+    modified = self.modified().ISO8601()
+    return "{}-{}".format(uid, modified)
+
 
 @indexer(IAnalysis)
 def Priority(instance):
@@ -669,6 +682,14 @@ class Analysis(BaseContent):
             return self.getAnalysis().aq_parent.getSample()
         return self.aq_parent.getSample()
 
+    @cache(cache_key)
+    def getKeyword(self):
+        return self.getService().getKeyword()
+
+    @cache(cache_key)
+    def getClientTitle(self):
+        return self.aq_parent.aq_parent.Title()
+
     def getResultsRange(self, specification=None):
         """ Returns the valid results range for this analysis, a
             dictionary with the following keys: 'keyword', 'uid', 'min',
@@ -683,10 +704,11 @@ class Analysis(BaseContent):
         while an and an.portal_type in ('DuplicateAnalysis', 'RejectAnalysis'):
             an = an.getAnalysis()
 
+        keyword = self.getKeyword()
         if specification == 'ar' or specification is None:
             if an.aq_parent and an.aq_parent.portal_type == 'AnalysisRequest':
                 rr = an.aq_parent.getResultsRange()
-                rr = [r for r in rr if r.get('keyword', '') == an.getKeyword()]
+                rr = [r for r in rr if r.get('keyword', '') == keyword]
                 rr = rr[0] if rr and len(rr) > 0 else {}
                 if rr:
                     rr['uid'] = self.UID()
