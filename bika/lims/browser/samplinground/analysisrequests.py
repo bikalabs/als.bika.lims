@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 from bika.lims import bikaMessageFactory as _
@@ -268,9 +270,7 @@ class AnalysisRequestsView(_ARV, _ARAV):
             # automatically :)
             num_art = len(self.context.ar_templates)
             self.context_actions[self.context.translate(_('Add new'))] = {
-                'url': self.context.aq_parent.absolute_url() + \
-                    "/portal_factory/"
-                    "AnalysisRequest/Request new analyses/ar_add?samplinground="
+                'url': self.context.aq_parent.absolute_url() + "/ar_add?samplinground=" \
                     + self.context.UID() + "&ar_count=" + str(num_art),
                 'icon': '++resource++bika.lims.images/add.png'}
         return super(AnalysisRequestsView, self).__call__()

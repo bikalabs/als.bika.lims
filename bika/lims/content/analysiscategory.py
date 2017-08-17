@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 """Analysis Category - the category of the analysis service
@@ -24,7 +26,7 @@ import transaction
 @indexer(IAnalysisCategory)
 def sortable_title_with_sort_key(instance):
     sort_key = instance.getSortKey()
-    if sort_key:
+    if sort_key is not None:
         return "{:010.3f}{}".format(sort_key, instance.Title())
     return instance.Title()
 

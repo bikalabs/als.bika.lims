@@ -24,6 +24,12 @@ DOCTESTS = [
     "../docs/Versioning.rst",
     "../docs/AnalysisRequests.rst",
     "../docs/Calculations.rst",
+    "../docs/IDServer.rst",
+    "../docs/Rolemap.rst",
+    "../docs/ContactDepartmentField.rst",
+    "../docs/ClientTypes.rst",
+    "../docs/LaboratorySupervisorField.rst",
+    "../docs/SamplingCOCSetupTab.rst",
 ]
 
 

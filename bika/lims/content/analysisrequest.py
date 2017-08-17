@@ -83,6 +83,7 @@ from bika.lims.interfaces import IAnalysisRequest
 from bika.lims.interfaces import ISamplePrepWorkflow
 
 from bika.lims import api
+from bika.lims import deprecated
 from bika.lims.config import PROJECTNAME
 from bika.lims import bikaMessageFactory as _
 from bika.lims.content.bikaschema import BikaSchema
@@ -162,6 +163,8 @@ schema = BikaSchema.copy() + Schema((
             size=20,
             helper_js=("bika_widgets/referencewidget.js",
                        "++resource++bika.lims.js/contact.js"),
+            description=_("The primary contact of this analysis request, " \
+                          "who will receive notifications and publications via email"),
             visible={
                 'edit': 'visible',
                 'view': 'visible',
@@ -207,6 +210,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=EditARContact,
         widget=ReferenceWidget(
             label=_("CC Contacts"),
+            description=_("The contacts used in CC for email notifications"),
             render_own_label=True,
             size=20,
             visible={
@@ -251,6 +255,7 @@ schema = BikaSchema.copy() + Schema((
         acquire_fieldname="CCEmails",
         widget=StringWidget(
             label=_("CC Emails"),
+            description=_("Additional email addresses to be notified"),
             visible={
                 'edit': 'visible',
                 'view': 'visible',
@@ -284,7 +289,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=ReferenceWidget(
             label=_("Client"),
-            description=_("You must assign this request to a client"),
+            description=_("The assigned client of this request"),
             size=20,
             render_own_label=True,
             visible={
@@ -361,6 +366,7 @@ schema = BikaSchema.copy() + Schema((
         widget=ReferenceWidget(
             label=_("Batch"),
             size=20,
+            description=_("The assigned batch of this request"),
             render_own_label=True,
             visible={
                 'edit': 'visible',
@@ -398,6 +404,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=ReferenceWidget(
             label=_("Sampling Round"),
+            description=_("The assigned sampling round of this request"),
             size=20,
             render_own_label=True,
             visible={
@@ -433,7 +440,8 @@ schema = BikaSchema.copy() + Schema((
         referenceClass=HoldingReference,
         relationship='AnalysisRequestSubGroup',
         widget=ReferenceWidget(
-            label=_("Sub-group"),
+            label=_("Batch Sub-group"),
+            description=_("The assigned batch sub group of this request"),
             size=20,
             render_own_label=True,
             visible={
@@ -481,7 +489,8 @@ schema = BikaSchema.copy() + Schema((
         read_permission=permissions.View,
         write_permission=permissions.ModifyPortalContent,
         widget=ReferenceWidget(
-            label=_("Template"),
+            label=_("AR Template"),
+            description=_("The predefined values of the AR template are set in the request"),
             size=20,
             render_own_label=True,
             visible={
@@ -522,6 +531,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=ReferenceWidget(
             label=_("Analysis Profile"),
+            description=_("Analysis profiles apply a certain set of analyses"),
             size=20,
             render_own_label=True,
             visible=False,
@@ -543,6 +553,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=ReferenceWidget(
             label=_("Analysis Profiles"),
+            description=_("Analysis profiles apply a certain set of analyses"),
             size=20,
             render_own_label=True,
             visible={
@@ -580,6 +591,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=SampleSample,
         widget=DateTimeWidget(
             label=_("Date Sampled"),
+            description=_("The date when the sample was taken"),
             size=20,
             show_time=True,
             visible={
@@ -617,6 +629,7 @@ schema = BikaSchema.copy() + Schema((
         widget=BikaSelectionWidget(
             format='select',
             label=_("Sampler"),
+            description=_("The person who took the sample"),
             # see SamplingWOrkflowWidgetVisibility
             visible={
                 'edit': 'visible',
@@ -683,6 +696,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=DateTimeWidget(
             label=_("Sampling Date"),
+            description=_("The date when the sample will be taken"),
             size=20,
             show_time=True,
             render_own_label=True,
@@ -970,6 +984,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=StringWidget(
             label=_("Client Order Number"),
+            description=_("The client side order number for this request"),
             size=20,
             render_own_label=True,
             visible={
@@ -1005,6 +1020,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=StringWidget(
             label=_("Client Reference"),
+            description=_("The client side reference for this request"),
             size=20,
             render_own_label=True,
             visible={
@@ -1042,6 +1058,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=StringWidget(
             label=_("Client Sample ID"),
+            description=_("The client side identifier of the sample"),
             size=20,
             render_own_label=True,
             visible={
@@ -1080,6 +1097,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=ReferenceWidget(
             label=_("Sampling Deviation"),
+            description=_("Deviation between the sample and how it was sampled"),
             size=20,
             render_own_label=True,
             visible={
@@ -1121,6 +1139,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=ReferenceWidget(
             label=_("Sample condition"),
+            description=_("The current condition of the sample"),
             size=20,
             render_own_label=True,
             visible={
@@ -1159,6 +1178,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=StringWidget(
             label=_("Environmental conditions"),
+            description=_("The environmental condition during sampling"),
             visible={
                 'edit': 'visible',
                 'view': 'visible',
@@ -1231,7 +1251,9 @@ schema = BikaSchema.copy() + Schema((
         read_permission=permissions.View,
         write_permission=permissions.ModifyPortalContent,
         widget=BooleanWidget(
-            label=_("Ad-Hoc"),
+            label=_("Sampled AdHoc"),
+            description=_("Was the sample taken in non-scheduled matter, " \
+                          "e.g. out of a recurring sampling schedule?"),
             render_own_label=True,
             visible={
                 'edit': 'visible',
@@ -1268,6 +1290,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=BooleanWidget(
             label=_("Composite"),
+            description=_("Was the sample put together from multiple Samples?"),
             render_own_label=True,
             visible={
                 'edit': 'visible',
@@ -1334,7 +1357,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=BooleanWidget(
             label=_("Invoice Exclude"),
-            description=_("Select if analyses to be excluded from invoice"),
+            description=_("Should the analyses be excluded from the invoice?"),
             render_own_label=True,
             visible={
                 'edit': 'visible',
@@ -1415,6 +1438,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=DateTimeWidget(
             label=_("Date Received"),
+            description=_("The date when the sample was received"),
             visible={
                 'edit': 'visible',
                 'view': 'visible',
@@ -1443,6 +1467,7 @@ schema = BikaSchema.copy() + Schema((
         read_permission=permissions.View,
         widget=DateTimeWidget(
             label=_("Date Published"),
+            description=_("The date when the request was published"),
             visible={
                 'edit': 'visible',
                 'view': 'visible',
@@ -1479,6 +1504,7 @@ schema = BikaSchema.copy() + Schema((
         widget=TextAreaWidget(
             macro="bika_widgets/remarks",
             label=_("Remarks"),
+            description=_("Remarks and comments for this request"),
             append_only=True,
             visible={
                 'edit': 'visible',
@@ -1616,6 +1642,7 @@ schema = BikaSchema.copy() + Schema((
         widget=SelectionWidget(
             format="select",
             label=_("Preparation Workflow"),
+            description=_("The needed preparation workflow for the sample in this request"),
             visible={
                 'edit': 'visible',
                 'view': 'visible',
@@ -1648,6 +1675,7 @@ schema = BikaSchema.copy() + Schema((
         write_permission=permissions.ModifyPortalContent,
         widget=ReferenceWidget(
             label=_("Priority"),
+            description=_("The urgency of this request"),
             size=10,
             render_own_label=True,
             visible={
@@ -2013,9 +2041,10 @@ class AnalysisRequest(BaseFolder):
         # Getting all analysis request analyses
         ar_analyses = self.getAnalyses(cancellation_state='active',
                                        full_objects=True)
+        UNBILLABLE_STATES = ('not_requested', 'retracted', 'sample_received')
         for analysis in ar_analyses:
             review_state = workflow.getInfoFor(analysis, 'review_state', '')
-            if review_state not in ('not_requested', 'retracted'):
+            if review_state not in UNBILLABLE_STATES:
                 analyses.append(analysis)
         # Getting analysis request profiles
         for profile in self.getProfiles():
@@ -2065,9 +2094,10 @@ class AnalysisRequest(BaseFolder):
         # service") objects to obtain
         # the correct price later
         profile_analyses = []
+        IGNORED_STATES = ('not_requested', 'retracted', 'sample_received')
         for analysis in self.objectValues('Analysis'):
             review_state = workflow.getInfoFor(analysis, 'review_state', '')
-            if review_state != 'not_requested':
+            if review_state not in IGNORED_STATES:
                 analyses.append(analysis)
         # Getting all profiles
         analysis_profiles = self.getProfiles() if len(
@@ -2209,6 +2239,9 @@ class AnalysisRequest(BaseFolder):
         invoice_url = invoice.absolute_url()
         RESPONSE.redirect('{}/invoice_print'.format(invoice_url))
 
+    @deprecated(comment="bika.lims.content.analysisrequest.addARAttachment "
+                        "is deprecated and will be removed in Bika LIMS 3.3. "
+                        "Please use the view 'attachments_view' instead.")
     def addARAttachment(self, REQUEST=None, RESPONSE=None):
         """Add the file as an attachment
         """
@@ -2256,6 +2289,9 @@ class AnalysisRequest(BaseFolder):
         else:
             RESPONSE.redirect(self.absolute_url())
 
+    @deprecated(comment="bika.lims.content.analysisrequest.delARAttachment "
+                        "is deprecated and will be removed in Bika LIMS 3.3. "
+                        "Please use the view 'attachments_view' instead.")
     def delARAttachment(self, REQUEST=None, RESPONSE=None):
         """Delete the attachment
         """

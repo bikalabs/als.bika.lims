@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-# Bika LIMS Framwork API
+# This file is part of Bika LIMS
+#
+# Copyright 2011-2017 by it's authors.
+# Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 from Acquisition import aq_base
 from AccessControl.PermissionRole import rolesForPermissionOn
@@ -14,8 +17,12 @@ from Products.CMFPlone.utils import _createObjectByType
 from Products.CMFCore.WorkflowCore import WorkflowException
 
 from zope import globalrequest
-from zope.lifecycleevent import modified
+from zope.event import notify
+from zope.component import getUtility
 from zope.component import getMultiAdapter
+from zope.component.interfaces import IFactory
+from zope.lifecycleevent import modified
+from zope.lifecycleevent import ObjectCreatedEvent
 from zope.security.interfaces import Unauthorized
 
 from plone import api as ploneapi
@@ -70,8 +77,11 @@ def get_bika_setup():
     return portal.get("bika_setup")
 
 
-def create(container, portal_type, **kwargs):
+def create(container, portal_type, *args, **kwargs):
     """Creates an object in Bika LIMS
+
+    This code uses most of the parts from the TypesTool
+    see: `Products.CMFCore.TypesTool._constructInstance`
 
     :param container: container
     :type container: ATContentType/DexterityContentType/CatalogBrain
@@ -84,9 +94,33 @@ def create(container, portal_type, **kwargs):
     from bika.lims.utils import tmpID
     if kwargs.get("title") is None:
         kwargs["title"] = "New {}".format(portal_type)
-    obj = _createObjectByType(portal_type, container, tmpID())
+
+    # generate a temporary ID
+    tmp_id = tmpID()
+
+    # get the fti
+    types_tool = get_tool("portal_types")
+    fti = types_tool.getTypeInfo(portal_type)
+
+    if fti.product:
+        obj = _createObjectByType(portal_type, container, tmp_id)
+    else:
+        # newstyle factory
+        factory = getUtility(IFactory, fti.factory)
+        obj = factory(tmp_id, *args, **kwargs)
+        if hasattr(obj, '_setPortalTypeName'):
+            obj._setPortalTypeName(fti.getId())
+        notify(ObjectCreatedEvent(obj))
+        # notifies ObjectWillBeAddedEvent, ObjectAddedEvent and ContainerModifiedEvent
+        container._setObject(tmp_id, obj)
+        # we get the object here with the current object id, as it might be renamed
+        # already by an event handler
+        obj = container._getOb(obj.getId())
+
     obj.edit(**kwargs)
-    obj.processForm()
+    # handle AT Content
+    if is_at_content(obj):
+        obj.processForm()
     # explicit notification
     modified(obj)
     return obj
@@ -550,6 +584,32 @@ def search(query, catalog=_marker):
     return catalogs[0](query)
 
 
+def get_catalogs_for(brain_or_object):
+    """Returns the registered catalogs for the given brain_or_object
+
+    :param brain_or_object: A single catalog brain or content object
+    :type brain_or_object: ATContentType/DexterityContentType/CatalogBrain
+    :param attr: Attribute name
+    :type attr: str
+    :returns: list of retgistered catalog tools
+    :rtype: list
+    """
+    catalogs = []
+
+    portal_type = brain_or_object.portal_type
+    # Use the archetypes_tool to gather the right catalogs
+    archetype_tool = get_tool("archetype_tool", None)
+    # but only if the user did not specify any catalogs explicitly
+
+    if archetype_tool:
+        # we just want the first of the registered catalogs
+        catalogs.extend(archetype_tool.getCatalogsByType(portal_type))
+
+    if not catalogs:
+        return [get_portal_catalog()]
+    return catalogs
+
+
 def safe_getattr(brain_or_object, attr, default=_marker):
     """Return the attribute value
 
@@ -652,16 +712,19 @@ def get_transitions_for(brain_or_object):
     return transitions
 
 
-def get_workflow_status_of(brain_or_object):
+def get_workflow_status_of(brain_or_object, state_var="review_state"):
     """Get the current workflow status of the given brain or context.
 
     :param brain_or_object: A single catalog brain or content object
     :type brain_or_object: ATContentType/DexterityContentType/CatalogBrain
+    :param state_var: The name of the state variable
+    :type state_var: string
     :returns: Status
     :rtype: str
     """
+    workflow = get_tool("portal_workflow")
     obj = get_object(brain_or_object)
-    return ploneapi.content.get_state(obj)
+    return workflow.getInfoFor(ob=obj, name=state_var)
 
 
 def get_catalogs_for(brain_or_object, default="portal_catalog"):

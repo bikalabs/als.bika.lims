@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 from plone import api
@@ -896,6 +898,8 @@ class AnalysisRequestsView(BikaListingView):
     def __call__(self):
         self.workflow = getToolByName(self.context, "portal_workflow")
         self.mtool = getToolByName(self.context, 'portal_membership')
+        portal = self.portal
+        bika_setup = portal.bika_setup
 
         # Only "BIKA: ManageAnalysisRequests" may see the copy to new button.
         # elsewhere it is hacked in where required.
@@ -906,6 +910,16 @@ class AnalysisRequestsView(BikaListingView):
                     [{'id': 'copy_to_new',
                       'title': _('Copy to new'),
                       'url': 'workflow_action?action=copy_to_new'}, ])
+                review_states.append(review_state)
+            self.review_states = review_states
+
+        if True:
+            review_states = []
+            for review_state in self.review_states:
+                review_state.get('custom_actions', []).extend(
+                    [{'id': 'print_stickers',
+                      'title': _('Print Stickers'),
+                      'url': 'workflow_action?action=print_stickers'}, ])
                 review_states.append(review_state)
             self.review_states = review_states
 
@@ -927,7 +941,18 @@ class AnalysisRequestsView(BikaListingView):
                         state['hide_transitions'].append('preserve')
                     else:
                         state['hide_transitions'] = ['preserve', ]
-            new_states.append(state)
+            exclude_state = False
+            if state['title'] == 'To Be Sampled':
+                if bika_setup.getSamplingWorkflowEnabled():
+                    exclude_state = True
+            if state['title'] == 'Scheduled sampling':
+                if bika_setup.getScheduleSamplingEnabled():
+                    exclude_state = True
+            if state['title'] == 'To Be Preserved':
+                if bika_setup.getSamplePreservationEnabled():
+                    exclude_state = True
+            if not exclude_state:
+                new_states.append(state)
         self.review_states = new_states
 
         return super(AnalysisRequestsView, self).__call__()

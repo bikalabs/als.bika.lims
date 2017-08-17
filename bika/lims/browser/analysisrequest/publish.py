@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 import csv
 from email.mime.base import MIMEBase
@@ -11,6 +13,7 @@ from bika.lims import logger
 from bika.lims.browser import BrowserView
 from bika.lims.config import POINTS_OF_CAPTURE
 from bika.lims.idserver import renameAfterCreation
+from bika.lims.interfaces import IAnalysisRequest
 from bika.lims.interfaces import IResultOutOfRange
 from bika.lims.utils import isnumber
 from bika.lims.utils import to_utf8, encode_header
@@ -281,6 +284,29 @@ class AnalysisRequestPublishView(BrowserView):
         """
         return self.request.form.get('landscape', '0').lower() in ['true', '1']
 
+    def getDimension(self):
+        """ Returns the dimension of the report
+        """
+        return self.request.form.get("layout", "A4")
+
+    def getDirection(self):
+        """ Return landscape or horizontal
+        """
+        return self.isLandscape() and "landscape" or "horizontal"
+
+    def getLayout(self):
+        """ Returns the layout of the report
+        """
+        mapping = {
+            "A4": (210, 297),
+            "letter": (216, 279)
+        }
+        dimension = self.getDimension()
+        layout = mapping.get(dimension, mapping.get("A4"))
+        if self.isLandscape():
+            layout = tuple(reversed(layout))
+        return layout
+
     def explode_data(self, data, padding=''):
         out = ''
         for k, v in data.items():
@@ -328,7 +354,10 @@ class AnalysisRequestPublishView(BrowserView):
                 'prepublish': False,
                 'child_analysisrequest': None,
                 'parent_analysisrequest': None,
-                'resultsinterpretation': ar.getResultsInterpretation()}
+                'resultsinterpretation': ar.getResultsInterpretation(),
+                'ar_attachments': self._get_ar_attachments(ar),
+                'an_attachments': self._get_an_attachments(ar),
+        }
 
         # Sub-objects
         excludearuids.append(ar.UID())
@@ -428,6 +457,78 @@ class AnalysisRequestPublishView(BrowserView):
 
         self._cache['_ar_data'][ar.UID()] = data
         return data
+
+    def _get_attachment_info(self, attachment):
+        attachment_file = attachment.getAttachmentFile()
+        attachment_size = attachment.get_size()
+        attachment_type = attachment.getAttachmentType()
+        attachment_mime = attachment_file.getContentType()
+
+        def get_kb_size():
+            size = attachment_size / 1024
+            if size < 1:
+                return 1
+            return size
+
+        info = {
+            "obj": attachment,
+            "uid": attachment.UID(),
+            "keywords": attachment.getAttachmentKeys(),
+            "type": attachment_type and attachment_type.Title() or "",
+            "file": attachment_file,
+            "filename": attachment_file.filename,
+            "filesize": attachment_size,
+            "size": "{} Kb".format(get_kb_size()),
+            "download": "{}/at_download/AttachmentFile".format(
+                attachment.absolute_url()),
+            "mimetype": attachment_mime,
+            "title": attachment_file.Title(),
+            "icon": attachment_file.icon,
+            "inline": "<embed src='{}/AttachmentFile' class='inline-attachment inline-attachment-{}'/>".format(
+                attachment.absolute_url(), self.getDirection()),
+            "renderoption": attachment.getReportOption(),
+        }
+        if attachment_mime.startswith("image"):
+            info["inline"] = "<img src='{}/AttachmentFile' class='inline-attachment inline-attachment-{}'/>".format(
+                attachment.absolute_url(), self.getDirection())
+        return info
+
+    def _sorted_attachments(self, ar, attachments=[]):
+        """Sorter to return the attachments in the same order as the user
+        defined in the attachments viewlet
+        """
+        inf = float("inf")
+        view = ar.restrictedTraverse("attachments_view")
+        order = view.get_attachments_order()
+
+        def att_cmp(att1, att2):
+            _n1 = att1.get('uid')
+            _n2 = att2.get('uid')
+            _i1 = _n1 in order and order.index(_n1) + 1 or inf
+            _i2 = _n2 in order and order.index(_n2) + 1 or inf
+            return cmp(_i1, _i2)
+
+        return sorted(attachments, cmp=att_cmp)
+
+    def _get_ar_attachments(self, ar):
+        attachments = []
+        for attachment in ar.getAttachment():
+            # Skip attachments which have the (i)gnore flag set
+            if attachment.getReportOption() == "i":
+                continue
+            attachments.append(self._get_attachment_info(attachment))
+
+        return self._sorted_attachments(ar, attachments)
+
+    def _get_an_attachments(self, ar):
+        attachments = []
+        for analysis in ar.getAnalyses(full_objects=True):
+            for attachment in analysis.getAttachment():
+                # Skip attachments which have the (i)gnore flag set
+                if attachment.getReportOption() == "i":
+                    continue
+                attachments.append(self._get_attachment_info(attachment))
+        return self._sorted_attachments(ar, attachments)
 
     def _batch_data(self, ar):
         data = {}
@@ -562,8 +663,11 @@ class AnalysisRequestPublishView(BrowserView):
     def _client_address(self, client):
         client_address = client.getPostalAddress()
         if not client_address:
+            ar = self.getAnalysisRequestObj()
+            if not IAnalysisRequest.providedBy(ar):
+                return ""
             # Data from the first contact
-            contact = self.getAnalysisRequest().getContact()
+            contact = ar.getContact()
             if contact and contact.getBillingAddress():
                 client_address = contact.getBillingAddress()
             elif contact and contact.getPhysicalAddress():
@@ -1069,7 +1173,7 @@ class AnalysisRequestPublishView(BrowserView):
         """
         client = ar.aq_parent
         subject_items = client.getEmailSubject()
-        ai = co = cr = cs = False
+        ai = co = cr = cs = cn = False
         if 'ar' in subject_items:
             ai = True
         if 'co' in subject_items:
@@ -1078,10 +1182,13 @@ class AnalysisRequestPublishView(BrowserView):
             cr = True
         if 'cs' in subject_items:
             cs = True
+        if 'cn' in subject_items:
+            cn = True
         ais = []
         cos = []
         crs = []
         css = []
+        cns = []
         blanks_found = False
         if ai:
             ais.append(ar.getRequestID())
@@ -1105,6 +1212,8 @@ class AnalysisRequestPublishView(BrowserView):
                     css.append(sample.getClientSampleID())
             else:
                 blanks_found = True
+        if cn:
+            cns.append(ar.getClientTitle())
         line_items = []
         if ais:
             ais.sort()
@@ -1123,6 +1232,10 @@ class AnalysisRequestPublishView(BrowserView):
             css.sort()
             li = t(
                 _('Samples: ${samples}', mapping={'samples': ', '.join(css)}))
+            line_items.append(li)
+        if cns:
+            cns.sort()
+            li = t(_('Client: ${client}', mapping={'client': ', '.join(cns)}))
             line_items.append(li)
         tot_line = ' '.join(line_items)
         if tot_line:

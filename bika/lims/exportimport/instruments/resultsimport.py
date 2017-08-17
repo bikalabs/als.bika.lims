@@ -1,8 +1,8 @@
-# coding=utf-8
-
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 from Products.CMFCore.utils import getToolByName
@@ -546,14 +546,14 @@ class AnalysisResultsImporter(Logger):
 
         for arid, acodes in importedars.iteritems():
             acodesmsg = '. '.join(["Analysis %s" % acod for acod in acodes])
-            self.log("${request_id}: ${analysis_keywords} imported sucessfully",
+            self.log("${request_id}: ${analysis_keywords} imported successfully",
                      mapping={"request_id": arid,
                               "analysis_keywords": acodesmsg})
 
         for instid, acodes in importedinsts.iteritems():
             acodesmsg = '. '.join(["Analysis %s" % acod for acod in acodes])
             self.log(
-                "${instrument_id}: ${analysis_keywords} imported sucessfully",
+                "${instrument_id}: ${analysis_keywords} imported successfully",
                  mapping={"instrument_id": instid,
                           "analysis_keywords": acodesmsg})
 

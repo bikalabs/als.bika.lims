@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+#
+# This file is part of Bika LIMS
+#
+# Copyright 2011-2017 by it's authors.
+# Some rights reserved. See LICENSE.txt, AUTHORS.txt.
+
 import json
 from bika.lims.utils.sample import create_sample
 from bika.lims.workflow import doActionFor
@@ -464,7 +471,8 @@ class ajaxAnalysisRequestSubmit():
                         mapping={'AR': safe_unicode(ARs[0])})
         self.context.plone_utils.addPortalMessage(message, 'info')
         # Automatic label printing won't print "register" labels for Secondary. ARs
-        new_ars = [ar for ar in ARs if ar[-2:] == '01']
+        #This was a hack and is still a hack but will work more widely
+        new_ars = [ar for ar in ARs if ar[-1] == '1']
         if 'register' in self.context.bika_setup.getAutoPrintStickers() \
                 and new_ars:
             return json.dumps({

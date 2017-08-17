@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 from AccessControl import ClassSecurityInfo
@@ -12,6 +14,7 @@ from Products.ZCatalog.ZCatalog import ZCatalog
 from bika.lims.interfaces import IBikaCatalog
 from bika.lims.interfaces import IBikaAnalysisCatalog
 from bika.lims.interfaces import IBikaSetupCatalog
+from plone import api
 from zope.interface import implements
 
 
@@ -138,18 +141,22 @@ class BikaSetupCatalog(CatalogTool):
     def clearFindAndRebuild(self):
         """
         """
+        def getObjectIds(obj):
+            obj_ids = [obj.getId()]
+            if hasattr(obj, 'objectItems'):
+                for item in obj.objectItems():
+                    obj_ids.extend(getObjectIds(item[1]))
+            return obj_ids
 
         def indexObject(obj, path):
             self.reindexObject(obj)
 
-        at = getToolByName(self, 'archetype_tool')
-        types = [k for k, v in at.catalog_map.items()
-                 if self.id in v]
-
         self.manage_catalogClear()
-        portal = getToolByName(self, 'portal_url').getPortalObject()
+        portal = api.portal.get()
+
+        object_ids = getObjectIds(portal['bika_setup'])
         portal.ZopeFindAndApply(portal,
-                                obj_metatypes=types,
+                                obj_ids=object_ids,
                                 search_sub=True,
                                 apply_func=indexObject)
 

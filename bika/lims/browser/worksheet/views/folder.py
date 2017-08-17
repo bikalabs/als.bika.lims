@@ -1,8 +1,8 @@
-# coding=utf-8
-
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 from DateTime import DateTime
@@ -459,7 +459,11 @@ class FolderView(BikaListingView):
         """ List of templates
             Used in bika_listing.pt
         """
-        return DisplayList(self.templates)
+        bsc = getToolByName(self.context, 'bika_setup_catalog')
+        return DisplayList([(c.UID, c.Title) for c in
+                bsc(portal_type = 'WorksheetTemplate',
+                   inactive_state = 'active',
+                   sort_on = 'sortable_title')])
 
     def getInstruments(self):
         """ List of instruments

@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 from Products.CMFCore.utils import getToolByName
@@ -9,7 +11,7 @@ from Products.CMFPlone.utils import safe_unicode
 from bika.lims import bikaMessageFactory as _
 from bika.lims import logger
 from bika.lims.api import get_transitions_for, do_transition_for
-from bika.lims.idserver import renameAfterCreation
+from bika.lims.idserver import renameAfterCreation, generateUniqueId
 from bika.lims.interfaces import ISample, IAnalysisService, IAnalysis
 from bika.lims.utils import tmpID
 from bika.lims.utils import to_utf8
@@ -141,17 +143,11 @@ def create_analysisrequest(context, request, values, analyses=None,
     if not secondary:
         # Create sample partitions
         if not partitions:
-            partitions = [{'services': service_uids}]
+            partitions = values.get('Partitions',
+                            [{'services': service_uids}])
         for n, partition in enumerate(partitions):
             # Calculate partition id
-            partition_prefix = sample.getId() + "-P"
-            partition_id = '%s%s' % (partition_prefix, n + 1)
-            partition['part_id'] = partition_id
-            # Point to or create sample partition
-            if partition_id in sample.objectIds():
-                partition['object'] = sample[partition_id]
-            else:
-                partition['object'] = create_samplepartition(
+            partition['object'] = create_samplepartition(
                     sample,
                     partition,
                     analyses

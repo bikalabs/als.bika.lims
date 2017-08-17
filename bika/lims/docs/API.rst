@@ -555,6 +555,22 @@ Or provide a correct query::
     1
 
 
+Getting the registered Catalogs
+-------------------------------
+
+Bika LIMS uses multiple catalogs registered via the Archetype Tool. This
+function returns a list of registered catalogs for a brain or object::
+
+    >>> api.get_catalogs_for(client)
+    [<CatalogTool at /plone/portal_catalog>]
+
+    >>> api.get_catalogs_for(instrument1)
+    [<BikaSetupCatalog at /plone/bika_setup_catalog>, <CatalogTool at /plone/portal_catalog>]
+
+    >>> api.get_catalogs_for(analysiscategory1)
+    [<BikaSetupCatalog at /plone/bika_setup_catalog>]
+
+
 Getting an Attribute of an Object
 ---------------------------------
 
@@ -619,12 +635,12 @@ This function returns all assigned workflows for a given object::
     ('bika_one_state_workflow',)
 
     >>> api.get_workflows_for(client)
-    ('bika_one_state_workflow', 'bika_inactive_workflow')
+    ('bika_client_workflow', 'bika_inactive_workflow')
 
 This function also supports the portal_type as parameter::
 
     >>> api.get_workflows_for(api.get_portal_type(client))
-    ('bika_one_state_workflow', 'bika_inactive_workflow')
+    ('bika_client_workflow', 'bika_inactive_workflow')
 
 
 Getting the Workflow Status of an Object
@@ -633,6 +649,30 @@ Getting the Workflow Status of an Object
 This function returns the state of a given object::
 
     >>> api.get_workflow_status_of(client)
+    'active'
+
+It is also capable to get the state of another state variable::
+
+    >>> api.get_workflow_status_of(client, "inactive_state")
+    'active'
+
+Deactivate the client::
+
+    >>> api.do_transition_for(client, "deactivate")
+    <Client at /plone/clients/client-1>
+
+    >>> api.get_workflow_status_of(client, "inactive_state")
+    'inactive'
+
+    >>> api.get_workflow_status_of(client)
+    'active'
+
+Reactivate the client::
+
+    >>> api.do_transition_for(client, "activate")
+    <Client at /plone/clients/client-1>
+
+    >>> api.get_workflow_status_of(client, "inactive_state")
     'active'
 
 

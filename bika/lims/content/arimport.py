@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 from AccessControl import ClassSecurityInfo
@@ -328,10 +330,10 @@ class ARImport(BaseFolder):
                 return user_ids[0]
             if len(user_ids) > 1:
                 #raise ValueError('Sampler %s is ambiguous' % import_user)
-                return None
+                return ''
             #Otherwise
             #raise ValueError('Sampler %s not found' % import_user)
-            return None
+            return ''
 
         bsc = getToolByName(self, 'bika_setup_catalog')
         workflow = getToolByName(self, 'portal_workflow')
@@ -364,6 +366,7 @@ class ARImport(BaseFolder):
                 workflow.doActionFor(sample, 'no_sampling_workflow')
             part = _createObjectByType('SamplePartition', sample, 'part-1')
             part.unmarkCreationFlag()
+            renameAfterCreation(part)
             if swe:
                 workflow.doActionFor(part, 'sampling_workflow')
             else:

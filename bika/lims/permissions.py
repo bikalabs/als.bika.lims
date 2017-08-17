@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 """ All permissions are defined here.
@@ -174,3 +176,7 @@ ManageARImport = 'BIKA: Manage ARImport'
 # Manage AR Priorities
 # ----------------------------------------------
 ManageARPriority = 'BIKA: Manage ARPriority'
+
+# Manage Client Types
+# ----------------------------------------------
+ManageClientType = 'BIKA: Manage ClientType'

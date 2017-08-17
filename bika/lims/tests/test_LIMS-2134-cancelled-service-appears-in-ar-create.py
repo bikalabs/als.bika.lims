@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 """If ShowPrices is not true, then Invoices, prices, pricelists, should
@@ -49,7 +51,7 @@ class Test_ShowPrices(BikaFunctionalTestCase):
             'SampleType', title='Water', Prefix='H2O')
         self.service1 = self.addthing(
             self.portal.bika_setup.bika_analysisservices,
-            'AnalysisService', title='Ecoli', Keyword='ECO', Accredited=True,
+            'AnalysisService', title='TestService', Keyword='TESTSERVICE', Accredited=True,
             Price='409')
         self.service2 = self.addthing(
             self.portal.bika_setup.bika_analysisservices,
@@ -65,12 +67,11 @@ class Test_ShowPrices(BikaFunctionalTestCase):
         login(self.portal, TEST_USER_NAME)
 
     def test_cancelled_ar_does_not_appear_in_batchbook(self):
-        url = self.client.absolute_url() + \
-              "/portal_factory/AnalysisRequest/Request new analyses/ar_add"
+        url = self.client.absolute_url() + "/ar_add"
         browser = self.getBrowser()
         browser.open(url)
-        if "Ecoli" in browser.contents:
-            self.fail("Ecoli service is inactive, yet appears in AR Create")
+        if "TestService" in browser.contents:
+            self.fail("TestService service is inactive, yet appears in AR Create")
 
 def test_suite():
     suite = unittest.TestSuite()

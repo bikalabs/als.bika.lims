@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 from DateTime import DateTime
@@ -8,14 +10,39 @@ from AccessControl import ClassSecurityInfo
 from Products.CMFCore.utils import UniqueObject
 from Products.CMFCore.permissions import ListFolderContents, \
     ModifyPortalContent, View
+from plone import api
 from plone.app import folder
+from Products.Archetypes.Widget import SelectionWidget
 from Products.Archetypes.public import *
+from Products.CMFCore import permissions as CMFCorePermissions
 from Products.CMFPlone.utils import safe_unicode
 from bika.lims.content.organisation import Organisation
 from bika.lims.config import ManageBika, PROJECTNAME
 from bika.lims import PMF, bikaMessageFactory as _
 
 schema = Organisation.schema.copy() + Schema((
+    StringField(
+        'LaboratorySupervisor',
+        mode="rw",
+        read_permission=CMFCorePermissions.View,
+        write_permission=CMFCorePermissions.ModifyPortalContent,
+        vocabulary='getLabContacts',
+        acquire=True,
+        widget=SelectionWidget(
+            format="select",
+            label=_("Laboratory Supervisor"),
+            description=_("The Laboratory's supervisor will be used on the Certificate of Analysis(COA) and Chain of Custody(COC)"),
+            render_own_label=True,
+        ),
+    ),
+    StringField(
+        'LaboratoryLicenseID',
+        write_permission = ManageBika,
+        widget=StringWidget(
+            label=_("Laboratory License ID"),
+            description=_("The Laboratory's License ID given by the state"),
+        ),
+    ),
     StringField('LabURL',
         schemata = 'Address',
         write_permission = ManageBika,
@@ -38,7 +65,7 @@ schema = Organisation.schema.copy() + Schema((
         write_permission = ManageBika,
         widget = BooleanWidget(
             label=_("Laboratory Accredited"),
-            description=_("Check this box if your laboratory is accredited"),
+            description=_("check this box if your laboratory is accredited"),
         ),
     ),
     StringField('AccreditationBody',
@@ -114,6 +141,11 @@ class Laboratory(UniqueObject, Organisation):
     displayContentsTab = False
     schema = schema
 
+    # needed to access the field for the front-page Portlet for Anonymous, w/o
+    # making the whole Laboratory viewable by Anonymous.
+    # Only the permission "Access contents information" is needed
+    security.declarePublic('getAccreditationBodyLogo')
+
     security.declareProtected(View, 'getSchema')
     def getSchema(self):
         return self.schema
@@ -121,5 +153,14 @@ class Laboratory(UniqueObject, Organisation):
     def Title(self):
         title = self.getName() and self.getName() or _("Laboratory")
         return safe_unicode(title).encode('utf-8')
+
+    def getLabContacts(self):
+        """Return a list of Lab Contacts
+        """
+        lab_contacts = api.content.find(portal_type="LabContact")
+        contacts = [['', ''], ]
+        for contact in lab_contacts:
+            contacts.append([contact.id, contact.Title])
+        return DisplayList(contacts)
 
 registerType(Laboratory, PROJECTNAME)

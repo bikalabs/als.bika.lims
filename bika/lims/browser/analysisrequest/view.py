@@ -2,7 +2,7 @@
 #
 # This file is part of Bika LIMS
 #
-# Copyright 2011-2016 by it's authors.
+# Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
 
@@ -158,8 +158,10 @@ class AnalysisRequestViewView(BrowserView):
         ar_atts = self.context.getAttachment()
         analyses = self.context.getAnalyses(full_objects=True)
         for att in ar_atts:
+            fsize = 0
             file = att.getAttachmentFile()
-            fsize = file.getSize() if file else 0
+            if file:
+                fsize = file.get_size()
             if fsize < 1024:
                 fsize = '%s b' % fsize
             else:
@@ -170,16 +172,17 @@ class AnalysisRequestViewView(BrowserView):
                 'size': fsize,
                 'name': file.filename,
                 'Icon': file.icon,
-                'type': att.getAttachmentType().Title() if att.getAttachmentType() else '',
+                'type': att.getAttachmentType().UID() if att.getAttachmentType() else '',
                 'absolute_url': att.absolute_url(),
                 'UID': att.UID(),
+                'report_option': att.getReportOption(),
             })
 
         for analysis in analyses:
             an_atts = analysis.getAttachment()
             for att in an_atts:
                 file = att.getAttachmentFile()
-                fsize = file.getSize() if file else 0
+                fsize = file.get_size() if file else 0
                 if fsize < 1024:
                     fsize = '%s b' % fsize
                 else:
@@ -190,9 +193,10 @@ class AnalysisRequestViewView(BrowserView):
                     'size': fsize,
                     'name': file.filename,
                     'Icon': file.icon,
-                    'type': att.getAttachmentType().Title() if att.getAttachmentType() else '',
+                    'type': att.getAttachmentType().UID() if att.getAttachmentType() else '',
                     'absolute_url': att.absolute_url(),
                     'UID': att.UID(),
+                    'report_option': att.getReportOption(),
                 })
         return attachments
 
