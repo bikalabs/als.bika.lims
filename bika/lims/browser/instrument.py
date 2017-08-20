@@ -724,7 +724,12 @@ class InstrumentQCFailuresViewlet(ViewletBase):
         roles = member.getRoles()
         allowed = 'LabManager' in roles or 'Manager' in roles
 
-        self.get_failed_instruments()
+        try:
+            self.get_failed_instruments()
+        except TypeError:
+            # https://jira.bikalabs.com/browse/AN-127
+            # XXX This error occurs due to craziness with HistoryAwareReference.
+            return ""
 
         if allowed and self.nr_failed:
             return self.index()
