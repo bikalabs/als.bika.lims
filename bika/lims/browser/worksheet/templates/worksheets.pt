@@ -24,21 +24,19 @@
 
     <div class="worksheet_add_controls" tal:condition="python:view.isManagementAllowed()">
         <form name="worksheet-add-form" action="worksheet_add" method="POST">
-
         <span class="context_action_dropdown">
-            <select name="analyst"
-                class='analyst'
-                tal:define="alist view/getAnalysts">
-                <option value='' i18n:translate="">Select analyst</option>
-                <tal:options repeat="option alist">
+            <select name = "template"
+                class='template'
+                tal:define="wstlist view/getWorksheetTemplates">
+                <option value='' i18n:translate="">Select template</option>
+                <tal:options repeat="option wstlist">
                     <option
-                        tal:condition="python:option"
                         tal:attributes="value python:option"
-                        tal:content="python:alist.getValue(option)"/>
+                        tal:content="python:wstlist.getValue(option)"/>
                 </tal:options>
             </select>
-            <span class="fieldRequired" style=""></span>
         </span>
+
         <span class="context_action_dropdown">
             <select name = "instrument"
                 class='instrument'
@@ -53,18 +51,21 @@
         </span>
 
         <br/>
+		<fieldset class="criteria" style="margin-top: 0.5em;"/>
 
         <span class="context_action_dropdown">
-            <select name = "template"
-                class='template'
-                tal:define="wstlist view/getWorksheetTemplates">
-                <option value='' i18n:translate="">Select template</option>
-                <tal:options repeat="option wstlist">
+            <select name="analyst"
+                class='analyst'
+                tal:define="alist view/getAnalysts">
+                <option value='' i18n:translate="">Select analyst</option>
+                <tal:options repeat="option alist">
                     <option
+                        tal:condition="python:option"
                         tal:attributes="value python:option"
-                        tal:content="python:wstlist.getValue(option)"/>
+                        tal:content="python:alist.getValue(option)"/>
                 </tal:options>
             </select>
+            <span class="fieldRequired" style=""></span>
         </span>
 
         <select id="WSTClientSelector" name="client" class="listing-filter">

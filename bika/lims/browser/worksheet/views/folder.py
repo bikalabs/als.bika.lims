@@ -484,6 +484,12 @@ class FolderView(BikaListingView):
         """ List of instruments
             Used in bika_listing.pt
         """
+        bsc = getToolByName(self.context, 'bika_setup_catalog')
+        self.instruments = [(i.UID, i.Title) for i in
+                            bsc(portal_type = 'Instrument',
+                                inactive_state = 'active')]
+        self.instruments.sort(lambda x, y: cmp(x[1], y[1]))
+
         return DisplayList(self.instruments)
 
     def getTemplateInstruments(self):
