@@ -39,7 +39,8 @@ class AddAnalysesView(BikaListingView):
         self.contentFilter = {'portal_type': 'Analysis',
                               'review_state':'sample_received',
                               'worksheetanalysis_review_state':'unassigned',
-                              'cancellation_state':'active'}
+                              'cancellation_state':'active',
+                              'sort_on': 'getDueDate'}
         self.base_url = self.context.absolute_url()
         self.view_url = self.base_url + "/add_analyses"
         self.show_sort_column = False

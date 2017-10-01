@@ -1,6 +1,7 @@
 3.4.0 (unreleased)
 ------------------
 
+- BC-147: Default empty WS view should list on due date
 - Issue-2103: WS Templates not offered for selection
 - Instrument selection for creating WSs does not work
 - Issue-2215: Added extra param portal_type on the function generateUniqueId so that it's not used for objects only
