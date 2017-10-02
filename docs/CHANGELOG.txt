@@ -16,6 +16,7 @@
 
 
 3.2.1rc3 (unreleased)
+3.2.1rc3 (2017-10-02)
 ---------------------
 
 - Issue-2229: Traceback if the title contains braces "()" on content creation
