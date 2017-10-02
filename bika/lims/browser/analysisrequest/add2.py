@@ -14,9 +14,9 @@ from BTrees.OOBTree import OOBTree
 
 from plone import protect
 from plone.memoize import view
+
 from plone.memoize.volatile import cache
 from plone.memoize.volatile import DontCache
-from plone.memoize.volatile import store_on_context
 
 from zope.annotation.interfaces import IAnnotations
 from zope.publisher.interfaces import IPublishTraverse
@@ -50,18 +50,10 @@ def returns_json(func):
     return decorator
 
 
-def gen_key(brain_or_object):
-    obj = api.get_object(brain_or_object)
-    uid = api.get_uid(obj)
-    modified = obj.modified().ISO8601()
-    portal_type = api.get_portal_type(obj)
-    return "{}-{}-{}".format(portal_type, uid, modified)
-
-
 def cache_key(method, self, obj):
     if obj is None:
         raise DontCache
-    return gen_key(obj)
+    return api.get_cache_key(obj)
 
 
 def mg(value):
@@ -512,7 +504,7 @@ class AnalysisRequestAddView(BrowserView):
             analyses[category].append(brain)
         return analyses
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_service_uid_from(self, analysis):
         """Return the service from the analysis
         """
@@ -890,7 +882,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         objs = map(self.get_object_by_uid, uids)
         return dict(zip(uids, objs))
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_base_info(self, obj):
         """Returns the base info of an object
         """
@@ -907,7 +899,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
 
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_client_info(self, obj):
         """Returns the client info of an object
         """
@@ -960,14 +952,17 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
                 "getClientUID": [uid, bika_analysisspecs_uid],
             },
             "samplinground": {
-                "getParentUID": [uid]
+                "getParentUID": [uid],
+            },
+            "sample": {
+                "getClientUID": [uid],
             },
         }
         info["filter_queries"] = filter_queries
 
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_service_info(self, obj):
         """Returns the info for a Service
         """
@@ -995,7 +990,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         # info["dependendants"] = map(self.get_base_info, dependants)
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_template_info(self, obj):
         """Returns the info for a Template
         """
@@ -1041,7 +1036,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         })
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_profile_info(self, obj):
         """Returns the info for a Profile
         """
@@ -1049,7 +1044,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         info.update({})
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_method_info(self, obj):
         """Returns the info for a Method
         """
@@ -1057,7 +1052,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         info.update({})
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_calculation_info(self, obj):
         """Returns the info for a Calculation
         """
@@ -1065,11 +1060,26 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         info.update({})
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_sampletype_info(self, obj):
         """Returns the info for a Sample Type
         """
         info = self.get_base_info(obj)
+
+        # Bika Setup folder
+        bika_setup = api.get_bika_setup()
+
+        # bika samplepoints
+        bika_samplepoints = bika_setup.bika_samplepoints
+        bika_samplepoints_uid = api.get_uid(bika_samplepoints)
+
+        # bika analysisspecs
+        bika_analysisspecs = bika_setup.bika_analysisspecs
+        bika_analysisspecs_uid = api.get_uid(bika_analysisspecs)
+
+        # client
+        client = self.get_client()
+        client_uid = api.get_uid(client)
 
         # sample matrix
         sample_matrix = obj.getSampleMatrix()
@@ -1102,17 +1112,19 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         # catalog queries for UI field filtering
         filter_queries = {
             "samplepoint": {
-                "getSampleTypeTitle": obj.Title()
+                "getSampleTypeTitle": obj.Title(),
+                "getClientUID": [client_uid, bika_samplepoints_uid],
             },
             "specification": {
-                "getSampleTypeTitle": obj.Title()
+                "getSampleTypeTitle": obj.Title(),
+                "getClientUID": [client_uid, bika_analysisspecs_uid],
             }
         }
         info["filter_queries"] = filter_queries
 
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_sample_info(self, obj):
         """Returns the info for a Sample
         """
@@ -1167,7 +1179,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         })
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_specification_info(self, obj):
         """Returns the info for a Specification
         """
@@ -1207,7 +1219,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         info["service_uids"] = specifications.keys()
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_container_info(self, obj):
         """Returns the info for a Container
         """
@@ -1215,7 +1227,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         info.update({})
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_preservation_info(self, obj):
         """Returns the info for a Preservation
         """
@@ -1268,6 +1280,15 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
             })
 
         return partitions
+
+    def ajax_get_global_settings(self):
+        """Returns the global Bika settings
+        """
+        bika_setup = api.get_bika_setup()
+        settings = {
+            "show_prices": bika_setup.getShowPrices(),
+        }
+        return settings
 
     def ajax_get_service(self):
         """Returns the services information
