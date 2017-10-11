@@ -207,71 +207,64 @@ class AnalysisRequestAnalysesView(BikaListingView):
                        'ResultText': o.getId()}
                       for o in parts
                       if wf.getInfoFor(o, 'cancellation_state', '') == 'active']
-        for x in range(len(items)):
-            if 'obj' not in items[x]:
+
+        for item in items:
+            if 'obj' not in item:
                 continue
-            obj = items[x]['obj']
+            obj = item['obj']
 
             cat = obj.getCategoryTitle()
-            items[x]['category'] = cat
+            item['category'] = cat
             if cat not in self.categories:
                 self.categories.append(cat)
 
-            items[x]['selected'] = items[x]['uid'] in self.selected
+            item['selected'] = item['uid'] in self.selected
 
-            items[x]['class']['Title'] = 'service_title'
+            item['class']['Title'] = 'service_title'
 
             # js checks in row_data if an analysis may be removed.
             row_data = {}
-            # keyword = obj.getKeyword()
-            # if keyword in review_states.keys() \
-            #    and review_states[keyword] not in ['sample_due',
-            #                                       'to_be_sampled',
-            #                                       'to_be_preserved',
-            #                                       'sample_received',
-            #                                       ]:
-            #     row_data['disabled'] = True
-            items[x]['row_data'] = json.dumps(row_data)
+            item['row_data'] = json.dumps(row_data)
 
             calculation = obj.getCalculation()
-            items[x]['Calculation'] = calculation and calculation.Title()
+            item['Calculation'] = calculation and calculation.Title()
 
             locale = locales.getLocale('en')
             currency = self.context.bika_setup.getCurrency()
             symbol = locale.numbers.currencies[currency].symbol
-            items[x]['before']['Price'] = symbol
-            items[x]['Price'] = obj.getPrice()
-            items[x]['class']['Price'] = 'nowrap'
-            items[x]['Priority'] = ''
+            item['before']['Price'] = symbol
+            item['Price'] = obj.getPrice()
+            item['class']['Price'] = 'nowrap'
+            item['Priority'] = ''
 
-            if items[x]['selected']:
-                items[x]['allow_edit'] = ['Partition', 'min', 'max', 'error']
+            if item['selected']:
+                item['allow_edit'] = ['Partition', 'min', 'max', 'error']
                 if not logged_in_client(self.context):
-                    items[x]['allow_edit'].append('Price')
+                    item['allow_edit'].append('Price')
 
-            items[x]['required'].append('Partition')
-            items[x]['choices']['Partition'] = partitions
+            item['required'].append('Partition')
+            item['choices']['Partition'] = partitions
 
             if obj.UID() in self.analyses:
                 analysis = self.analyses[obj.UID()]
                 part = analysis.getSamplePartition()
                 part = part and part or obj
-                items[x]['Partition'] = part.Title()
+                item['Partition'] = part.Title()
                 spec = self.get_spec_from_ar(self.context,
                                              analysis.getService().getKeyword())
-                items[x]["min"] = spec.get("min", '')
-                items[x]["max"] = spec.get("max", '')
-                items[x]["error"] = spec.get("error", '')
+                item["min"] = spec.get("min", '')
+                item["max"] = spec.get("max", '')
+                item["error"] = spec.get("error", '')
                 # Add priority premium
-                items[x]['Price'] = analysis.getPrice()
+                item['Price'] = analysis.getPrice()
                 priority = analysis.getPriority()
-                items[x]['Priority'] = priority and priority.Title() or ''
+                item['Priority'] = priority and priority.Title() or ''
             else:
-                items[x]['Partition'] = ''
-                items[x]["min"] = ''
-                items[x]["max"] = ''
-                items[x]["error"] = ''
-                items[x]["Priority"] = ''
+                item['Partition'] = ''
+                item["min"] = ''
+                item["max"] = ''
+                item["error"] = ''
+                item["Priority"] = ''
 
             after_icons = ''
             if obj.getAccredited():
@@ -303,12 +296,12 @@ class AnalysisRequestAnalysesView(BikaListingView):
                     t(_('Attachment not permitted'))
                 )
             if after_icons:
-                items[x]['after']['Title'] = after_icons
+                item['after']['Title'] = after_icons
 
             # Display analyses for this Analysis Service in results?
             ser = self.context.getAnalysisServiceSettings(obj.UID())
-            items[x]['allow_edit'] = ['Hidden', ]
-            items[x]['Hidden'] = ser.get('hidden', obj.getHidden())
+            item['allow_edit'] = ['Hidden', ]
+            item['Hidden'] = ser.get('hidden', obj.getHidden())
 
         self.categories.sort()
         return items
