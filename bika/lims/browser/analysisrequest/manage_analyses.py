@@ -63,6 +63,10 @@ class AnalysisRequestAnalysesView(BikaListingView):
                 'index': 'sortable_title',
                 'sortable': False,
             },
+            'Unit': {
+                'title': _('Unit'),
+                'sortable': False,
+            },
             'Hidden': {
                 'title': _('Hidden'),
                 'sortable': False,
@@ -93,7 +97,7 @@ class AnalysisRequestAnalysesView(BikaListingView):
             },
         }
 
-        columns = ['Title', 'Hidden', ]
+        columns = ['Title', 'Unit', 'Hidden', ]
         ShowPrices = self.context.bika_setup.getShowPrices()
         if ShowPrices:
             columns.append('Price')
@@ -322,6 +326,7 @@ class AnalysisRequestAnalysesView(BikaListingView):
             ser = self.context.getAnalysisServiceSettings(obj.UID())
             item['allow_edit'] = ['Hidden', ]
             item['Hidden'] = ser.get('hidden', obj.getHidden())
+            item['Unit'] = obj.getUnit()
 
         self.categories.sort()
         return items
