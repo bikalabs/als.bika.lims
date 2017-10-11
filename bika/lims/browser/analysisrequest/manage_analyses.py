@@ -5,27 +5,24 @@
 # Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
-from AccessControl import getSecurityManager
-from bika.lims import bikaMessageFactory as _
-from bika.lims.utils import t, dicts_to_dict
-from bika.lims.browser.bika_listing import BikaListingView
-from bika.lims.browser.sample import SamplePartitionsView
-from bika.lims.content.analysisrequest import schema as AnalysisRequestSchema
-from bika.lims.permissions import *
-from bika.lims.utils import logged_in_client
-from bika.lims.utils import to_utf8
-from bika.lims.workflow import doActionFor
-from DateTime import DateTime
-from Products.Archetypes import PloneMessageFactory as PMF
-from plone.app.content.browser.interfaces import IFolderContentsView
-from plone.app.layout.globals.interfaces import IViewView
-from Products.CMFCore.utils import getToolByName
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+import json
+
 from zope.i18n.locales import locales
 from zope.interface import implements
 
-import json
-import plone
+from plone.app.content.browser.interfaces import IFolderContentsView
+from plone.app.layout.globals.interfaces import IViewView
+
+from Products.CMFCore.utils import getToolByName
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+
+from bika.lims import bikaMessageFactory as _
+from bika.lims.utils import t
+from bika.lims.utils import dicts_to_dict
+from bika.lims.browser.bika_listing import BikaListingView
+from bika.lims.browser.sample import SamplePartitionsView
+from bika.lims.utils import logged_in_client
+
 
 class AnalysisRequestAnalysesView(BikaListingView):
     implements(IFolderContentsView, IViewView)
@@ -35,9 +32,11 @@ class AnalysisRequestAnalysesView(BikaListingView):
     def __init__(self, context, request):
         super(AnalysisRequestAnalysesView, self).__init__(context, request)
         self.catalog = "bika_setup_catalog"
-        self.contentFilter = {'portal_type': 'AnalysisService',
-                              'sort_on': 'sortable_title',
-                              'inactive_state': 'active', }
+        self.contentFilter = {
+            'portal_type': 'AnalysisService',
+            'sort_on': 'sortable_title',
+            'inactive_state': 'active',
+        }
         self.context_actions = {}
         self.icon = self.portal_url + "/++resource++bika.lims.images/analysisrequest_big.png"
         self.title = self.context.Title()
@@ -57,23 +56,39 @@ class AnalysisRequestAnalysesView(BikaListingView):
             self.category_index = 'getCategoryTitle'
 
         self.columns = {
-            'Title': {'title': _('Service'),
-                      'index': 'sortable_title',
-                      'sortable': False, },
-            'Hidden': {'title': _('Hidden'),
-                       'sortable': False,
-                       'type': 'boolean', },
-            'Price': {'title': _('Price'),
-                      'sortable': False, },
-            'Priority': {'title': _('Priority'),
-                         'sortable': False,
-                         'index': 'Priority',
-                         'toggle': True },
-            'Partition': {'title': _('Partition'),
-                          'sortable': False, },
-            'min': {'title': _('Min')},
-            'max': {'title': _('Max')},
-            'error': {'title': _('Permitted Error %')},
+            'Title': {
+                'title': _('Service'),
+                'index': 'sortable_title',
+                'sortable': False,
+            },
+            'Hidden': {
+                'title': _('Hidden'),
+                'sortable': False,
+                'type': 'boolean',
+            },
+            'Price': {
+                'title': _('Price'),
+                'sortable': False,
+            },
+            'Priority': {
+                'title': _('Priority'),
+                'sortable': False,
+                'index': 'Priority',
+                'toggle': True,
+            },
+            'Partition': {
+                'title': _('Partition'),
+                'sortable': False,
+            },
+            'min': {
+                'title': _('Min'),
+            },
+            'max': {
+                'title': _('Max'),
+            },
+            'error': {
+                'title': _('Permitted Error %'),
+            },
         }
 
         columns = ['Title', 'Hidden', ]
@@ -91,14 +106,15 @@ class AnalysisRequestAnalysesView(BikaListingView):
             columns.append('error')
 
         self.review_states = [
-            {'id': 'default',
-             'title': _('All'),
-             'contentFilter': {},
-             'columns': columns,
-             'transitions': [{'id': 'empty'}, ],  # none
-             'custom_actions': [{'id': 'save_analyses_button',
-                                 'title': _('Save')}, ],
-             },
+            {
+                'id': 'default',
+                'title': _('All'),
+                'contentFilter': {},
+                'columns': columns,
+                'transitions': [{'id': 'empty'}, ],  # none
+                'custom_actions': [{'id': 'save_analyses_button',
+                                    'title': _('Save')}, ],
+            },
         ]
 
         # Create Partitions View for this ARs sample
@@ -140,7 +156,7 @@ class AnalysisRequestAnalysesView(BikaListingView):
         return json.dumps(rr_dict_by_service_uid)
 
     def get_spec_from_ar(self, ar, keyword):
-        empty = {'min': '', 'max': '', 'error': '', 'keyword':keyword}
+        empty = {'min': '', 'max': '', 'error': '', 'keyword': keyword}
         spec = ar.getResultsRange()
         if spec:
             return dicts_to_dict(spec, 'keyword').get(keyword, empty)
@@ -192,7 +208,7 @@ class AnalysisRequestAnalysesView(BikaListingView):
                       for o in parts
                       if wf.getInfoFor(o, 'cancellation_state', '') == 'active']
         for x in range(len(items)):
-            if not 'obj' in items[x]:
+            if 'obj' not in items[x]:
                 continue
             obj = items[x]['obj']
 
@@ -243,9 +259,9 @@ class AnalysisRequestAnalysesView(BikaListingView):
                 items[x]['Partition'] = part.Title()
                 spec = self.get_spec_from_ar(self.context,
                                              analysis.getService().getKeyword())
-                items[x]["min"] = spec.get("min",'')
-                items[x]["max"] = spec.get("max",'')
-                items[x]["error"] = spec.get("error",'')
+                items[x]["min"] = spec.get("min", '')
+                items[x]["max"] = spec.get("max", '')
+                items[x]["error"] = spec.get("error", '')
                 # Add priority premium
                 items[x]['Price'] = analysis.getPrice()
                 priority = analysis.getPriority()
@@ -288,7 +304,6 @@ class AnalysisRequestAnalysesView(BikaListingView):
                 )
             if after_icons:
                 items[x]['after']['Title'] = after_icons
-
 
             # Display analyses for this Analysis Service in results?
             ser = self.context.getAnalysisServiceSettings(obj.UID())
