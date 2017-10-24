@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import DateTime
+
 from zope.interface import implements
 
 from AccessControl import ClassSecurityInfo
@@ -33,7 +35,9 @@ class ProxyField(ObjectField):
 
     security = ClassSecurityInfo()
 
-    def _get_proxy(self, instance):
+    security.declarePrivate('get_proxy')
+
+    def get_proxy(self, instance):
         """Evaluate the `proxy` property to retrieve the proxy object.
         """
         # evaluates the 'proxy' expression on the field definition in the schema,
@@ -49,7 +53,7 @@ class ProxyField(ObjectField):
         default = self.getDefault(instance)
 
         # Retrieve the proxy object
-        proxy_object = self._get_proxy(instance)
+        proxy_object = self.get_proxy(instance)
 
         # Return None if we could not find a proxied object, e.g. through
         # the proxy expression 'context.getSample()' on an AR
@@ -76,7 +80,7 @@ class ProxyField(ObjectField):
         """writes the value to the same named field on the proxy object
         """
         # Retrieve the proxy object
-        proxy_object = self._get_proxy(instance)
+        proxy_object = self.get_proxy(instance)
 
         # Return None if we could not find a proxied object, e.g. through
         # the proxy expression 'context.getSample()' on an AR
@@ -96,6 +100,15 @@ class ProxyField(ObjectField):
 
         # set the value on the proxy object
         field.set(proxy_object, value, **kwargs)
+
+        # get the current time
+        now = DateTime.DateTime()
+
+        # update the modification date of the proxied object
+        proxy_object.setModificationDate(now)
+
+        # update the modification date of the holding object
+        instance.setModificationDate(now)
 
 
 # Register the field

@@ -274,18 +274,24 @@
       <h1 id="ar-header">
         <img tal:condition="view/icon | nothing" tal:attributes="src view/icon"/>
         <span i18n:translate="">Request new analyses</span>
+        <span style="display:inline-block;padding-left:0.5em;">
+          <form method="GET" class="form-inline">
+            <input type="hidden"
+                   name="copy_from" tal:attributes="value request/copy_from|nothing"/>
+            <input type="number"
+                   name="ar_count"
+                   min="1"
+                   class="form-control context_action_link"
+                   style="width:4em;border-radius:0;border:1px solid #ddd;padding:2px;"
+                   tal:attributes="value view/ar_count|1"/>
+            <button type="submit"
+                    class="btn btn-link context_action_link">
+              <img src="#"
+                   tal:attributes="src string:${context/absolute_url}/++resource++bika.lims.images/add.png"/>
+            </button>
+          </form>
+        </span>
       </h1>
-      <div id="manage-ar-fields"
-           tal:condition="python:user.has_role('LabManager') or user.has_role('Manager')">
-        <a id="manage-ar-fields-link"
-           href=""
-           class="btn btn-link"
-           target="_blank"
-           i18n:translate=""
-           tal:attributes="href python:context.absolute_url() + '/ar_add_manage'">
-          (&#9998; Manage Fields)
-        </a>
-      </div>
     </metal:title>
     <metal:description fill-slot="content-description">
     </metal:description>
@@ -311,7 +317,19 @@
         <table class="ar-table grid">
 
           <tr>
-            <td></td>
+            <td>
+              <div id="manage-ar-fields"
+                  tal:condition="python:user.has_role('LabManager') or user.has_role('Manager')">
+                <a id="manage-ar-fields-link"
+                  href=""
+                  class="btn btn-link"
+                  target="_blank"
+                  tal:attributes="href python:context.absolute_url() + '/ar_add_manage'">
+                  &#9998;
+                  <span i18n:translate="">Manage Form Fields</span>
+                </a>
+              </div>
+            </td>
             <td></td>
             <tal:columns tal:repeat="arnum python:range(view.ar_count)">
               <td class="ar-column-header">

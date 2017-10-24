@@ -14,9 +14,9 @@ from BTrees.OOBTree import OOBTree
 
 from plone import protect
 from plone.memoize import view
+
 from plone.memoize.volatile import cache
 from plone.memoize.volatile import DontCache
-from plone.memoize.volatile import store_on_context
 
 from zope.annotation.interfaces import IAnnotations
 from zope.publisher.interfaces import IPublishTraverse
@@ -50,18 +50,10 @@ def returns_json(func):
     return decorator
 
 
-def gen_key(brain_or_object):
-    obj = api.get_object(brain_or_object)
-    uid = api.get_uid(obj)
-    modified = obj.modified().ISO8601()
-    portal_type = api.get_portal_type(obj)
-    return "{}-{}-{}".format(portal_type, uid, modified)
-
-
 def cache_key(method, self, obj):
     if obj is None:
         raise DontCache
-    return gen_key(obj)
+    return api.get_cache_key(obj)
 
 
 def mg(value):
@@ -106,6 +98,16 @@ class AnalysisRequestAddView(BrowserView):
         self.ShowPrices = self.bika_setup.getShowPrices()
         logger.info("*** Prepared data for {} ARs ***".format(self.ar_count))
         return self.template()
+
+    def get_view_url(self):
+        """Return the current view url including request parameters
+        """
+        request = self.request
+        url = request.getURL()
+        qs = request.getHeader("query_string")
+        if not qs:
+            return url
+        return "{}?{}".format(url, qs)
 
     def get_object_by_uid(self, uid):
         """Get the object by UID
@@ -334,6 +336,25 @@ class AnalysisRequestAddView(BrowserView):
             return parent
         return None
 
+    def get_parent_ar(self, ar):
+        """Returns the parent AR
+        """
+        parent = ar.getParentAnalysisRequest()
+
+        # Return immediately if we have no parent
+        if parent is None:
+            return None
+
+        # Walk back the chain until we reach the source AR
+        while True:
+            pparent = parent.getParentAnalysisRequest()
+            if pparent is None:
+                break
+            # remember the new parent
+            parent = pparent
+
+        return parent
+
     def generate_fieldvalues(self, count=1):
         """Returns a mapping of '<fieldname>-<count>' to the default value
         of the field or the field value of the source AR
@@ -350,12 +371,16 @@ class AnalysisRequestAddView(BrowserView):
         # generate fields for all requested ARs
         for arnum in range(count):
             source = copy_from.get(arnum)
+            parent = None
+            if source is not None:
+                parent = self.get_parent_ar(source)
             for field in fields:
                 value = None
                 fieldname = field.getName()
                 if source and fieldname not in SKIP_FIELD_ON_COPY:
                     # get the field value stored on the source
-                    value = self.get_field_value(field, source)
+                    context = parent or source
+                    value = self.get_field_value(field, context)
                 else:
                     # get the default value of this field
                     value = self.get_default_value(field, ar_context)
@@ -502,7 +527,7 @@ class AnalysisRequestAddView(BrowserView):
             analyses[category].append(brain)
         return analyses
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_service_uid_from(self, analysis):
         """Return the service from the analysis
         """
@@ -880,7 +905,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         objs = map(self.get_object_by_uid, uids)
         return dict(zip(uids, objs))
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_base_info(self, obj):
         """Returns the base info of an object
         """
@@ -897,7 +922,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
 
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_client_info(self, obj):
         """Returns the client info of an object
         """
@@ -950,14 +975,17 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
                 "getClientUID": [uid, bika_analysisspecs_uid],
             },
             "samplinground": {
-                "getParentUID": [uid]
+                "getParentUID": [uid],
+            },
+            "sample": {
+                "getClientUID": [uid],
             },
         }
         info["filter_queries"] = filter_queries
 
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_service_info(self, obj):
         """Returns the info for a Service
         """
@@ -985,7 +1013,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         # info["dependendants"] = map(self.get_base_info, dependants)
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_template_info(self, obj):
         """Returns the info for a Template
         """
@@ -1031,7 +1059,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         })
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_profile_info(self, obj):
         """Returns the info for a Profile
         """
@@ -1039,7 +1067,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         info.update({})
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_method_info(self, obj):
         """Returns the info for a Method
         """
@@ -1047,7 +1075,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         info.update({})
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_calculation_info(self, obj):
         """Returns the info for a Calculation
         """
@@ -1055,11 +1083,26 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         info.update({})
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_sampletype_info(self, obj):
         """Returns the info for a Sample Type
         """
         info = self.get_base_info(obj)
+
+        # Bika Setup folder
+        bika_setup = api.get_bika_setup()
+
+        # bika samplepoints
+        bika_samplepoints = bika_setup.bika_samplepoints
+        bika_samplepoints_uid = api.get_uid(bika_samplepoints)
+
+        # bika analysisspecs
+        bika_analysisspecs = bika_setup.bika_analysisspecs
+        bika_analysisspecs_uid = api.get_uid(bika_analysisspecs)
+
+        # client
+        client = self.get_client()
+        client_uid = api.get_uid(client)
 
         # sample matrix
         sample_matrix = obj.getSampleMatrix()
@@ -1092,17 +1135,19 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         # catalog queries for UI field filtering
         filter_queries = {
             "samplepoint": {
-                "getSampleTypeTitle": obj.Title()
+                "getSampleTypeTitle": obj.Title(),
+                "getClientUID": [client_uid, bika_samplepoints_uid],
             },
             "specification": {
-                "getSampleTypeTitle": obj.Title()
+                "getSampleTypeTitle": obj.Title(),
+                "getClientUID": [client_uid, bika_analysisspecs_uid],
             }
         }
         info["filter_queries"] = filter_queries
 
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_sample_info(self, obj):
         """Returns the info for a Sample
         """
@@ -1157,7 +1202,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         })
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_specification_info(self, obj):
         """Returns the info for a Specification
         """
@@ -1197,7 +1242,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         info["service_uids"] = specifications.keys()
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_container_info(self, obj):
         """Returns the info for a Container
         """
@@ -1205,7 +1250,7 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         info.update({})
         return info
 
-    @cache(cache_key, store_on_context)
+    @cache(cache_key)
     def get_preservation_info(self, obj):
         """Returns the info for a Preservation
         """
@@ -1258,6 +1303,15 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
             })
 
         return partitions
+
+    def ajax_get_global_settings(self):
+        """Returns the global Bika settings
+        """
+        bika_setup = api.get_bika_setup()
+        settings = {
+            "show_prices": bika_setup.getShowPrices(),
+        }
+        return settings
 
     def ajax_get_service(self):
         """Returns the services information
@@ -1618,18 +1672,46 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
         # Validate required fields
         for n, record in enumerate(records):
 
-            # required fields and their values
+            # Process UID fields first and set their values to the linked field
+            uid_fields = filter(lambda f: f.endswith("_uid"), record)
+            for field in uid_fields:
+                name = field.replace("_uid", "")
+                value = record.get(field)
+                if "," in value:
+                    value = value.split(",")
+                record[name] = value
+
+            # Extract file uploads (fields ending with _file)
+            # These files will be added later as attachments
+            file_fields = filter(lambda f: f.endswith("_file"), record)
+            attachments[n] = map(lambda f: record.pop(f), file_fields)
+
+            # Process Specifications field (dictionary like records instance).
+            # -> Convert to a standard Python dictionary.
+            specifications = map(lambda x: dict(x), record.pop("Specifications", []))
+            record["Specifications"] = specifications
+
+            # Required fields and their values
             required_keys = [field.getName() for field in fields if field.required]
             required_values = [record.get(key) for key in required_keys]
             required_fields = dict(zip(required_keys, required_values))
 
-            # We only need the Client UID
-            if record.get("Client_uid", False):
+            # Client field is required but hidden in the AR Add form. We remove
+            # it therefore from the list of required fields to let empty
+            # columns pass the required check below.
+            if record.get("Client", False):
                 required_fields.pop('Client', None)
+
+            # Contacts get pre-filled out if only one contact exists.
+            # We won't force those columns with only the Contact filled out to be required.
+            contact = required_fields.pop("Contact", None)
 
             # None of the required fields are filled, skip this record
             if not any(required_fields.values()):
                 continue
+
+            # Re-add the Contact
+            required_fields["Contact"] = contact
 
             # Missing required fields
             missing = [f for f in required_fields if not record.get(f, None)]
@@ -1639,27 +1721,6 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
                 fieldname = "{}-{}".format(field, n)
                 msg = _("Field '{}' is required".format(field))
                 errors[fieldname] = msg
-
-            # Extract file uploads (fields ending with _file)
-            # These files will be added later as attachments
-            file_fields = filter(lambda f: f.endswith("_file"), record)
-            attachments[n] = map(lambda f: record.pop(f), file_fields)
-
-            # Process UID fields
-            uid_fields = filter(lambda f: f.endswith("_uid"), record)
-            for field in uid_fields:
-                name = field.replace("_uid", "")
-                value = record.get(field)
-                if "," in value:
-                    value = value.split(",")
-                record[name] = value
-
-            # Process Specifications field (dictionary like records instance).
-            # -> Convert to a standard Python dictionary.
-            specifications = map(lambda x: dict(x), record.pop("Specifications", []))
-            record["Specifications"] = specifications
-
-            # Prepare Partitions for this AR
 
             # Selected Analysis UIDs
             selected_analysis_uids = record.get("Analyses", [])

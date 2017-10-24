@@ -39,7 +39,8 @@ class AddAnalysesView(BikaListingView):
         self.contentFilter = {'portal_type': 'Analysis',
                               'review_state': 'sample_received',
                               'worksheetanalysis_review_state': 'unassigned',
-                              'cancellation_state': 'active'}
+                              'cancellation_state':'active',
+                              'sort_on': 'getDueDate'}
         # If an instrument is selected, restrict displayed analyses to those
         # which are compatible.
         instrument = context.getInstrument()
@@ -133,6 +134,8 @@ class AddAnalysesView(BikaListingView):
         self._process_request()
 
         if self.request.get('table_only', '') == self.form_id:
+            return self.contents_table()
+        elif self.request.get('rows_only', '') == self.form_id:
             return self.contents_table()
         else:
             return self.template()

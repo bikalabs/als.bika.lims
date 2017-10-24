@@ -82,6 +82,13 @@ LIMS-1832: New Results Template, COA. Multiple ARs in columns
 LIMS-2148: Unable to sort Bika Listing tables
 LIMS-1774: Shiny graphs for result ranges
 
+- Issue-2268: Show the Unit in Manage Analyses View
+- BC-147: Default empty WS view should list on due date
+- Issue-2103: WS Templates not offered for selection
+- Instrument selection for creating WSs does not work
+- Issue-2215: Added extra param portal_type on the function generateUniqueId so that it's not used for objects only
+- Issue-2230: IDServer fails to rename Samples with a non-id-compliant SampleType
+- 2215: Added extra param portal_type on the function generateUniqueId so that it's not used for objects only
 - Issue-2183: Don't recalculate prices when option "Include and display pricing information" in Bika Setup Accounting is not selected
 - Sampler and Sampling Date Columns are not validated when they are not displayed
 - Issue-2162: Added renameAfterCreation to partition creation in ARImport
@@ -99,6 +106,9 @@ LIMS-1774: Shiny graphs for result ranges
 3.3.0 (unreleased)
 ------------------
 
+- Issue-2245: AR View: Asyncronous update of proxy fields fails
+- Issue-2218: Cache Key does not invalidate if proxied Sample values of ARs change
+- Issue-2204: Notification Emails on AR retract
 - Issue-2173: Publishing multiple ARs fails
 - Issue-2132: Reorderable Attachments for Reports
 - Issue-2129: Migrate Attachments to blobs
@@ -110,12 +120,53 @@ LIMS-1774: Shiny graphs for result ranges
 - Bika LIMS JSON API v2
 
 
-3.2.1rc1 (unreleased)
+3.2.1rc3 (unreleased)
+3.2.1 (unreleased)
+------------------
+
+- Issue-2288: AR Copy from rejected AR is has missing fields
+- Issue-2282: Don't force columns if the Contact fields got auto-filled on load
+- Issue-2280: CC Contacts don't get notified on AR Publication
+- Issue-2270: Setting 2 or more CCContacts in AR view produces a Traceback on Save
+- Issue-2264: Bika Listing: Instrument Calibration Table only shows 30 Items w/o pagination controls
+- Issue-2263: Bika Listing: Clicking on the sorting-header of Instrument Calibrations re-renders the entire page recursively
+- Issue-2225: Worksheet "Show More" Button in Listing View breaks the whole Layout
+- Issue-2258: New AR Add Form: Required reference fields are flagged as missing and the form does not proceed
+
+
+3.2.1rc3 (2017-10-02)
 ---------------------
 
+- Issue-2229: Traceback if the title contains braces "()" on content creation
+- Issue-2237: New AR Add Form: Include and display pricing information
+- Issue-2241: New AR Add Form: Server Error when the Sample Type contains German Umlauts (unicode characters)
+- Issue-2244: New AR Add Form: Sample field does not filter by Client
+- Issue-2242: New AR Add Form: Local Samplepoints with the same Sampletype from other clients get displayed
+
+
+3.2.1rc2 (2017-09-15)
+---------------------
+
+- Issue-2234: Use the object to create the cached listing item
+- Issue-2219: Copied ARs are created in random order
+- Issue-2214: AR Add Controls need to be styled correctly
+
+
+3.2.1rc1 (2017-09-12)
+---------------------
+
+- Issue-2211: Allow to change the Number of ARs in the AR Add form
+- Issue-2207: Invalid jQuery selector in Referencewidget
+- Issue-2200: Bika Listing Cachekey ignores different virtual host configurations
+- Issue-2198: Bika listing cache key does not invalidate after WF transitions
+- Issue-2004: Traceback for AR when an Analysis is used w/o 'Exponential format precision' set
 - Issue-2184: AR Add 2 takes long to clone existing ARs on instances with many ASs
 - Issue-2178: Bika Listings are slow
 - Issue-1977: AR can be transitioned to verified while all AS's remain to be verified
+
+**Other Fixes**
+
+- AR Add form: Fixed reference field on omitted fields
 
 
 3.2.1b3 (2017-08-07)

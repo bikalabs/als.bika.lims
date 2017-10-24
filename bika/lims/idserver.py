@@ -54,10 +54,12 @@ def idserver_generate_id(context, prefix, batch_size=None):
     return new_id
 
 
-def generateUniqueId(context, parent=False):
+def generateUniqueId(context, parent=False, portal_type=''):
     """ Generate pretty content IDs.
     """
 
+    if portal_type == '':
+        portal_type = context.portal_type
     def getLastCounter(context, config):
         if config.get('counter_type', '') == 'backreference':
             return len(context.getBackReferences(config['counter_reference'])) - 1
@@ -83,18 +85,18 @@ def generateUniqueId(context, parent=False):
     config_map = api.get_bika_setup().getIDFormatting()
     config = getConfigByPortalType(
         config_map=config_map,
-        portal_type=context.portal_type)
-    if context.portal_type == "AnalysisRequest":
+        portal_type=portal_type)
+    if portal_type == "AnalysisRequest":
         variables_map = {
             'sampleId': context.getSample().getId(),
             'sample': context.getSample(),
         }
-    elif context.portal_type == "SamplePartition":
+    elif portal_type == "SamplePartition":
         variables_map = {
             'sampleId': context.aq_parent.getId(),
             'sample': context.aq_parent,
         }
-    elif context.portal_type == "Sample" and parent:
+    elif portal_type == "Sample" and parent:
         config = getConfigByPortalType(
             config_map=config_map,
             portal_type='SamplePartition')  # Override
@@ -102,24 +104,25 @@ def generateUniqueId(context, parent=False):
             'sampleId': context.getId(),
             'sample': context,
         }
-    elif context.portal_type == "Sample":
+    elif portal_type == "Sample":
         sampleDate = None
+        sampleType = context.getSampleType().getPrefix()
         if context.getSamplingDate():
             sampleDate = DT2dt(context.getSamplingDate())
 
         variables_map = {
             'clientId': context.aq_parent.getClientID(),
             'sampleDate': sampleDate,
-            'sampleType': context.getSampleType().getPrefix(),
+            'sampleType': api.normalize_filename(sampleType),
             'year': DateTime().strftime("%Y")[2:],
         }
     else:
         if not config:
             # Provide default if no format specified on bika_setup
             config = {
-                'form': '%s-{seq}' % context.portal_type.lower(),
+                'form': '%s-{seq}' % portal_type.lower(),
                 'sequence_type': 'generated',
-                'prefix': '%s' % context.portal_type.lower(),
+                'prefix': '%s' % portal_type.lower(),
             }
         variables_map = {}
 
