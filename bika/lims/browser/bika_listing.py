@@ -486,14 +486,14 @@ class BikaListingView(BrowserView):
         :return: item from self.review_states
         """
         if not self.review_states:
-            logger.error("%s.review_states is undefined." % self)
+            logger.warning("%s.review_states is undefined." % self)
             return None
         # get state_id from (request or default_review_states)
         key = "%s_review_state" % self.form_id
         state_id = self.request.form.get(key, self.default_review_state)
         states = [r for r in self.review_states if r['id'] == state_id]
         if not states:
-            logger.error("%s.review_states does not contains id='%s'." %
+            logger.warning("%s.review_states does not contains id='%s'." %
                          (self, state_id))
             return None
         review_state = states[0] if states else self.review_states[0]
@@ -575,7 +575,7 @@ class BikaListingView(BrowserView):
                 # We cannot sort for a column that doesn't exist!
                 msg = "{}: sort_on is '{}', not a valid column".format(
                     self.__class__.__name__, self.sort_on)
-                logger.error(msg)
+                logger.warning(msg)
                 self.sort_on = None
 
         if self.manual_sort_on:
@@ -585,7 +585,7 @@ class BikaListingView(BrowserView):
                 # We cannot sort for a column that doesn't exist!
                 msg = "{}: manual_sort_on is '{}', not a valid column".format(
                     self.__class__.__name__, self.manual_sort_on)
-                logger.error(msg)
+                logger.warning(msg)
                 self.manual_sort_on = None
 
         if self.sort_on or self.manual_sort_on:
@@ -776,7 +776,7 @@ class BikaListingView(BrowserView):
             try:
                 cookie_filter_bar = json.loads(cookie_value)
             except ValueError, e:
-                logger.error(
+                logger.warning(
                     'BikaListingView: cannot parse cookie value %s (%s)' % (
                         str(e), cookie_value))
 
