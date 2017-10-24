@@ -92,7 +92,7 @@ def create_analysisrequest(context, request, values, analyses=None,
     ar.setSample(sample)
     values['Sample'] = sample
 
-    if values['DateSampled']:
+    if values.get('DateSampled', False):
         #Inject the timezone into a selection by
         #datewidget which is timezone naive
         #ie. DateSampled is '2017-05-15 01:05'
