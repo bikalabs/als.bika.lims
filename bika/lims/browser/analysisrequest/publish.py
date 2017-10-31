@@ -1076,18 +1076,19 @@ class AnalysisRequestPublishView(BrowserView):
             analyses.extend(ar.getAnalyses(full_objects=True))
         #
         fieldnames = [
-            'Client Batch ID',
-            'Client Sample ID',
-            'Sample ID',
-            'Analysis Request ID',
-            'Sample Type',
-            'Sample Point',
-            "Date/Time Sampled",
-            'Analysis Service',
-            'Method',
-            'LOR',
-            'Unit',
-            'Value',
+            t(_('Batch ID')),
+            t(_('Client Batch ID')),
+            t(_('Sample ID')),
+            t(_('Client Sample ID')),
+            t(_('Analysis Request ID')),
+            t(_('Sample Type')),
+            t(_('Sample Point')),
+            t(_('Date/Time Sampled')),
+            t(_('Analysis Service')),
+            t(_('Method')),
+            t(_('LOR')),
+            t(_('Unit')),
+            t(_('Value')),
         ]
         #
         output = StringIO.StringIO()
@@ -1099,29 +1100,33 @@ class AnalysisRequestPublishView(BrowserView):
             method = analysis.getMethod().Title() \
                 if analysis.getMethod() else ''
             ar = analysis.aq_parent
-            batchid = ar.getBatch().getBatchID() if ar.getBatch() else ''
+            batch = ar.getBatch()
+            l_batchid = batch.getBatchID() if batch else ''
+            c_batchid = batch.getClientBatchID() if batch else ''
             date = analysis.getResultCaptureDate()
             date = self.ulocalized_time(date, long_format=True)
             sample = ar.getSample()
-            csid = sample.getClientSampleID()
-            sid = sample.getId()
+            l_sid = sample.getId()
+            c_sid = sample.getClientSampleID()
             point = sample.getSamplePoint().Title() \
                 if sample.getSamplePoint() else ''
             row = {
-                'Client Batch ID': batchid,
-                'Client Sample ID': csid,
-                'Sample ID': sid,
-                'Analysis Request ID': ar.getId(),
-                'Sample Type': sample.getSampleType().Title(),
-                'Sample Point': point,
-                "Date/Time Sampled": date,
-                'Analysis Service': service.Title(),
-                'Method': method,
-                'LOR': service.getLowerDetectionLimit(),
-                'Unit': service.getUnit(),
-                'Value': analysis.getResult(),
+                t(_('Batch ID')): safe_unicode(l_batchid),
+                t(_('Client Batch ID')): safe_unicode(c_batchid),
+                t(_('Sample ID')): safe_unicode(l_sid),
+                t(_('Client Sample ID')): safe_unicode(c_sid),
+                t(_('Analysis Request ID')): safe_unicode(ar.getId()),
+                t(_('Sample Type')): safe_unicode(sample.getSampleType().Title()),
+                t(_('Sample Point')): safe_unicode(point),
+                t(_('Date/Time Sampled')): date,
+                t(_('Analysis Service')): safe_unicode(service.Title()),
+                t(_('Method')): safe_unicode(method),
+                t(_('LOR')): service.getLowerDetectionLimit(),
+                t(_('Unit')): safe_unicode(service.getUnit()),
+                t(_('Value')): analysis.getResult(),
             }
             dw.writerow(row)
+
         retval = output.getvalue()
         return retval
 
