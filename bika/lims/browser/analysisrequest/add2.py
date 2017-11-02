@@ -1670,9 +1670,16 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
             if record.get("Client", False):
                 required_fields.pop('Client', None)
 
+            # Contacts get pre-filled out if only one contact exists.
+            # We won't force those columns with only the Contact filled out to be required.
+            contact = required_fields.pop("Contact", None)
+
             # None of the required fields are filled, skip this record
             if not any(required_fields.values()):
                 continue
+
+            # Re-add the Contact
+            required_fields["Contact"] = contact
 
             # Missing required fields
             missing = [f for f in required_fields if not record.get(f, None)]
