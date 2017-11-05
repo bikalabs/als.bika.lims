@@ -1108,16 +1108,17 @@ class AnalysisRequestPublishView(BrowserView):
             sample = ar.getSample()
             l_sid = sample.getId()
             c_sid = sample.getClientSampleID()
-            point = sample.getSamplePoint().Title() \
-                if sample.getSamplePoint() else ''
+            st_title = sample.getSampleType().Title()
+            point = sample.getSamplePoint()
+            sp_title =  point.Title() if point else ''
             row = {
                 t(_('Batch ID')): safe_unicode(l_batchid),
                 t(_('Client Batch ID')): safe_unicode(c_batchid),
                 t(_('Sample ID')): safe_unicode(l_sid),
                 t(_('Client Sample ID')): safe_unicode(c_sid),
                 t(_('Analysis Request ID')): safe_unicode(ar.getId()),
-                t(_('Sample Type')): safe_unicode(sample.getSampleType().Title()),
-                t(_('Sample Point')): safe_unicode(point),
+                t(_('Sample Type')): safe_unicode(st_title),
+                t(_('Sample Point')): safe_unicode(sp_title),
                 t(_('Date/Time Sampled')): date,
                 t(_('Analysis Service')): safe_unicode(service.Title()),
                 t(_('Method')): safe_unicode(method),
@@ -1128,6 +1129,13 @@ class AnalysisRequestPublishView(BrowserView):
             dw.writerow(row)
 
         retval = output.getvalue()
+
+        import pdb
+        from commands import getoutput as go
+        go("/usr/bin/play /home/rockfruit/pdb.wav")
+        pdb.set_trace()
+        pass
+
         return retval
 
     def publish(self):
