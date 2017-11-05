@@ -1110,31 +1110,38 @@ class AnalysisRequestPublishView(BrowserView):
             c_sid = sample.getClientSampleID()
             st_title = sample.getSampleType().Title()
             point = sample.getSamplePoint()
-            sp_title =  point.Title() if point else ''
+            sp_title = point.Title() if point else ''
             row = {
-                t(_('Batch ID')): safe_unicode(l_batchid),
-                t(_('Client Batch ID')): safe_unicode(c_batchid),
-                t(_('Sample ID')): safe_unicode(l_sid),
-                t(_('Client Sample ID')): safe_unicode(c_sid),
-                t(_('Analysis Request ID')): safe_unicode(ar.getId()),
-                t(_('Sample Type')): safe_unicode(st_title),
-                t(_('Sample Point')): safe_unicode(sp_title),
-                t(_('Date/Time Sampled')): date,
-                t(_('Analysis Service')): safe_unicode(service.Title()),
-                t(_('Method')): safe_unicode(method),
-                t(_('LOR')): service.getLowerDetectionLimit(),
-                t(_('Unit')): safe_unicode(service.getUnit()),
-                t(_('Value')): analysis.getResult(),
+                t(_('Batch ID')):
+                    safe_unicode(l_batchid).encode('utf-8'),
+                t(_('Client Batch ID')):
+                    safe_unicode(c_batchid).encode('utf-8'),
+                t(_('Sample ID')):
+                    safe_unicode(l_sid).encode('utf-8'),
+                t(_('Client Sample ID')):
+                    safe_unicode(c_sid).encode('utf-8'),
+                t(_('Analysis Request ID')):
+                    safe_unicode(ar.getId()).encode('utf-8'),
+                t(_('Sample Type')):
+                    safe_unicode(st_title).encode('utf-8'),
+                t(_('Sample Point')):
+                    safe_unicode(sp_title).encode('utf-8'),
+                t(_('Date/Time Sampled')):
+                    date,
+                t(_('Analysis Service')):
+                    safe_unicode(service.Title()).encode('utf-8'),
+                t(_('Method')):
+                    safe_unicode(method).encode('utf-8'),
+                t(_('LOR')):
+                    service.getLowerDetectionLimit(),
+                t(_('Unit')):
+                    safe_unicode(service.getUnit()).encode('utf-8'),
+                t(_('Value')):
+                    analysis.getResult(),
             }
             dw.writerow(row)
 
         retval = output.getvalue()
-
-        import pdb
-        from commands import getoutput as go
-        go("/usr/bin/play /home/rockfruit/pdb.wav")
-        pdb.set_trace()
-        pass
 
         return retval
 
