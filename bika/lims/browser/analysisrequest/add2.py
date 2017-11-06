@@ -340,12 +340,20 @@ class AnalysisRequestAddView(BrowserView):
         """Returns the parent AR
         """
         parent = ar.getParentAnalysisRequest()
+
+        # Return immediately the original AR if we have no parent AR
+        if parent is None:
+            return ar
+
+        # Walk back the chain until we reach the source AR
         while True:
             pparent = parent.getParentAnalysisRequest()
             if pparent is None:
                 break
+            # remember the new parent
             parent = pparent
-        return parent or ar
+
+        return parent
 
     def generate_fieldvalues(self, count=1):
         """Returns a mapping of '<fieldname>-<count>' to the default value
