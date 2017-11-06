@@ -341,9 +341,9 @@ class AnalysisRequestAddView(BrowserView):
         """
         parent = ar.getParentAnalysisRequest()
 
-        # Return immediately the original AR if we have no parent AR
+        # Return immediately if we have no parent
         if parent is None:
-            return ar
+            return None
 
         # Walk back the chain until we reach the source AR
         while True:
@@ -371,7 +371,9 @@ class AnalysisRequestAddView(BrowserView):
         # generate fields for all requested ARs
         for arnum in range(count):
             source = copy_from.get(arnum)
-            parent = self.get_parent_ar(source)
+            parent = None
+            if source is not None:
+                parent = self.get_parent_ar(source)
             for field in fields:
                 value = None
                 fieldname = field.getName()
