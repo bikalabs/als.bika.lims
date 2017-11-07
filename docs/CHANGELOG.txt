@@ -1,6 +1,7 @@
 3.2.1 (unreleased)
 ------------------
 
+- Issue-2292: CCEmails are nowhere used to send Emails out of the LIMS
 - Issue-2288: AR Copy from rejected AR is has missing fields
 - Issue-2282: Don't force columns if the Contact fields got auto-filled on load
 - Issue-2280: CC Contacts don't get notified on AR Publication
