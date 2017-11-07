@@ -133,15 +133,20 @@ def generateUniqueId(context, parent=False, portal_type=''):
             context=variables_map[config['context']],
             config=config)
     elif config['sequence_type'] == 'generated':
-        if config.get('split_length', None) == 0:
-            prefix_config = '-'.join(form.split('-')[:-1])
-            prefix = prefix_config.format(**variables_map)
-        elif config.get('split_length', None) > 0:
-            prefix_config = '-'.join(form.split('-')[:config['split_length']])
-            prefix = prefix_config.format(**variables_map)
-        else:
-            prefix = config['prefix']
-        new_seq = number_generator(key=prefix)
+        try:
+            if config.get('split_length', None) == 0:
+                prefix_config = '-'.join(form.split('-')[:-1])
+                prefix = prefix_config.format(**variables_map)
+            elif config.get('split_length', None) > 0:
+                prefix_config = '-'.join(form.split('-')[:config['split_length']])
+                prefix = prefix_config.format(**variables_map)
+            else:
+                prefix = config['prefix']
+            new_seq = number_generator(key=prefix)
+        except KeyError, e:
+            msg = "KeyError in GenerateUniqueId on %s: %s" % (
+                    str(config), e)
+            raise RuntimeError(msg)
     variables_map['seq'] = new_seq + 1
     result = form.format(**variables_map)
     return result
