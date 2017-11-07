@@ -44,9 +44,13 @@ Functional Helpers::
     >>> def timestamp(format="%Y-%m-%d"):
     ...     return DateTime().strftime(format)
 
+    >>> def timestamp(format="%Y-%m-%d"):
+    ...     return DateTime().strftime(format)
+
 Variables::
 
     >>> date_now = timestamp()
+    >>> year = date_now.split('-')[0][2:]
     >>> sample_date = DateTime(2017, 1, 31)
     >>> portal = self.portal
     >>> request = self.request
@@ -126,7 +130,13 @@ Set up `ID Server` configuration::
     ...             'form': '{sampleId}-P{seq:d}',
     ...             'portal_type': 'SamplePartition',
     ...             'sequence_type': 'counter',
-    ...             'value': ''}
+    ...             'value': ''},
+    ...            {'form': 'B{year}-{seq:04d}',
+    ...             'portal_type': 'Batch',
+    ...             'prefix': 'batch',
+    ...             'sequence_type': 'generated',
+    ...             'split_length': 1,
+    ...             'value': ''},
     ...          ]
 
     >>> bika_setup.setIDFormatting(values)
@@ -177,6 +187,12 @@ Create a third `AnalysisRequest` with existing sample::
     >>> ar = create_analysisrequest(client, request, values, service_uids)
     >>> ar
     <AnalysisRequest at /plone/clients/client-1/water17-0002-R2>
+
+Create a forth `Batch`::
+    >>> batches = self.portal.batches
+    >>> batch = api.create(batches, "Batch", ClientID="RB")
+    >>> batch.getId() == "B{}-0001".format(year)
+    True
 
 Change ID formats and create new `AnalysisRequest`::
     >>> values = [
