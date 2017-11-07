@@ -90,11 +90,13 @@ def generateUniqueId(context, parent=False, portal_type=''):
         variables_map = {
             'sampleId': context.getSample().getId(),
             'sample': context.getSample(),
+            'year': DateTime().strftime("%Y")[2:],
         }
     elif portal_type == "SamplePartition":
         variables_map = {
             'sampleId': context.aq_parent.getId(),
             'sample': context.aq_parent,
+            'year': DateTime().strftime("%Y")[2:],
         }
     elif portal_type == "Sample" and parent:
         config = getConfigByPortalType(
@@ -103,6 +105,7 @@ def generateUniqueId(context, parent=False, portal_type=''):
         variables_map = {
             'sampleId': context.getId(),
             'sample': context,
+            'year': DateTime().strftime("%Y")[2:],
         }
     elif portal_type == "Sample":
         sampleDate = None
@@ -124,7 +127,9 @@ def generateUniqueId(context, parent=False, portal_type=''):
                 'sequence_type': 'generated',
                 'prefix': '%s' % portal_type.lower(),
             }
-        variables_map = {}
+        variables_map = {
+            'year': DateTime().strftime("%Y")[2:],
+            }
 
     # Actual id construction starts here
     form = config['form']
