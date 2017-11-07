@@ -1541,11 +1541,14 @@ class ajaxAnalysisRequestAddView(AnalysisRequestAddView):
                             unmet_dependencies[uid].append(self.get_base_info(dep))
                         else:
                             unmet_dependencies[uid] = [self.get_base_info(dep)]
+
+                # # XXX ALS COMMENTED these lines: (Solved AN-148 and AN-151)
+                # # seemingly with no ill effects
                 # remember the dependencies in the service metadata
-                service_metadata[uid].update({
-                    "dependencies": map(self.get_base_info, deps["dependencies"]),
-                    "dependants": map(self.get_base_info, deps["dependants"]),
-                })
+                # service_metadata[uid].update({
+                #     "dependencies": map(self.get_base_info, deps["dependencies"]),
+                #     "dependants": map(self.get_base_info, deps["dependants"]),
+                # })
 
             # Each key `n` (1,2,3...) contains the form data for one AR Add
             # column in the UI.
