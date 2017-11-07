@@ -170,7 +170,7 @@
           pgf = arbody.find('.first-page-footer').first();
           height = parseFloat($(pgf).outerHeight(true));
           if (height > mmTopx(dim.firstMarginBottom)) {
-            dim.firstMarginBottom = pxTomm(height) + 6;
+            dim.firstMarginBottom = pxTomm(height) + 10;
             dim.firstHeight = papersize.dimensions[1] - dim.marginTop - dim.firstMarginBottom;
           }
           first_footer_html = '<div class="first-page-footer">' + $(pgf).html() + '</div>';

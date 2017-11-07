@@ -144,7 +144,7 @@
     padding:2px 0px 2px 0px;
     font-weight: bold;
     width:100% !important;
-    border-right:1px solid #cdcdcd;
+    border:0 !important;
 }
 
 .signatories_header {
@@ -173,7 +173,7 @@ table.signatories th {
 }
 
 div.resultsinterpretation {
-    border: 1px solid #cdcdcd;
+    border: none !important;
     border-top: 10px solid #ffffff;
 }
 
