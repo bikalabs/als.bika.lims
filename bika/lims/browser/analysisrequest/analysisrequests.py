@@ -5,22 +5,22 @@
 # Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
-from plone import api
 from AccessControl import getSecurityManager
-from Products.CMFCore.permissions import ModifyPortalContent
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from bika.lims import bikaMessageFactory as _
-from bika.lims.utils import t
-from bika.lims.browser.bika_listing import BikaListingView
-from bika.lims.utils import getUsers
-from bika.lims.workflow import getTransitionDate
-from bika.lims.permissions import *
-from bika.lims.permissions import Verify as VerifyPermission
-from bika.lims.utils import to_utf8, getUsers
+
 from DateTime import DateTime
 from Products.Archetypes import PloneMessageFactory as PMF
-from plone.app.layout.globals.interfaces import IViewView
+from Products.CMFCore.permissions import ModifyPortalContent
 from Products.CMFCore.utils import getToolByName
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from bika.lims import bikaMessageFactory as _
+from bika.lims.browser.bika_listing import BikaListingView
+from bika.lims.permissions import *
+from bika.lims.permissions import Verify as VerifyPermission
+from bika.lims.utils import getUsers
+from bika.lims.utils import t
+from bika.lims.workflow import getTransitionDate
+from plone import api
+from plone.app.layout.globals.interfaces import IViewView
 from zope.interface import implements
 
 
@@ -816,7 +816,7 @@ class AnalysisRequestsView(BikaListingView):
             item['ClientContact'] = ""
 
         SamplingWorkflowEnabled = sample.getSamplingWorkflowEnabled()
-        if SamplingWorkflowEnabled and (not sd or not sd > DateTime()):
+        if SamplingWorkflowEnabled:
             datesampled = self.ulocalized_time(
                 sample.getDateSampled(), long_format=True)
             if not datesampled:
@@ -825,7 +825,7 @@ class AnalysisRequestsView(BikaListingView):
                 item['class']['getDateSampled'] = 'provisional'
             sampler = sample.getSampler().strip()
             if sampler:
-                item['replace']['getSampler'] = self.user_fullname(sampler)
+                item['getSampler'] = self.user_fullname(sampler)
             if 'Sampler' in member.getRoles() and not sampler:
                 sampler = member.id
                 item['class']['getSampler'] = 'provisional'
@@ -838,9 +838,8 @@ class AnalysisRequestsView(BikaListingView):
         # sampling workflow - inline edits for Sampler and Date Sampled
         checkPermission = self.context.portal_membership.checkPermission
         state = self.workflow.getInfoFor(obj, 'review_state')
-        if state == 'to_be_sampled' \
-                and checkPermission(SampleSample, obj) \
-                and (not sd or not sd > DateTime()):
+        if state not in ('verified', 'published', 'invalid', 'rejected') \
+                and checkPermission("Modify portal content", obj):
             item['required'] = ['getSampler', 'getDateSampled']
             item['allow_edit'] = ['getSampler', 'getDateSampled']
             samplers = getUsers(sample, ['Sampler', 'LabManager', 'Manager'])
