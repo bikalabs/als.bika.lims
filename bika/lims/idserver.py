@@ -116,7 +116,7 @@ def generateUniqueId(context, parent=False, portal_type=''):
         variables_map = {
             'clientId': context.aq_parent.getClientID(),
             'sampleDate': sampleDate,
-            'sampleType': api.normalize_filename(sampleType),
+            'sampleType': sampleType,
             'year': DateTime().strftime("%Y")[2:],
         }
     else:
@@ -140,10 +140,14 @@ def generateUniqueId(context, parent=False, portal_type=''):
     elif config['sequence_type'] == 'generated':
         try:
             if config.get('split_length', None) == 0:
-                prefix_config = '-'.join(form.split('-')[:-1])
+                prefix_config = '{}-{}'.format(portal_type.lower(),
+                                               '-'.join(form.split('-')[:-1]),
+                                               )
                 prefix = prefix_config.format(**variables_map)
             elif config.get('split_length', None) > 0:
-                prefix_config = '-'.join(form.split('-')[:config['split_length']])
+                prefix_config = '{}-{}'.format(
+                        portal_type.lower(),
+                        '-'.join(form.split('-')[:config['split_length']]))
                 prefix = prefix_config.format(**variables_map)
             else:
                 prefix = config['prefix']
@@ -154,7 +158,7 @@ def generateUniqueId(context, parent=False, portal_type=''):
             raise RuntimeError(msg)
     variables_map['seq'] = new_seq + 1
     result = form.format(**variables_map)
-    return result
+    return api.normalize_filename(result)
 
 
 def renameAfterCreation(obj):
