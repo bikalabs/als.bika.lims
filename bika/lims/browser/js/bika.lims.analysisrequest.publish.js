@@ -170,7 +170,7 @@
           pgf = arbody.find('.first-page-footer').first();
           height = parseFloat($(pgf).outerHeight(true));
           if (height > mmTopx(dim.firstMarginBottom)) {
-            dim.firstMarginBottom = pxTomm(height) + 10;
+            dim.firstMarginBottom = pxTomm(height) + 6;
             dim.firstHeight = papersize.dimensions[1] - dim.marginTop - dim.firstMarginBottom;
           }
           first_footer_html = '<div class="first-page-footer">' + $(pgf).html() + '</div>';
@@ -370,8 +370,9 @@
         }, 'slow');
         count = $('#ar_publish_container #report .ar_publish_body').length;
         $('#ar_publish_container #report .ar_publish_body').each(function() {
-          var rephtml, repstyle;
+          var coanr, rephtml, repstyle;
           rephtml = $(this).clone().wrap('<div>').parent().html();
+          coanr = $(rephtml).find('[name=coanr]').val();
           repstyle = $('#report-style').clone().wrap('<div>').parent().html();
           repstyle += $('#layout-style').clone().wrap('<div>').parent().html();
           repstyle += $('#layout-print').clone().wrap('<div>').parent().html();
@@ -387,7 +388,8 @@
               template: template,
               qcvisible: qcvisible,
               hvisible: hvisible,
-              style: repstyle
+              style: repstyle,
+              coanr: coanr
             }
           }).always(function() {
             if (!--count) {

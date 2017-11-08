@@ -40,6 +40,7 @@ class AnalysisRequestPublishedResults(BikaListingView):
             self.portal_url)
         self.title = self.context.translate(_("Published results"))
         self.columns = {
+            'COANR': {'title': _('COA NR')},
             'Date': {'title': _('Date')},
             'PublishedBy': {'title': _('Published By')},
             'Recipients': {'title': _('Recipients')},
@@ -50,6 +51,7 @@ class AnalysisRequestPublishedResults(BikaListingView):
              'title': 'All',
              'contentFilter': {},
              'columns': [
+                 'COANR',
                  'Date',
                  'PublishedBy',
                  'Recipients',
@@ -114,6 +116,8 @@ class AnalysisRequestPublishedResults(BikaListingView):
         links = ["<a href='mailto:{EmailAddress}'>{Fullname}</a>".format(**r)
                  for r in recipients if r['EmailAddress']]
         item['replace']['Recipients'] = ', '.join(links)
+
+        item['COANR'] = obj.getCOANR()
 
         # download link 'Download PDF (size)'
         dll = []

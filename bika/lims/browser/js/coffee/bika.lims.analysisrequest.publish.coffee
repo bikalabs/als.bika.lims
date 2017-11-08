@@ -402,6 +402,7 @@ window.AnalysisRequestPublishView = ->
             count = $('#ar_publish_container #report .ar_publish_body').length
             $('#ar_publish_container #report .ar_publish_body').each ->
                 rephtml = $(this).clone().wrap('<div>').parent().html()
+                coanr = $(rephtml).find('[name=coanr]').val();
                 repstyle = $('#report-style').clone().wrap('<div>').parent().html()
                 repstyle += $('#layout-style').clone().wrap('<div>').parent().html()
                 repstyle += $('#layout-print').clone().wrap('<div>').parent().html()
@@ -418,6 +419,7 @@ window.AnalysisRequestPublishView = ->
                         qcvisible: qcvisible
                         hvisible: hvisible
                         style: repstyle
+                        coanr: coanr
                 ).always ->
                     if !--count
                         location.href = backurl

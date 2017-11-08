@@ -4,10 +4,24 @@
 #
 # Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
-import csv
-from email.mime.base import MIMEBase
-
 import StringIO
+import csv
+import os
+import tempfile
+import time
+import traceback
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from operator import itemgetter
+from smtplib import SMTPRecipientsRefused, SMTPServerDisconnected
+
+import App
+from DateTime import DateTime
+from Products.CMFCore.WorkflowCore import WorkflowException
+from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.utils import _createObjectByType, safe_unicode
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from bika.lims import bikaMessageFactory as _, t
 from bika.lims import logger
 from bika.lims.browser import BrowserView
@@ -15,37 +29,19 @@ from bika.lims.config import POINTS_OF_CAPTURE
 from bika.lims.idserver import renameAfterCreation
 from bika.lims.interfaces import IAnalysisRequest
 from bika.lims.interfaces import IResultOutOfRange
+from bika.lims.utils import encode_header
+from bika.lims.utils import formatDecimalMark, format_supsub, to_utf8
 from bika.lims.utils import isnumber
-from bika.lims.utils import to_utf8, encode_header
-from bika.lims.utils import to_utf8, formatDecimalMark, format_supsub
 from bika.lims.utils.analysis import format_uncertainty
 from bika.lims.utils.pdf import attachPdf, createPdf
 from bika.lims.vocabularies import getARReportTemplates
-from DateTime import DateTime
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from email.Utils import formataddr
-from operator import itemgetter
-from pkg_resources import resource_filename
-from plone.registry.interfaces import IRegistry
-from plone.resource.utils import iterDirectoriesOfType, queryResourceDirectory
-from Products.CMFCore.utils import getToolByName
-from Products.CMFCore.WorkflowCore import WorkflowException
-from Products.CMFPlone.utils import safe_unicode, _createObjectByType
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from smtplib import SMTPServerDisconnected, SMTPRecipientsRefused
-from zope.component import getAdapters, getUtility
-
+from plone import api
 from plone.registry import Record
 from plone.registry import field
-from plone import api
-
-import App
-import os
-import re
-import tempfile
-import time
-import traceback
+from plone.registry.interfaces import IRegistry
+from plone.resource.utils import queryResourceDirectory
+from zope.component import getAdapters, getUtility
 
 
 class AnalysisRequestPublishView(BrowserView):
@@ -60,6 +56,8 @@ class AnalysisRequestPublishView(BrowserView):
         super(AnalysisRequestPublishView, self).__init__(context, request)
         self._publish = publish
         self._ars = [self.context]
+        self.context = context
+        self.request = request
         # Simple caching hack.  Various templates can allow these functions
         # to be called many thousands of times for relatively simple reports.
         # To prevent bad code from causing this, we cache all analysis data
@@ -942,6 +940,8 @@ class AnalysisRequestPublishView(BrowserView):
         debug_mode = App.config.getConfiguration().debug_mode
         wf = getToolByName(self.context, 'portal_workflow')
 
+        coanr = self.request.form.get('coanr', None)
+
         # The AR can be published only and only if allowed
         uc = getToolByName(self.context, 'uid_catalog')
         ars = [p.getObject() for p in uc(UID=ar_uids)]
@@ -961,6 +961,7 @@ class AnalysisRequestPublishView(BrowserView):
         csvdata = self.create_als_csv(ars)
 
         for ar in ars:
+
             # Generate in each relevant AR, a new ARReport
             reportid = ar.generateUniqueId('ARReport')
             report = _createObjectByType("ARReport", ar, reportid)
@@ -969,18 +970,19 @@ class AnalysisRequestPublishView(BrowserView):
                 Pdf=pdf_report,
                 Html=results_html,
                 CSV=csvdata,
+                COANR=coanr,
+                Recipients=self.get_arreport_recip_records(ar)
             )
             report.unmarkCreationFlag()
             renameAfterCreation(report)
 
             # Set blob properties for fields containing file data
+            fn = coanr if coanr else '_'.join([ar.Title() for ar in ars])
             fld = report.getField('Pdf')
-            fld.get(report).setFilename(
-                '_'.join([ar.Title() for ar in ars]) + ".pdf")
+            fld.get(report).setFilename(fn + ".pdf")
             fld.get(report).setContentType('application/pdf')
             fld = report.getField('CSV')
-            fld.get(report).setFilename(
-                '_'.join([ar.Title() for ar in ars]) + ".csv")
+            fld.get(report).setFilename(fn + ".csv")
             fld.get(report).setContentType('text/csv')
 
             # Modify the workflow state of each AR that's been published
@@ -1047,14 +1049,14 @@ class AnalysisRequestPublishView(BrowserView):
         mime_msg['To'] = ",".join(to)
 
         # Attach the pdf to the email
-        fn = "_".join([ar.Title() for ar in ars])
+        fn = "%s" % coanr
         attachPdf(mime_msg, pdf_report, fn)
 
         # Attach to email
+        fn = coanr if coanr else '_'.join([ar.Title() for ar in ars])
         part = MIMEBase('text', "csv")
-        fn = self.current_certificate_number()
-        part.add_header(
-            'Content-Disposition', 'attachment; filename="{}.csv"'.format(fn))
+        part.add_header('Content-Disposition',
+                        'attachment; filename="{}.csv"'.format(fn))
         part.set_payload(csvdata)
         mime_msg.attach(part)
 
@@ -1069,6 +1071,16 @@ class AnalysisRequestPublishView(BrowserView):
             raise WorkflowException(str(msg))
 
         return ars
+
+    def get_arreport_recip_records(self, ar):
+        recip_records = [
+            {'UID': r.UID(),
+             'Username': r.getUsername(),
+             'Fullname': r.getFullname(),
+             'EmailAddress': r.getEmailAddress(),
+             'PublicationModes': ','.join(r.getPublicationPreference())}
+            for r in [ar.getContact()] + ar.getCCContact()]
+        return recip_records
 
     def create_als_csv(self, ars):
         analyses = []
