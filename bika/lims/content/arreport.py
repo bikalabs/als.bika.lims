@@ -55,6 +55,20 @@ class ARReport(BaseFolder):
     displayContentsTab = False
     schema = schema
 
+    def Title(self):
+        coanr = self.getCOANR()
+        arid = self.aq_parent.getId()
+        if coanr:
+            return "{coanr}".format(**locals())
+        return "COA for {arid}".format(**locals())
+
+    def Description(self):
+        coanr = self.getCOANR()
+        arid = self.aq_parent.getId()
+        if coanr:
+            return "Certificate of Analysis: {coanr}".format(**locals())
+        return "Certificate of Analysis for {arid}".format(**locals())
+
     _at_rename_after_creation = True
     def _renameAfterCreation(self, check_auto_id=False):
         from bika.lims.idserver import renameAfterCreation
