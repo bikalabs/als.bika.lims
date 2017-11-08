@@ -91,6 +91,31 @@ class NumberGenerator(object):
         logger.debug("NUMBER after => %s" % storage.get(key, '-'))
         return storage[key]
 
+    def set_seed(self, key, seed=None):
+        """ get the next consecutive number
+        """
+        storage = self.storage
+
+        if seed:
+            try:
+                logger.debug("*** consecutive number lock acquire ***")
+                lock.acquire()
+                try:
+                    counter = storage[key]
+                    #storage[key] = counter + 1
+                    storage[key] = seed
+                except KeyError:
+                    storage[key] = seed
+                    logger.debug("NUMBER => %d" % storage[key])
+            finally:
+                logger.debug("*** consecutive number lock release ***")
+                self.storage._p_changed = True
+                lock.release()
+
+            logger.debug("In set_seed NUMBER => %d" % storage[key])
+        return storage[key]
+
+
     def generate_number(self, key="default"):
         """ get a number
         """
