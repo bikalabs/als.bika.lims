@@ -131,7 +131,7 @@ Set up `ID Server` configuration::
     ...             'portal_type': 'SamplePartition',
     ...             'sequence_type': 'counter',
     ...             'value': ''},
-    ...            {'form': 'B{year}-{seq:04d}',
+    ...            {'form': 'BÖ-{year}-{seq:04d}',
     ...             'portal_type': 'Batch',
     ...             'prefix': 'batch',
     ...             'sequence_type': 'generated',
@@ -191,7 +191,7 @@ Create a third `AnalysisRequest` with existing sample::
 Create a forth `Batch`::
     >>> batches = self.portal.batches
     >>> batch = api.create(batches, "Batch", ClientID="RB")
-    >>> batch.getId() == "B{}-0001".format(year)
+    >>> batch.getId() == "BA-{}-0001".format(year)
     True
 
 Change ID formats and create new `AnalysisRequest`::
