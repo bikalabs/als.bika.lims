@@ -116,7 +116,7 @@ def generateUniqueId(context, parent=False, portal_type=''):
         variables_map = {
             'clientId': context.aq_parent.getClientID(),
             'sampleDate': sampleDate,
-            'sampleType': api.normalize_filename(sampleType),
+            'sampleType': sampleType,
             'year': DateTime().strftime("%Y")[2:],
         }
     else:
@@ -154,7 +154,7 @@ def generateUniqueId(context, parent=False, portal_type=''):
             raise RuntimeError(msg)
     variables_map['seq'] = new_seq + 1
     result = form.format(**variables_map)
-    return api.normalize_id(result)
+    return api.normalize_filename(result)
 
 
 def renameAfterCreation(obj):
