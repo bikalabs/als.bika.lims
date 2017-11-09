@@ -111,8 +111,7 @@ class InstrumentResultsFileParser(Logger):
         """
         count = 0
         for val in self.getRawResults().values():
-            for row in val:
-                count += len(val)
+            count += len(val)
         return count
 
     def getAnalysesTotalCount(self):
