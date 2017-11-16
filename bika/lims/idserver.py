@@ -5,21 +5,25 @@
 # Copyright 2011-2017 by it's authors.
 # Some rights reserved. See LICENSE.txt, AUTHORS.txt.
 
-import zLOG
-import urllib
 import transaction
+import urllib
+import zLOG
 
-from zope.component import getUtility
-from zope.interface import implements
-from zope.container.interfaces import INameChooser
-
+import transaction
+import zLOG
 from DateTime import DateTime
 from Products.ATContentTypes.utils import DT2dt
+from OFS.CopySupport import CopyError
 
 from bika.lims import api
-# from bika.lims import logger
 from bika.lims import bikaMessageFactory as _
+from bika.lims import logger
+from bika.lims.interfaces import IIdServer
 from bika.lims.numbergenerator import INumberGenerator
+from zope.component import getAdapters
+from zope.component import getUtility
+from zope.container.interfaces import INameChooser
+from zope.interface import implements
 
 
 class IDServerUnavailable(Exception):
@@ -48,7 +52,9 @@ def idserver_generate_id(context, prefix, batch_size=None):
     except:
         from sys import exc_info
         info = exc_info()
-        zLOG.LOG('INFO', 0, '', 'generate_id raised exception: %s, %s \n ID server URL: %s' % (info[0], info[1], url))
+        msg = 'generate_id raised exception: {}, {} \n ID server URL: {}'
+        msg = msg.format(info[0], info[1], url)
+        zLOG.LOG('INFO', 0, '', msg)
         raise IDServerUnavailable(_('ID Server unavailable'))
 
     return new_id
@@ -58,8 +64,6 @@ def generateUniqueId(context, parent=False, portal_type=''):
     """ Generate pretty content IDs.
     """
 
-    if portal_type == '':
-        portal_type = context.portal_type
     def getLastCounter(context, config):
         if config.get('counter_type', '') == 'backreference':
             return len(context.getBackReferences(config['counter_reference'])) - 1
@@ -68,20 +72,56 @@ def generateUniqueId(context, parent=False, portal_type=''):
         else:
             raise RuntimeError('ID Server: missing values in configuration')
 
-    number_generator = getUtility(INumberGenerator)
-    # keys = number_generator.keys()
-    # values = number_generator.values()
-    # for i in range(len(keys)):
-    #     print '%s : %s' % (keys[i], values[i])
 
     def getConfigByPortalType(config_map, portal_type):
-        config = {}
+        config_by_pt = {}
         for c in config_map:
             if c['portal_type'] == portal_type:
-                config = c
+                config_by_pt = c
                 break
-        return config
+        return config_by_pt
 
+    def splitSliceJoin(string, separator="-", start=0, end=None):
+        """ split a string, slice out some segments and rejoin them
+        >>> splitSliceJoin(1)
+        None
+        >>> splitSliceJoin('B17-SAM-0001', start='1')
+        None
+        >>> splitSliceJoin('B17-SAM-0001', end='1')
+        None
+        >>> splitSliceJoin('B17-SAM-0001', start=2, end=1)
+        None
+        >>> splitSliceJoin('B17-SAM-0001')
+        'B17-SAM-0001'
+        >>> splitSliceJoin('B17-SAM-0001', start=1)
+        'SAM-0001'
+        >>> splitSliceJoin('B17-SAM-0001', start=1, end=2)
+        'SAM'
+        """
+        if not isinstance(string, basestring):
+            return None
+        if not isinstance(start, int):
+            return None
+        if end is not None:
+            if not isinstance(end, int):
+                return None
+            if start >= end:
+                return None
+        try:
+            segments = string.split(separator)
+            if end is None:
+                end = len(segments)
+            if end > len(segments):
+                return None
+            result = separator.join(segments[start:end])
+            result = api.normalize_filename(result)
+            return result
+        except KeyError:
+            return None
+
+    if portal_type == '':
+        portal_type = context.portal_type
+    number_generator = getUtility(INumberGenerator)
     config_map = api.get_bika_setup().getIDFormatting()
     config = getConfigByPortalType(
         config_map=config_map,
@@ -108,15 +148,29 @@ def generateUniqueId(context, parent=False, portal_type=''):
             'year': DateTime().strftime("%Y")[2:],
         }
     elif portal_type == "Sample":
-        sampleDate = None
         sampleType = context.getSampleType().getPrefix()
+
         if context.getSamplingDate():
-            sampleDate = DT2dt(context.getSamplingDate())
+            samplingDate = DT2dt(context.getSamplingDate())
+        else:
+            # No Sample Date?
+            logger.error("Sample {} has no sample date set".format(
+                context.getId()))
+            samplingDate = DT2dt(DateTime())
+
+        if context.getDateSampled():
+            dateSampled = DT2dt(context.getDateSampled())
+        else:
+            # No Sample Date?
+            logger.error("Sample {} has no sample date set".format(
+                context.getId()))
+            dateSampled = DT2dt(DateTime())
 
         variables_map = {
             'clientId': context.aq_parent.getClientID(),
-            'sampleDate': sampleDate,
-            'sampleType': api.normalize_filename(sampleType),
+            'dateSampled': dateSampled,
+            'samplingDate': samplingDate,
+            'sampleType': sampleType,
             'year': DateTime().strftime("%Y")[2:],
         }
     else:
@@ -129,9 +183,10 @@ def generateUniqueId(context, parent=False, portal_type=''):
             }
         variables_map = {
             'year': DateTime().strftime("%Y")[2:],
-            }
+        }
 
     # Actual id construction starts here
+    new_seq = 0
     form = config['form']
     if config['sequence_type'] == 'counter':
         new_seq = getLastCounter(
@@ -140,21 +195,30 @@ def generateUniqueId(context, parent=False, portal_type=''):
     elif config['sequence_type'] == 'generated':
         try:
             if config.get('split_length', None) == 0:
-                prefix_config = '-'.join(form.split('-')[:-1])
+                prefix_config = '{}-{}'.format(
+                        portal_type.lower(),
+                        splitSliceJoin(form, end=-1))
                 prefix = prefix_config.format(**variables_map)
-            elif config.get('split_length', None) > 0:
-                prefix_config = '-'.join(form.split('-')[:config['split_length']])
+            elif config.get('split_length', 0) > 0:
+                prefix_config = '{}-{}'.format(
+                        portal_type.lower(),
+                        splitSliceJoin(form, end=config['split_length']))
                 prefix = prefix_config.format(**variables_map)
             else:
                 prefix = config['prefix']
             new_seq = number_generator(key=prefix)
         except KeyError, e:
             msg = "KeyError in GenerateUniqueId on %s: %s" % (
-                    str(config), e)
+                str(config), e)
+            raise RuntimeError(msg)
+        except ValueError, e:
+            msg = "ValueError in GenerateUniqueId on %s with %s: %s" % (
+                str(config), str(variables_map), e)
             raise RuntimeError(msg)
     variables_map['seq'] = new_seq + 1
     result = form.format(**variables_map)
-    return result
+    logger.info('generateUniqueId: %s' % api.normalize_filename(result))
+    return api.normalize_filename(result)
 
 
 def renameAfterCreation(obj):
@@ -167,9 +231,23 @@ def renameAfterCreation(obj):
     # Can't rename without a subtransaction commit when using portal_factory
     transaction.savepoint(optimistic=True)
     # The id returned should be normalized already
-    new_id = generateUniqueId(obj)
-    # Remember the new id in the _bika_id attribute
-    obj._bika_id = new_id
-    # Rename the content
-    obj.aq_inner.aq_parent.manage_renameObject(obj.id, new_id)
+    new_id = None
+    # Checking if an adapter exists for this content type. If yes, we will
+    # get new_id from adapter.
+    for name, adapter in getAdapters((obj, ), IIdServer):
+        if new_id:
+            logger.warn(('More than one ID Generator Adapter found for'
+                         'content type -> %s') % obj.portal_type)
+        new_id = adapter.generate_id(obj.portal_type)
+    if not new_id:
+        new_id = generateUniqueId(obj)
+
+    parent = api.get_parent(obj)
+    if new_id in parent.objectIds():
+        # XXX We could do the check in a `while` loop and generate a new one.
+        raise KeyError("The ID {} is already taken in the path {}".format(
+            new_id, api.get_path(parent)))
+    # rename the object to the new id
+    parent.manage_renameObject(obj.id, new_id)
+
     return new_id
