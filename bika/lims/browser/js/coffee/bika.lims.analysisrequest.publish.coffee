@@ -16,11 +16,11 @@
 # content must be wrapped in a <div/>!
 
 mmTopx = (mm) ->
-    px = parseFloat(mm * $('<div style="height:1mm"/>').height())
+    px = mm * 3.779527559055
     if px > 0 then Math.ceil(px) else Math.floor(px)
 
 pxTomm = (px) ->
-    mm = parseFloat(px / $('<div style="height:1mm"/>').height())
+    mm = px / 3.779527559055
     if mm > 0 then Math.floor(mm) else Math.ceil(mm)
 
 #

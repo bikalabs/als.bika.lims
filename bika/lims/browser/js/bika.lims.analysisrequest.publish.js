@@ -8,7 +8,7 @@
 
   mmTopx = function(mm) {
     var px;
-    px = parseFloat(mm * $('<div style="height:1mm"/>').height());
+    px = mm * 3.779527559055;
     if (px > 0) {
       return Math.ceil(px);
     } else {
@@ -18,7 +18,7 @@
 
   pxTomm = function(px) {
     var mm;
-    mm = parseFloat(px / $('<div style="height:1mm"/>').height());
+    mm = px / 3.779527559055;
     if (mm > 0) {
       return Math.floor(mm);
     } else {
