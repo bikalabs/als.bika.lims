@@ -4,9 +4,12 @@ from zope.component import getUtility
 
 
 class IDServerView(BrowserView):
+    """ This browser view is to house ID Server related functions
+    """
 
     def seed(self):
-        """ You seed at 100, object added will start at 101
+        """ Reset the number from which the next generated sequence start.
+            If you seed at 100, next seed will be 101
         """
         form = self.request.form
         prefix = form.get('prefix', None)
@@ -15,8 +18,12 @@ class IDServerView(BrowserView):
         seed = form.get('seed', None)
         if seed is None:
             return 'No seed provided'
-
-        seed = int(seed) - 1
+        if not seed.isdigit():
+            return 'Seed must be a digit'
+        seed = int(seed)
+        if seed < 0:
+            return 'Seed cannot be negative'
+        seed = seed - 1
         number_generator = getUtility(INumberGenerator)
-        new_seq = number_generator.set_seed(key=prefix, seed=seed)
+        new_seq = number_generator.set_number(key=prefix, value=seed)
         return 'IDServerView: "%s" seeded to %s' % (prefix, new_seq)

@@ -167,7 +167,8 @@ class ReferenceAnalysesView(AnalysesView):
         service = obj.getService()
         item['Category'] = service.getCategoryTitle()
         item['Service'] = service.Title()
-        item['Captured'] = self.ulocalized_time(obj.getResultCaptureDate())
+        capture_date = obj.getResultCaptureDate()
+        item['Captured'] = self.ulocalized_time(capture_date)
         brefs = obj.getBackReferences("WorksheetAnalysis")
         ws = brefs[0] if brefs else ''
         item['Worksheet'] = ws and ws.Title() or ''
@@ -176,6 +177,7 @@ class ReferenceAnalysesView(AnalysesView):
         # they are not actually used in the table rendering.
         item['Keyword'] = service.getKeyword()
         item['Unit'] = service.getUnit()
+        item['CapturedRaw'] = capture_date and capture_date.strftime('%Y-%m-%d %I:%M %p') or ''
 
         if ws:
             item['replace']['Worksheet'] = \
