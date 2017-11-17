@@ -222,8 +222,9 @@ window.AnalysisRequestPublishView = ->
                     # Add page header if required
                     $(header_html).insertBefore div
                     elTopOffset = div.position().top
-                    # XXX The first page (in PDF) bleeds over to the next page. Since I can't figure out why, I compensate here manually.
-                    elTopOffset = elTopOffset - 20
+                    # XXX The first page (in PDF) bleeds over to the next page.
+                    # Since I can't figure out why, I compensate here manually.
+                    elTopOffset = elTopOffset - 100
                 # The current element is taller than the maximum?
                 if elHeight > pageHeight
                     console.warn 'Element with id ' + div.attr('id') + ' has a height above the maximum: ' + elHeight
