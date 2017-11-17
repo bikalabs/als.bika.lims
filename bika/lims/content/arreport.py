@@ -56,6 +56,8 @@ class ARReport(BaseFolder):
     schema = schema
 
     def Title(self):
+        if len(self.getId()) == 0:
+            return "COAReport has no ID"
         coanr = self.getCOANR()
         arid = self.aq_parent.getId()
         if coanr:
@@ -63,6 +65,8 @@ class ARReport(BaseFolder):
         return "COA for {arid}".format(**locals())
 
     def Description(self):
+        if len(self.getId()) == 0:
+            return "COAReport has no ID"
         coanr = self.getCOANR()
         arid = self.aq_parent.getId()
         if coanr:
