@@ -224,7 +224,7 @@ window.AnalysisRequestPublishView = ->
                     elTopOffset = div.position().top
                     # XXX The first page (in PDF) bleeds over to the next page.
                     # Since I can't figure out why, I compensate here manually.
-                    elTopOffset = elTopOffset - 100
+                    elTopOffset = elTopOffset - 50
                 # The current element is taller than the maximum?
                 if elHeight > pageHeight
                     console.warn 'Element with id ' + div.attr('id') + ' has a height above the maximum: ' + elHeight

@@ -204,7 +204,7 @@
           if (elCurrent === null) {
             $(header_html).insertBefore(div);
             elTopOffset = div.position().top;
-            elTopOffset = elTopOffset - 100;
+            elTopOffset = elTopOffset - 50;
           }
           if (elHeight > pageHeight) {
             console.warn('Element with id ' + div.attr('id') + ' has a height above the maximum: ' + elHeight);
