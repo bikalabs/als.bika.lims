@@ -16,6 +16,7 @@
                           acc_logo         python:lab.getAccreditationBodyLogo();">
 
     <div id="section-info">
+      <!-- This is required -->
       <input type="hidden" name="coanr" tal:attributes="value python:coanr"/>
 
       <div id="section-info-heading">

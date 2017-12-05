@@ -1,5 +1,8 @@
-<tal:report tal:define="analysisrequest python:view.getAnalysisRequest();">
+<tal:report tal:define="coanr           python:view.next_certificate_number();
+                        analysisrequest python:view.getAnalysisRequest();">
   <h1>TAL Field Reference for the development of new Results Templates</h1>
+  <!-- This is required -->
+  <input type="hidden" name="coanr" tal:attributes="value python:coanr"/>
   <p>
     All data is available using the analysisrequest dictionary.
     Example for accessing and displaying data:
